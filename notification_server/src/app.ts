@@ -6,6 +6,7 @@ import { logger } from './logger.js';
 import { config } from './config.js';
 import type { ApiResponse } from './types.js';
 import { router } from './routes.js';
+import { patientRouter } from './patients/patient.routes.js';
 
 const app: Application = express();
 
@@ -34,6 +35,7 @@ const limiter = rateLimit({
 });
 
 app.use('/notify', limiter);
+app.use('/patients', patientRouter); 
 
 app.use((req: Request, _res: Response, next: NextFunction) => {
     logger.info({ method: req.method, url: req.url, ip: req.ip }, 'Incoming request');

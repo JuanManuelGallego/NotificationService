@@ -1,0 +1,31 @@
+// This is your Prisma schema file.
+// Run `npx prisma migrate dev --name init` after setting DATABASE_URL in .env
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Patient {
+  id              String   @id @default(uuid()) @db.Uuid
+  name            String   @db.VarChar(100)
+  lastName        String   @db.VarChar(100)
+  whatsappNumber  String?  @db.VarChar(20)
+  smsNumber       String?  @db.VarChar(20)
+  email           String   @unique @db.VarChar(255)
+  status          PatientStatus @default(ACTIVE)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("patients")
+}
+
+enum PatientStatus {
+  ACTIVE
+  INACTIVE
+  ARCHIVED
+}
