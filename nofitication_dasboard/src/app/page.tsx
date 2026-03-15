@@ -358,7 +358,7 @@ export default function NotificationsPage() {
                           fontSize: 12, fontWeight: 700, color: "#1E3A5F", flexShrink: 0,
                         }}>{appt.patient.avatar}</div>
                         <div>
-                          <div style={{ fontSize: 14, fontWeight: 600, color: "#111827" }}>{appt.patient.name}</div>
+                          <div style={{ fontSize: 14, fontWeight: 600, color: "#111827" }}>{appt.patient.name} {appt.patient.lastName}</div>
                           <div style={{ fontSize: 12, color: "#9CA3AF" }}>{appt.patient.email}</div>
                         </div>
                       </div>

@@ -15,6 +15,12 @@ export const btnPrimary: React.CSSProperties = {
     cursor: "pointer", letterSpacing: "0.01em",
 };
 
+export const btnDisabled: React.CSSProperties = {
+    padding: "10px 22px", background: "#1E3A5F", color: "#fff",
+    border: "none", borderRadius: 10, fontSize: 14, fontWeight: 600,
+    cursor: "not-allowed", opacity: 0.7, letterSpacing: "0.01em",
+}
+
 export const btnSecondary: React.CSSProperties = {
     padding: "10px 22px", background: "#F3F4F6", color: "#374151",
     border: "none", borderRadius: 10, fontSize: 14, fontWeight: 600, cursor: "pointer",

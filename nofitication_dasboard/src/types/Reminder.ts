@@ -4,8 +4,13 @@ export enum Channel {
     EMAIL = "email"
 }
 
-export const CHANNEL_ICON: Record<Channel, string> = { [Channel.WHATSAPP]: "💬", [Channel.SMS]: "📱", [Channel.EMAIL]: "✉️" };
-export const CHANNEL_LABEL: Record<Channel, string> = { [Channel.WHATSAPP]: "WhatsApp", [Channel.SMS]: "SMS", [Channel.EMAIL]: "Email" };
+export enum ReminderMode {
+    NOW = "now",
+    SCHEDULED = "scheduled",
+}
+
+export const CHANNEL_ICON: Record<Channel, string> = { [ Channel.WHATSAPP ]: "💬", [ Channel.SMS ]: "📱", [ Channel.EMAIL ]: "✉️" };
+export const CHANNEL_LABEL: Record<Channel, string> = { [ Channel.WHATSAPP ]: "WhatsApp", [ Channel.SMS ]: "SMS", [ Channel.EMAIL ]: "Email" };
 
 export type ReminderStatus = "scheduled" | "sent" | "failed" | "pending" | "canceled";
 

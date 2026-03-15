@@ -1,9 +1,9 @@
 import { useState } from "react";
-import { lbl, inp, btnSecondary, btnPrimary } from "../styles/theme";
+import { lbl, inp, btnSecondary, btnPrimary, btnDisabled } from "../styles/theme";
 import { API_BASE } from "../types/API";
 import { APPOINTMENT_TYPES } from "../types/Appointment";
 import { Patient } from "../types/Patient";
-import { ScheduledReminderJob, CHANNEL_LABEL, CHANNEL_ICON, Channel } from "../types/Reminder";
+import { ScheduledReminderJob, CHANNEL_LABEL, CHANNEL_ICON, Channel, ReminderMode } from "../types/Reminder";
 import { getAvatarColor, getInitials } from "../utils/AvatarHelper";
 import { fmtDateTime } from "../utils/TimeUtils";
 
@@ -17,7 +17,7 @@ export function ReminderModal({
 }) {
     const isEdit = !!job;
     const [ step, setStep ] = useState(1);
-    const [ mode, setMode ] = useState<"now" | "scheduled">("scheduled");
+    const [ mode, setMode ] = useState<ReminderMode>(ReminderMode.NOW);
     const [ saving, setSaving ] = useState(false);
     const [ error, setError ] = useState<string | null>(null);
     const [ form, setForm ] = useState({
@@ -27,6 +27,10 @@ export function ReminderModal({
         sendAt: "",
         appointmentType: "",
     });
+
+    const isValid = step === 1
+        ? !!form.patientId && !!form.appointmentType
+        : step === 2 ? !!form.channel && !!form.message.trim() : mode === ReminderMode.SCHEDULED ? !!form.sendAt : true;
 
     const selectedPatient = patients.find(p => p.id === form.patientId);
 
@@ -43,9 +47,13 @@ export function ReminderModal({
         if (!form.message.trim()) throw new Error("El mensaje no puede estar vacío");
 
         return {
-            channel: form.channel,
-            payload: { to, body: form.message },
-            ...(mode === "scheduled" && { sendAt: new Date(form.sendAt).toISOString() }),
+            to,
+            contentSid: "HXb5b62575e6e4ff6129ad7c8efe1f983e",
+            contentVariables: {
+                "1": "12/1",
+                "2": "3pm"
+            },
+            ...(mode === ReminderMode.SCHEDULED && { sendAt: new Date(form.sendAt).toISOString() }),
         };
     }
 
@@ -53,14 +61,14 @@ export function ReminderModal({
         setSaving(true); setError(null);
         try {
             const body = buildPayload();
-            const url = mode === "now"
+            const url = mode === ReminderMode.NOW
                 ? `${API_BASE}/notify/${form.channel}`
                 : `${API_BASE}/notify/schedule`;
 
             const res = await fetch(url, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(mode === "now" ? body.payload : body),
+                body: JSON.stringify(body),
             });
             const json = await res.json();
             if (!res.ok || !json.success) throw new Error(json.error ?? "Error al guardar");
@@ -72,7 +80,7 @@ export function ReminderModal({
         }
     }
 
-    const totalSteps = mode === "scheduled" ? 3 : 2;
+    const totalSteps = mode === ReminderMode.SCHEDULED ? 3 : 2;
 
     return (
         <div style={{
@@ -107,13 +115,12 @@ export function ReminderModal({
                 )}
                 {step === 1 && (
                     <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
-                        {/* Send mode toggle */}
                         <div>
                             <div style={{ fontSize: 13, fontWeight: 600, color: "#374151", marginBottom: 10 }}>Tipo de envío</div>
                             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
                                 {([
-                                    { key: "now", icon: "⚡", title: "Enviar ahora", sub: "Se envía inmediatamente" },
-                                    { key: "scheduled", icon: "🗓️", title: "Programar envío", sub: "Elegir fecha y hora" },
+                                    { key: ReminderMode.NOW, icon: "⚡", title: "Enviar ahora", sub: "Se envía inmediatamente" },
+                                    { key: ReminderMode.SCHEDULED, icon: "🗓️", title: "Programar envío", sub: "Elegir fecha y hora" },
                                 ] as const).map(opt => (
                                     <button key={opt.key} onClick={() => setMode(opt.key)} style={{
                                         display: "flex", flexDirection: "column", alignItems: "flex-start",
@@ -212,7 +219,7 @@ export function ReminderModal({
                         </label>
                     </div>
                 )}
-                {step === 3 && mode === "scheduled" && (
+                {step === 3 && mode === ReminderMode.SCHEDULED && (
                     <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
                         <label style={lbl}>
                             Fecha y hora de envío
@@ -243,9 +250,9 @@ export function ReminderModal({
                 <div style={{ display: "flex", justifyContent: "flex-end", gap: 10, marginTop: 28 }}>
                     {step > 1 && <button onClick={() => setStep(s => s - 1)} style={btnSecondary} disabled={saving}>Atrás</button>}
                     {step < totalSteps
-                        ? <button onClick={() => { setError(null); setStep(s => s + 1); }} style={btnPrimary}>Continuar →</button>
+                        ? <button onClick={() => { setError(null); setStep(s => s + 1); }} disabled={!isValid} style={isValid ? btnPrimary : btnDisabled}>Continuar →</button>
                         : <button onClick={handleSubmit} disabled={saving} style={{ ...btnPrimary, opacity: saving ? 0.7 : 1 }}>
-                            {saving ? "Enviando…" : mode === "now" ? "⚡ Enviar ahora" : "🗓️ Programar"}
+                            {saving ? "Enviando…" : mode === ReminderMode.NOW ? "⚡ Enviar ahora" : "🗓️ Programar"}
                         </button>
                     }
                 </div>

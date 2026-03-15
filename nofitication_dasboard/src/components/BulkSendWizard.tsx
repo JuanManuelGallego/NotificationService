@@ -2,7 +2,7 @@ import { useState } from "react";
 import { lbl, inp, btnPrimary, btnSecondary, thStyle, tdStyle } from "../styles/theme";
 import { API_BASE } from "../types/API";
 import { Patient } from "../types/Patient";
-import { BulkRemindersResult, Channel, CHANNEL_ICON, CHANNEL_LABEL } from "../types/Reminder";
+import { BulkRemindersResult, Channel, CHANNEL_ICON, CHANNEL_LABEL, ReminderMode } from "../types/Reminder";
 import { getAvatarColor, getInitials } from "../utils/AvatarHelper";
 import { ChannelBadge } from "./ChannelIcon";
 
@@ -10,7 +10,7 @@ export function BulkSendWizard({ patients }: { patients: Patient[] }) {
     const [ step, setStep ] = useState(1);
     const [ channel, setChannel ] = useState<Channel>(Channel.WHATSAPP);
     const [ message, setMessage ] = useState("");
-    const [ mode, setMode ] = useState<"now" | "scheduled">("now");
+    const [ mode, setMode ] = useState<ReminderMode>(ReminderMode.NOW);
     const [ sendAt, setSendAt ] = useState("");
     const [ selected, setSelected ] = useState<Set<string>>(new Set());
     const [ sending, setSending ] = useState(false);
@@ -39,11 +39,11 @@ export function BulkSendWizard({ patients }: { patients: Patient[] }) {
         const res: BulkRemindersResult[] = [];
         for (const pid of selected) {
             const p = patients.find(x => x.id === pid)!;
-            const to = channel === "whatsapp" ? p.whatsappNumber : p.smsNumber;
+            const to = channel === Channel.WHATSAPP ? p.whatsappNumber : p.smsNumber;
             if (!to) { res.push({ patientId: pid, name: `${p.name} ${p.lastName}`, channel, status: "skipped", reason: "Sin número" }); continue; }
             try {
-                const url = mode === "now" ? `${API_BASE}/notify/${channel}` : `${API_BASE}/notify/schedule`;
-                const body = mode === "now"
+                const url = mode === ReminderMode.NOW ? `${API_BASE}/notify/${channel}` : `${API_BASE}/notify/schedule`;
+                const body = mode === ReminderMode.NOW
                     ? { to, body: message }
                     : { channel, payload: { to, body: message }, sendAt: new Date(sendAt).toISOString() };
                 const r = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
@@ -112,8 +112,8 @@ export function BulkSendWizard({ patients }: { patients: Patient[] }) {
                         <div style={{ fontSize: 15, fontWeight: 600, color: "#111827", marginBottom: 14 }}>Tipo de envío</div>
                         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                             {([
-                                { k: "now", icon: "⚡", title: "Enviar ahora", sub: "Envío inmediato a todos" },
-                                { k: "scheduled", icon: "🗓️", title: "Programar envío", sub: "Elegir fecha y hora" },
+                                { k: ReminderMode.NOW, icon: "⚡", title: "Enviar ahora", sub: "Envío inmediato a todos" },
+                                { k: ReminderMode.SCHEDULED, icon: "🗓️", title: "Programar envío", sub: "Elegir fecha y hora" },
                             ] as const).map(opt => (
                                 <button key={opt.k} onClick={() => setMode(opt.k)} style={{
                                     display: "flex", flexDirection: "column", gap: 4, padding: "14px 18px",
@@ -127,7 +127,7 @@ export function BulkSendWizard({ patients }: { patients: Patient[] }) {
                             ))}
                         </div>
                     </div>
-                    {mode === "scheduled" && (
+                    {mode === ReminderMode.SCHEDULED && (
                         <label style={lbl}>
                             Fecha y hora de envío
                             <input type="datetime-local" style={inp} value={sendAt} onChange={e => setSendAt(e.target.value)} min={new Date().toISOString().slice(0, 16)} />
@@ -241,7 +241,7 @@ export function BulkSendWizard({ patients }: { patients: Patient[] }) {
                                     <span style={{ width: 14, height: 14, border: "2px solid rgba(255,255,255,0.3)", borderTopColor: "#fff", borderRadius: "50%", animation: "spin 0.7s linear infinite", display: "inline-block" }} />
                                     Enviando {results.length}/{selected.size}…
                                 </>
-                            ) : `${mode === "now" ? "⚡ Enviar" : "🗓️ Programar"} a ${selected.size} pacientes`}
+                            ) : `${mode === ReminderMode.NOW ? "⚡ Enviar" : "🗓️ Programar"} a ${selected.size} pacientes`}
                         </button>
                     </div>
                 </div>

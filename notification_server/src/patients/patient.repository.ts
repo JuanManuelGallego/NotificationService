@@ -1,4 +1,4 @@
-import { Prisma, type Patient } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 import { prisma } from '../prismaClient.js';
 import type { CreatePatientDto, UpdatePatientDto, ListPatientsQuery } from './patient.schemas.js';
 
@@ -19,6 +19,15 @@ export class PatientEmailConflictError extends Error {
 }
 
 // ─── Paginated result type ────────────────────────────────────────────────────
+export interface Patient {
+  id: string,
+  name: string,
+  lastName: string,
+  whatsappNumber: string,
+  smsNumber: string | null,
+  email: string,
+  status: string,
+}
 
 export interface PaginatedPatients {
   data: Patient[];
