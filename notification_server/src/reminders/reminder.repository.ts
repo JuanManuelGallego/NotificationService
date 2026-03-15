@@ -1,4 +1,4 @@
-import { Prisma, type Reminder, type ReminderChannel } from '@prisma/client';
+import { Prisma, ReminderStatus, type Reminder, type ReminderChannel } from '@prisma/client';
 import { prisma } from '../prisma/prismaClient.js';
 import type { CreateReminderDto, UpdateReminderDto, ListRemindersQuery } from './reminder.schemas.js';
 import { ReminderNotFoundError, ReminderNotCancellableError } from '../utils/errors.js';
@@ -18,7 +18,7 @@ export const reminderRepository = {
         contentSid: dto.contentSid ?? null,
         sendAt: new Date(dto.sendAt),
         scheduledAt: dto.scheduledAt ? new Date(dto.scheduledAt) : null,
-        status: 'PENDING',
+        status: dto.status ?? ReminderStatus.PENDING,
       },
     });
   },

@@ -3,7 +3,7 @@ import { Patient } from '@/src/types/Patient';
 import Sidebar from '../../components/Sidebar';
 import { useState, useEffect, useCallback } from "react";
 import { API_BASE } from '@/src/types/API';
-import { ScheduledReminderJob } from '@/src/types/Reminder';
+import { Reminder, ReminderStatus, ScheduledReminderJob } from '@/src/types/Reminder';
 import { btnPrimary, thStyle, tdStyle } from '@/src/styles/theme';
 import { fmtDateTime, fmtRelative } from '@/src/utils/TimeUtils';
 import { ReminderStatusPill } from '@/src/components/StatusPill';
@@ -14,30 +14,30 @@ import { ReminderModal } from '@/src/components/ReminderModal';
 import { EditScheduledReminderJobModal } from '@/src/components/EditScheduledReminderJobModal';
 import { BulkSendWizard } from '@/src/components/BulkSendWizard';
 import { EmptyState } from '@/src/components/EmptyState';
+import { SkeletonRow } from '@/src/components/Skeleton';
 
 type ActiveTab = "Active" | "History" | "Bulk";
 
-export default function RecordatoriosPage() {
+export default function RemindersPage() {
     const [ activeTab, setActiveTab ] = useState<ActiveTab>("Active");
-    const [ jobs, setJobs ] = useState<ScheduledReminderJob[]>([]);
+    const [ reminders, setReminders ] = useState<Reminder[]>([])
     const [ patients, setPatients ] = useState<Patient[]>([]);
-    const [ loadingJobs, setLoadingJobs ] = useState(true);
-    const [ errorJobs, setErrorJobs ] = useState<string | null>(null);
+    const [ loadingReminders, setLoadingReminders ] = useState(true);
+    const [ errorReminders, setErrorReminders ] = useState<string | null>(null);
     const [ showCreate, setShowCreate ] = useState(false);
-    const [ editJob, setEditJob ] = useState<ScheduledReminderJob | null>(null);
+    const [ editReminder, setEditReminder ] = useState<ScheduledReminderJob | null>(null);
     const [ search, setSearch ] = useState("");
 
-    const fetchJobs = useCallback(async () => {
-        setLoadingJobs(true); setErrorJobs(null);
+    const fetchReminders = useCallback(async () => {
+        setLoadingReminders(true); setErrorReminders(null);
         try {
-            const res = await fetch(`${API_BASE}/notify/schedule`);
+            const res = await fetch(`${API_BASE}/reminders`);
             const json = await res.json();
             if (!res.ok || !json.success) throw new Error(json.error ?? "Error al cargar recordatorios");
-            setJobs(json.data.jobs ?? []);
+            setReminders(json.data.data as Reminder[] || []);
         } catch (err) {
-            setErrorJobs(err instanceof Error ? err.message : "Error desconocido");
-        } finally { setLoadingJobs(false); }
-    }, []);
+            setErrorReminders(err instanceof Error ? err.message : "Error desconocido");
+        } finally { setLoadingReminders(false); }    }, []);
 
     const fetchPatients = useCallback(async () => {
         try {
@@ -47,41 +47,31 @@ export default function RecordatoriosPage() {
         } catch { }
     }, []);
 
-    useEffect(() => { fetchJobs(); fetchPatients(); }, [ fetchJobs, fetchPatients ]);
+    useEffect(() => { fetchPatients(); fetchReminders(); }, [ fetchPatients, fetchReminders ]);
 
     async function cancelJob(id: string) {
         try {
             await fetch(`${API_BASE}/notify/schedule/${id}`, { method: "DELETE" });
-            fetchJobs();
+            fetchReminders();
         } catch { }
     }
 
-    const active = jobs.filter(j => j.status === "pending");
-    const history = jobs.filter(j => j.status !== "pending");
+    const active = reminders.filter(reminder => reminder.status === ReminderStatus.PENDING);
+    const history = reminders.filter(reminder => reminder.status !== ReminderStatus.PENDING);
 
-    const filteredActive = active.filter(j =>
-        !search || (j.to ?? "").includes(search) || j.channel.includes(search)
+    const filteredActive = active.filter(reminder =>
+        !search || (reminder.to ?? "").includes(search) || reminder.channel.includes(search)
     );
-    const filteredHistory = history.filter(j =>
-        !search || (j.to ?? "").includes(search) || j.channel.includes(search)
+    const filteredHistory = history.filter(reminder =>
+        !search || (reminder.to ?? "").includes(search) || reminder.channel.includes(search)
     );
 
     const counts = {
         active: active.length,
-        sent: jobs.filter(j => j.status === "sent").length,
-        failed: jobs.filter(j => j.status === "failed").length,
-        cancelled: jobs.filter(j => j.status === "canceled").length,
+        sent: reminders.filter(reminder => reminder.status === ReminderStatus.SENT).length,
+        failed: reminders.filter(reminder => reminder.status === ReminderStatus.FAILED).length,
+        cancelled: reminders.filter(reminder => reminder.status === ReminderStatus.CANCELED).length,
     };
-
-    const SkeletonRow = () => (
-        <tr>
-            {[ 160, 100, 140, 120, 80, 90 ].map((w, i) => (
-                <td key={i} style={tdStyle}>
-                    <div style={{ height: 13, width: w, borderRadius: 6, background: "linear-gradient(90deg, #F3F4F6 25%, #E9EAEC 50%, #F3F4F6 75%)", backgroundSize: "200% 100%", animation: "shimmer 1.4s infinite" }} />
-                </td>
-            ))}
-        </tr>
-    );
 
     return (
         <>
@@ -166,7 +156,7 @@ export default function RecordatoriosPage() {
                             />
                         </div>
                     )}
-                    {errorJobs && activeTab !== "Bulk" && <ErrorBanner msg={errorJobs} onRetry={fetchJobs} />}
+                    {errorReminders && activeTab !== "Bulk" && <ErrorBanner msg={errorReminders} onRetry={fetchReminders} />}
                     {activeTab === "Active" && (
                         <div style={{ background: "#fff", borderRadius: 16, boxShadow: "0 1px 3px rgba(0,0,0,0.06)", overflow: "hidden", animation: "fadeIn 0.25s ease" }}>
                             <table style={{ width: "100%", borderCollapse: "collapse" }}>
@@ -178,40 +168,41 @@ export default function RecordatoriosPage() {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {loadingJobs && Array.from({ length: 4 }).map((_, i) => <SkeletonRow key={i} />)}
-                                    {!loadingJobs && filteredActive.map((job, i) => (
-                                        <tr key={job.id} style={{ borderBottom: i < filteredActive.length - 1 ? "1px solid #F3F4F6" : "none" }}>
+                                    {loadingReminders && Array.from({ length: 4 }).map((_, i) => <SkeletonRow key={i} />)}
+                                    {!loadingReminders && filteredActive.map((reminder, i) => (
+                                        <tr key={reminder.id} style={{ borderBottom: i < filteredActive.length - 1 ? "1px solid #F3F4F6" : "none" }}>
                                             <td style={tdStyle}>
-                                                <div style={{ fontSize: 14, fontWeight: 600, color: "#111827" }}>{job.to ?? "—"}</div>
-                                                <div style={{ fontSize: 11, color: "#9CA3AF", fontFamily: "monospace" }}>{job.id.slice(0, 10)}…</div>
+                                                {/* TODO: Change for Patient full name when available */}
+                                                <div style={{ fontSize: 14, fontWeight: 600, color: "#111827" }}>{patients.find(p => p.whatsappNumber === reminder.to)?.name ?? "—"} {patients.find(p => p.whatsappNumber === reminder.to)?.lastName ?? "—"}</div>
+                                                <div style={{ fontSize: 11, color: "#9CA3AF", fontFamily: "monospace" }}>{reminder.to}</div>
                                             </td>
-                                            <td style={tdStyle}><ChannelBadge channel={job.channel} /></td>
-                                            <td style={tdStyle}><ReminderStatusPill status={job.status} /></td>
-                                            <td style={{ ...tdStyle, fontSize: 13, color: "#374151" }}>{fmtDateTime(job.sendAt)}</td>
+                                            <td style={tdStyle}><ChannelBadge channel={reminder.channel} /></td>
+                                            <td style={tdStyle}><ReminderStatusPill status={reminder.status} /></td>
+                                            <td style={{ ...tdStyle, fontSize: 13, color: "#374151" }}>{fmtDateTime(reminder.sendAt)}</td>
                                             <td style={{ ...tdStyle, fontSize: 13, color: "#6B7280", whiteSpace: "nowrap" }}>
                                                 <span style={{ background: "#EFF6FF", color: "#2563EB", padding: "3px 9px", borderRadius: 20, fontSize: 12, fontWeight: 600 }}>
-                                                    {fmtRelative(job.sendAt)}
+                                                    {fmtRelative(reminder.sendAt)}
                                                 </span>
                                             </td>
-                                            <td style={{ ...tdStyle, fontSize: 13, color: "#9CA3AF" }}>{fmtDateTime(job.scheduledAt)}</td>
+                                            <td style={{ ...tdStyle, fontSize: 13, color: "#9CA3AF" }}>{fmtDateTime(reminder.sendAt)}</td>
                                             <td style={tdStyle}>
                                                 <div style={{ display: "flex", gap: 6 }}>
-                                                    <button onClick={() => setEditJob(job)} style={{ padding: "5px 12px", fontSize: 12, fontWeight: 600, background: "#EFF6FF", border: "none", borderRadius: 7, color: "#2563EB", cursor: "pointer" }}>
+                                                    <button onClick={() => { }} style={{ padding: "5px 12px", fontSize: 12, fontWeight: 600, background: "#EFF6FF", border: "none", borderRadius: 7, color: "#2563EB", cursor: "pointer" }}>
                                                         Reprogramar
                                                     </button>
-                                                    <button onClick={() => cancelJob(job.id)} style={{ padding: "5px 12px", fontSize: 12, fontWeight: 600, background: "#FEF2F2", border: "none", borderRadius: 7, color: "#DC2626", cursor: "pointer" }}>
+                                                    <button onClick={() => cancelJob(reminder.id)} style={{ padding: "5px 12px", fontSize: 12, fontWeight: 600, background: "#FEF2F2", border: "none", borderRadius: 7, color: "#DC2626", cursor: "pointer" }}>
                                                         Cancelar
                                                     </button>
                                                 </div>
                                             </td>
                                         </tr>
                                     ))}
-                                    {!loadingJobs && filteredActive.length === 0 && (
+                                    {!loadingReminders && filteredActive.length === 0 && (
                                         <EmptyState icon="🔔" title="Sin recordatorios activos" sub="Haz clic en Nuevo Recordatorio para programar el primero." />
                                     )}
                                 </tbody>
                             </table>
-                            {!loadingJobs && filteredActive.length > 0 && (
+                            {!loadingReminders && filteredActive.length > 0 && (
                                 <div style={{ padding: "12px 20px", borderTop: "1px solid #F3F4F6", background: "#FAFAFA", display: "flex", justifyContent: "space-between" }}>
                                     <span style={{ fontSize: 13, color: "#9CA3AF" }}>
                                         <strong style={{ color: "#374151" }}>{filteredActive.length}</strong> recordatorio(s) activo(s)
@@ -226,42 +217,41 @@ export default function RecordatoriosPage() {
                             <table style={{ width: "100%", borderCollapse: "collapse" }}>
                                 <thead>
                                     <tr style={{ background: "#F9FAFB" }}>
-                                        {[ "Destinatario", "Canal", "Estado", "Programado", "Enviado / Fallado", "ID Mensaje", "Error" ].map(h => (
+                                        {[ "Destinatario", "Canal", "Estado", "Enviado", "ID Mensaje", "Error" ].map(h => (
                                             <th key={h} style={thStyle}>{h}</th>
                                         ))}
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {loadingJobs && Array.from({ length: 5 }).map((_, i) => <SkeletonRow key={i} />)}
-                                    {!loadingJobs && filteredHistory.map((job, i) => (
-                                        <tr key={job.id} style={{ borderBottom: i < filteredHistory.length - 1 ? "1px solid #F3F4F6" : "none" }}>
+                                    {loadingReminders && Array.from({ length: 5 }).map((_, i) => <SkeletonRow key={i} />)}
+                                    {!loadingReminders && filteredHistory.map((reminder, i) => (
+                                        <tr key={reminder.id} style={{ borderBottom: i < filteredHistory.length - 1 ? "1px solid #F3F4F6" : "none" }}>
                                             <td style={tdStyle}>
-                                                <div style={{ fontSize: 14, fontWeight: 600, color: "#111827" }}>{job.to ?? "—"}</div>
-                                                <div style={{ fontSize: 11, color: "#9CA3AF", fontFamily: "monospace" }}>{job.id.slice(0, 10)}…</div>
+                                                <div style={{ fontSize: 14, fontWeight: 600, color: "#111827" }}>{patients.find(p => p.whatsappNumber === reminder.to)?.name ?? "—"} {patients.find(p => p.whatsappNumber === reminder.to)?.lastName ?? "—"}</div>
+                                                <div style={{ fontSize: 11, color: "#9CA3AF", fontFamily: "monospace" }}>{reminder.to}</div>
                                             </td>
-                                            <td style={tdStyle}><ChannelBadge channel={job.channel} /></td>
-                                            <td style={tdStyle}><ReminderStatusPill status={job.status} /></td>
-                                            <td style={{ ...tdStyle, fontSize: 13, color: "#6B7280" }}>{fmtDateTime(job.sendAt)}</td>
-                                            <td style={{ ...tdStyle, fontSize: 13, color: "#6B7280" }}>{fmtDateTime(job.scheduledAt)}</td>
+                                            <td style={tdStyle}><ChannelBadge channel={reminder.channel} /></td>
+                                            <td style={tdStyle}><ReminderStatusPill status={reminder.status} /></td>
+                                            <td style={{ ...tdStyle, fontSize: 13, color: "#6B7280" }}>{fmtDateTime(reminder.sendAt)}</td>
                                             <td style={{ ...tdStyle, fontSize: 12, color: "#9CA3AF", fontFamily: "monospace" }}>
-                                                {job.messageSid ? (
-                                                    <span title={job.messageSid}>{job.messageSid.slice(0, 16)}…</span>
+                                                {reminder.contentSid ? (
+                                                    <span title={reminder.contentSid}>{reminder.contentSid.slice(0, 16)}…</span>
                                                 ) : "—"}
                                             </td>
                                             <td style={{ ...tdStyle, fontSize: 12, color: "#DC2626", maxWidth: 200 }}>
-                                                {job.error
-                                                    ? <span title={job.error} style={{ background: "#FEF2F2", padding: "3px 8px", borderRadius: 6 }}>{job.error.slice(0, 40)}{job.error.length > 40 ? "…" : ""}</span>
+                                                {reminder.error
+                                                    ? <span title={reminder.error} style={{ background: "#FEF2F2", padding: "3px 8px", borderRadius: 6 }}>{reminder.error.slice(0, 40)}{reminder.error.length > 40 ? "…" : ""}</span>
                                                     : <span style={{ color: "#D1D5DB" }}>—</span>
                                                 }
                                             </td>
                                         </tr>
                                     ))}
-                                    {!loadingJobs && filteredHistory.length === 0 && (
+                                    {!loadingReminders && filteredHistory.length === 0 && (
                                         <EmptyState icon="📋" title="Sin historial aún" sub="Los recordatorios enviados, fallidos y cancelados aparecerán aquí." />
                                     )}
                                 </tbody>
                             </table>
-                            {!loadingJobs && filteredHistory.length > 0 && (
+                            {!loadingReminders && filteredHistory.length > 0 && (
                                 <div style={{ padding: "12px 20px", borderTop: "1px solid #F3F4F6", background: "#FAFAFA" }}>
                                     <span style={{ fontSize: 13, color: "#9CA3AF" }}>
                                         <strong style={{ color: "#374151" }}>{filteredHistory.length}</strong> registros en el historial
@@ -284,16 +274,13 @@ export default function RecordatoriosPage() {
                             <BulkSendWizard patients={patients} />
                         </div>
                     )}
-                    <p style={{ marginTop: 24, fontSize: 12, color: "#D1D5DB", textAlign: "center" }}>
-                        🔒 Datos del paciente cifrados en reposo · Infraestructura compatible con HIPAA · Todas las acciones quedan registradas en auditoría
-                    </p>
                 </main>
             </div>
             {showCreate && (
-                <ReminderModal patients={patients} onClose={() => setShowCreate(false)} onSaved={fetchJobs} />
+                <ReminderModal patients={patients} onClose={() => {setShowCreate(false); fetchReminders()}} onSaved={fetchReminders} />
             )}
-            {editJob && (
-                <EditScheduledReminderJobModal job={editJob} onClose={() => setEditJob(null)} onSaved={fetchJobs} />
+            {editReminder && (
+                <EditScheduledReminderJobModal job={editReminder} onClose={() => setEditReminder(null)} onSaved={fetchReminders} />
             )}
         </>
     );

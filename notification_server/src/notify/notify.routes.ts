@@ -1,9 +1,12 @@
 import { Router, type Request, type Response } from 'express';
 
 import { handleError, ok } from '../utils/apiUtils.js';
-import { getMessageStatus, sendSms, sendWhatsApp } from '../twillo/twilioClient.js';
+import { sendSms, sendWhatsApp } from '../twillo/twilioClient.js';
 import { scheduleSchema, sendSmsSchema, sendWhatsAppSchema, validate } from '../utils/validation.js';
 import { scheduleNotification, listJobs, getJob, cancelJob } from '../scheduler.js';
+import { reminderRepository } from '../reminders/reminder.repository.js';
+import { Channel } from '../utils/types.js';
+import { ReminderMode, ReminderStatus } from '@prisma/client';
 
 export const notifyRouter = Router();
 
@@ -24,6 +27,14 @@ notifyRouter.post(
   async (req: Request, res: Response) => {
     try {
       const result = await sendWhatsApp(req.body);
+      reminderRepository.create({
+        channel: Channel.WHATSAPP,
+        contentSid: req.body.contentSid,
+        mode: ReminderMode.IMMEDIATE,
+        sendAt: new Date().toISOString(),
+        to: req.body.to,
+        status: ReminderStatus.SENT
+      })
       ok(res, result, 201);
     } catch (err) {
       handleError(res, err);

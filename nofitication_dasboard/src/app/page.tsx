@@ -400,11 +400,6 @@ export default function NotificationsPage() {
               </tbody>
             </table>
           </div>
-
-          {/* Footer note */}
-          <p style={{ marginTop: 20, fontSize: 12, color: "#D1D5DB", textAlign: "center" }}>
-            🔒 Datos del paciente cifrados en reposo · Infraestructura compatible con HIPAA · Todas las acciones quedan registradas en auditoría
-          </p>
         </main>
       </div>
 

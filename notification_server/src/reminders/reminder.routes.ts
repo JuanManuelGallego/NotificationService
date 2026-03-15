@@ -6,9 +6,7 @@ import {
   uuidParamSchema,
   type ListRemindersQuery,
 } from './reminder.schemas.js';
-import {
-  reminderRepository,
-} from './reminder.repository.js';
+import { reminderRepository } from './reminder.repository.js';
 import { validateBody, validateQuery, validateParams } from '../middlewares/validate.js';
 import { logger } from '../utils/logger.js';
 import { handleError, ok } from '../utils/apiUtils.js';

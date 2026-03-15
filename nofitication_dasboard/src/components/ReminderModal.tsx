@@ -151,7 +151,7 @@ export function ReminderModal({
                             Tipo de cita <span style={{ fontWeight: 400, color: "#9CA3AF" }}>(referencia)</span>
                             <select style={inp} value={form.appointmentType} onChange={set("appointmentType")}>
                                 <option value="">Seleccionar tipo…</option>
-                                {APPOINTMENT_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
+                                {APPOINTMENT_TYPES.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
                             </select>
                         </label>
                     </div>
@@ -181,8 +181,8 @@ export function ReminderModal({
                         <div>
                             <div style={{ fontSize: 13, fontWeight: 600, color: "#374151", marginBottom: 10 }}>Canal de notificación</div>
                             <div style={{ display: "flex", gap: 10 }}>
-                                {([ "whatsapp", "sms" ] as Channel[]).map(c => {
-                                    const available = (c === "whatsapp" && !!selectedPatient?.whatsappNumber) || (c === "sms" && !!selectedPatient?.smsNumber);
+                                {Object.values(Channel).map(c => {
+                                    const available = (c === Channel.WHATSAPP && !!selectedPatient?.whatsappNumber) || (c === Channel.SMS && !!selectedPatient?.smsNumber);
                                     return (
                                         <button key={c} onClick={() => available && setForm(f => ({ ...f, channel: c }))} style={{
                                             flex: 1, display: "flex", alignItems: "center", gap: 10,
@@ -197,7 +197,7 @@ export function ReminderModal({
                                                 <div style={{ fontSize: 13, fontWeight: 600, color: "#111827" }}>{CHANNEL_LABEL[ c ]}</div>
                                                 <div style={{ fontSize: 11, color: "#9CA3AF" }}>
                                                     {available
-                                                        ? (c === "whatsapp" ? selectedPatient?.whatsappNumber : selectedPatient?.smsNumber)
+                                                        ? (c === Channel.WHATSAPP ? selectedPatient?.whatsappNumber : selectedPatient?.smsNumber)
                                                         : "No disponible"}
                                                 </div>
                                             </div>
@@ -232,7 +232,7 @@ export function ReminderModal({
                             {[
                                 { k: "Paciente", v: selectedPatient ? `${selectedPatient.name} ${selectedPatient.lastName}` : "—" },
                                 { k: "Canal", v: `${CHANNEL_ICON[ form.channel ]} ${CHANNEL_LABEL[ form.channel ]}` },
-                                { k: "Enviará a", v: form.channel === "whatsapp" ? (selectedPatient?.whatsappNumber ?? "—") : (selectedPatient?.smsNumber ?? "—") },
+                                { k: "Enviará a", v: form.channel === Channel.WHATSAPP ? (selectedPatient?.whatsappNumber ?? "—") : (selectedPatient?.smsNumber ?? "—") },
                                 { k: "Programado", v: form.sendAt ? fmtDateTime(form.sendAt) : "—" },
                             ].map(({ k, v }) => (
                                 <div key={k} style={{ display: "flex", justifyContent: "space-between", fontSize: 13 }}>
