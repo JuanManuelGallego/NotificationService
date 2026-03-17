@@ -24,14 +24,14 @@ export interface AppointmentForm {
     date: string;
     time: string;
     status: AppointmentStatus;
-    reminderId: string;
+    reminderId?: string;
     type: string;
     location: string;
-    meetingUrl: string;
+    meetingUrl?: string;
     price: string;
     payed: boolean;
     duration: string;
-    reminderType?: string;
+    reminderType: string;
 }
 
 export enum AppointmentStatus {

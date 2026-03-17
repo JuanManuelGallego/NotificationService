@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { labelStyle, inputStyle, btnSecondary, btnPrimary, btnDisabled } from "../styles/theme";
-import { API_BASE } from "../types/API";
-import { Patient, PatientStatus } from "../types/Patient";
+import { Patient, PATIENT_STATUS_CONFIG, PatientStatus } from "../types/Patient";
 import { validateEmail, validatePhoneNumber } from "../utils/DataValidator";
+import { useCreatePatient } from "../api/useCreatePatient";
+import { useUpdatePatient } from "../api/useUpdatePatient";
 
 export function PatientModal({
     onClose,
@@ -14,6 +15,8 @@ export function PatientModal({
     patient?: Patient;
 }) {
     const isEdit = !!patient;
+    const { createPatient } = useCreatePatient();
+    const { updatePatient } = useUpdatePatient();
     const [ saving, setSaving ] = useState(false);
     const [ error, setError ] = useState<string | null>(null);
     const [ form, setForm ] = useState({
@@ -55,23 +58,16 @@ export function PatientModal({
         setSaving(true);
         setError(null);
         try {
-            const url = isEdit ? `${API_BASE}/patients/${patient!.id}` : `${API_BASE}/patients`;
-            const method = isEdit ? "PATCH" : "POST";
             const body = {
                 ...form,
                 whatsappNumber: form.whatsappNumber || undefined,
                 smsNumber: form.smsNumber || undefined,
             };
 
-            const res = await fetch(url, {
-                method,
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(body),
-            });
-
-            const json = await res.json();
-            if (!res.ok || !json.success) {
-                throw new Error(json.error ?? "Error al guardar el paciente");
+            if (isEdit) {
+                await updatePatient(patient!.id, body);
+            } else {
+                await createPatient(body);
             }
 
             onSaved();
@@ -128,6 +124,17 @@ export function PatientModal({
                         Correo electrónico
                         <input style={inputStyle} type="email" value={form.email} onChange={set("email")} placeholder="paciente@ejemplo.com" />
                     </label>
+
+                    {isEdit && <label style={labelStyle}>
+                        Estado
+                        <select style={inputStyle} value={form.status} onChange={set("status")}>
+                            {Object.values(PatientStatus).map(s => (
+                                <option key={s} value={s}>
+                                    {PATIENT_STATUS_CONFIG[ s ].icon} {PATIENT_STATUS_CONFIG[ s ].label}
+                                </option>
+                            ))}
+                        </select>
+                    </label>}
 
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
                         <label style={labelStyle}>

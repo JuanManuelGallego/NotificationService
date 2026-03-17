@@ -1,21 +1,24 @@
 import { useState } from "react";
 import { lbl, inp, btnSecondary, btnPrimary, btnDisabled } from "../styles/theme";
-import { API_BASE } from "../types/API";
 import { APPOINTMENT_TYPES } from "../types/Appointment";
 import { Patient } from "../types/Patient";
-import { ScheduledReminderJob, CHANNEL_LABEL, CHANNEL_ICON, Channel, ReminderMode } from "../types/Reminder";
+import { CHANNEL_LABEL, CHANNEL_ICON, Channel, ReminderMode, Reminder } from "../types/Reminder";
 import { getAvatarColor, getInitials } from "../utils/AvatarHelper";
 import { fmtDateTime } from "../utils/TimeUtils";
+import { useCreateReminder } from "../api/useCreateReminder";
+import { useNotify } from "../api/useNotify";
 
 export function ReminderModal({
-    onClose, onSaved, patients, job,
+    onClose, onSaved, patients, reminder,
 }: {
     onClose: () => void;
     onSaved: () => void;
     patients: Patient[];
-    job?: ScheduledReminderJob;
+    reminder?: Reminder;
 }) {
-    const isEdit = !!job;
+    const isEdit = !!reminder;
+    const { createReminder } = useCreateReminder();
+    const { notify } = useNotify();
     const [ step, setStep ] = useState(1);
     const [ mode, setMode ] = useState<ReminderMode>(ReminderMode.NOW);
     const [ saving, setSaving ] = useState(false);
@@ -73,8 +76,8 @@ export function ReminderModal({
 
     function buildPayload() {
         const to = form.channel === Channel.WHATSAPP
-            ? selectedPatient!.whatsappNumber
-            : selectedPatient!.smsNumber;
+            ? selectedPatient!.whatsappNumber ?? ""
+            : selectedPatient!.smsNumber ?? "";
 
         return {
             to,
@@ -88,40 +91,26 @@ export function ReminderModal({
     }
 
     function buildScheduledPayload() {
-        const to = form.channel === Channel.WHATSAPP
-            ? selectedPatient!.whatsappNumber
-            : selectedPatient!.smsNumber;
-
         return {
+            ...buildPayload(),
             channel: form.channel,
             mode: mode,
             scheduledAt: new Date().toISOString(),
-            patientId: form.patientId,
-            to,
-            contentSid: "HXb5b62575e6e4ff6129ad7c8efe1f983e",
-            contentVariables: {
-                "1": "12/1",
-                "2": "3pm"
-            },
             sendAt: new Date(form.sendAt).toISOString(),
         };
     }
+
     async function handleSubmit() {
         if (!validateForm()) return;
         setSaving(true); setError(null);
         try {
-            const body = mode === ReminderMode.NOW ? buildPayload() : buildScheduledPayload();
-            const url = mode === ReminderMode.NOW
-                ? `${API_BASE}/notify/${form.channel}`
-                : `${API_BASE}/reminders`;
-
-            const res = await fetch(url, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(body),
-            });
-            const json = await res.json();
-            if (!res.ok || !json.success) throw new Error(json.error ?? "Error al guardar");
+            if (mode === ReminderMode.NOW) {
+                const body = buildPayload();
+                await notify(form.channel, body);
+            } else {
+                const body = buildScheduledPayload();
+                await createReminder(body);
+            }
             onSaved(); onClose();
         } catch (err) {
             setError(err instanceof Error ? err.message : "Error desconocido");

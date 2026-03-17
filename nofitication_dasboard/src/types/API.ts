@@ -1,9 +1,7 @@
-import { Patient } from "./Patient";
-
-export interface ApiResponse {
+export interface ApiPaginatedResponse {
     success: boolean;
     data: {
-        data: Patient[];
+        data: unknown;
         total: number;
         page: number;
         pageSize: number;
@@ -11,5 +9,12 @@ export interface ApiResponse {
     };
     timestamp: string;
 }
+
+export interface ApiResponse {
+    success: boolean;
+    data: unknown;
+    timestamp: string;
+}
+
 
 export const API_BASE = "http://localhost:3001";

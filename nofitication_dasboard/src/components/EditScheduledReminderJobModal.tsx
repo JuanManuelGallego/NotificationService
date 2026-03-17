@@ -1,26 +1,27 @@
 import { useState } from "react";
 import { lbl, inp, btnSecondary, btnPrimary } from "../styles/theme";
 import { API_BASE } from "../types/API";
-import { ScheduledReminderJob, CHANNEL_ICON, CHANNEL_LABEL } from "../types/Reminder";
+import { CHANNEL_ICON, CHANNEL_LABEL, Reminder, ReminderStatus } from "../types/Reminder";
+import { isoToLocal } from "../utils/TimeUtils";
+import { Patient } from "../types/Patient";
 
-export function EditScheduledReminderJobModal({ job, onClose, onSaved }: { job: ScheduledReminderJob; onClose: () => void; onSaved: () => void }) {
-    const [ sendAt, setSendAt ] = useState(job.sendAt.slice(0, 16));
+export function EditScheduledReminderModal({ reminder, patients, onClose, onSaved }: { reminder: Reminder; patients: Patient[]; onClose: () => void; onSaved: () => void }) {
+    const [ sendAt, setSendAt ] = useState(isoToLocal(reminder.sendAt));
     const [ saving, setSaving ] = useState(false);
     const [ error, setError ] = useState<string | null>(null);
 
     async function handleSave() {
         setSaving(true); setError(null);
         try {
-            // Cancel old + reschedule — API doesn't have a PATCH for jobs, so cancel & recreate
-            await fetch(`${API_BASE}/notify/schedule/${job.id}`, { method: "DELETE" });
-            const res = await fetch(`${API_BASE}/notify/schedule`, {
-                method: "POST",
+            const body = {
+                scheduledAt: new Date().toISOString(),
+                sendAt: new Date(sendAt).toISOString(),
+                status: ReminderStatus.PENDING
+            }
+            const res = await fetch(`${API_BASE}/reminders/${reminder.id}`, {
+                method: "PATCH",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    channel: job.channel,
-                    payload: { to: job.to, body: "Recordatorio de su cita próxima." },
-                    sendAt: new Date(sendAt).toISOString(),
-                }),
+                body: JSON.stringify(body),
             });
             const json = await res.json();
             if (!res.ok || !json.success) throw new Error(json.error ?? "Error al reprogramar");
@@ -40,11 +41,11 @@ export function EditScheduledReminderJobModal({ job, onClose, onSaved }: { job: 
                 <div style={{ background: "#F8F7F4", borderRadius: 12, padding: "14px 16px", marginBottom: 20, fontSize: 13 }}>
                     <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
                         <span style={{ color: "#6B7280" }}>Canal</span>
-                        <span style={{ fontWeight: 600 }}>{CHANNEL_ICON[ job.channel ]} {CHANNEL_LABEL[ job.channel ]}</span>
+                        <span style={{  color: "#6B7280" , fontWeight: 600 }}>{CHANNEL_ICON[ reminder.channel ]} {CHANNEL_LABEL[ reminder.channel ]}</span>
                     </div>
                     <div style={{ display: "flex", justifyContent: "space-between" }}>
                         <span style={{ color: "#6B7280" }}>Destinatario</span>
-                        <span style={{ fontWeight: 600 }}>{job.to ?? "—"}</span>
+                        <span style={{  color: "#6B7280", fontWeight: 600 }}>{patients.find(p => p.id === reminder.patientId)?.fullName ?? "—"}</span>
                     </div>
                 </div>
                 {error && <div style={{ background: "#FEF2F2", border: "1px solid #FCA5A5", borderRadius: 10, padding: "10px 14px", marginBottom: 16, fontSize: 13, color: "#DC2626" }}>⚠️ {error}</div>}

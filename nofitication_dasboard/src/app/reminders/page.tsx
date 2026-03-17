@@ -1,9 +1,8 @@
 "use client";;
 import { Patient } from '@/src/types/Patient';
 import Sidebar from '../../components/Sidebar';
-import { useState, useEffect, useCallback } from "react";
-import { API_BASE } from '@/src/types/API';
-import { Reminder, ReminderStatus, ScheduledReminderJob } from '@/src/types/Reminder';
+import { useState } from "react";
+import { Reminder, ReminderStatus } from '@/src/types/Reminder';
 import { btnPrimary, thStyle, tdStyle } from '@/src/styles/theme';
 import { fmtDateTime, fmtRelative } from '@/src/utils/TimeUtils';
 import { ReminderStatusPill } from '@/src/components/StatusPill';
@@ -11,50 +10,28 @@ import { StatCard } from '@/src/components/StatCard';
 import { ChannelBadge } from '@/src/components/ChannelIcon';
 import { ErrorBanner } from '@/src/components/ErrorBanner';
 import { ReminderModal } from '@/src/components/ReminderModal';
-import { EditScheduledReminderJobModal } from '@/src/components/EditScheduledReminderJobModal';
+import { EditScheduledReminderModal } from '@/src/components/EditScheduledReminderJobModal';
+import { ReminderDrawer } from '@/src/components/ReminderDrawer';
 import { BulkSendWizard } from '@/src/components/BulkSendWizard';
 import { EmptyState } from '@/src/components/EmptyState';
 import { SkeletonRow } from '@/src/components/Skeleton';
+import { DeleteReminderModal } from '@/src/components/DeleteReminderModal';
+import { useFetchReminders } from '@/src/api/useFetchReminders';
+import { useFetchPatients } from '@/src/api/useFetchPatients';
 
 type ActiveTab = "Active" | "History" | "Bulk";
 
 export default function RemindersPage() {
     const [ activeTab, setActiveTab ] = useState<ActiveTab>("Active");
-    const [ reminders, setReminders ] = useState<Reminder[]>([])
-    const [ patients, setPatients ] = useState<Patient[]>([]);
-    const [ loadingReminders, setLoadingReminders ] = useState(true);
-    const [ errorReminders, setErrorReminders ] = useState<string | null>(null);
+    const { reminders, loading: loadingReminders, error: errorReminders, fetchReminders } = useFetchReminders();
+    const { patients } = useFetchPatients();
     const [ showCreate, setShowCreate ] = useState(false);
-    const [ editReminder, setEditReminder ] = useState<ScheduledReminderJob | null>(null);
+    const [ editReminder, setEditReminder ] = useState<Reminder | null>(null);
     const [ search, setSearch ] = useState("");
+    const [ viewReminder, setViewReminder ] = useState<Reminder | null>(null);
+    const [ cancelReminder, setCancelReminder ] = useState<Reminder | null>(null);
 
-    const fetchReminders = useCallback(async () => {
-        setLoadingReminders(true); setErrorReminders(null);
-        try {
-            const res = await fetch(`${API_BASE}/reminders`);
-            const json = await res.json();
-            if (!res.ok || !json.success) throw new Error(json.error ?? "Error al cargar recordatorios");
-            setReminders(json.data.data as Reminder[] || []);
-        } catch (err) {
-            setErrorReminders(err instanceof Error ? err.message : "Error desconocido");
-        } finally { setLoadingReminders(false); }    }, []);
 
-    const fetchPatients = useCallback(async () => {
-        try {
-            const res = await fetch(`${API_BASE}/patients`);
-            const json = await res.json();
-            if (json.success) setPatients(json.data.data);
-        } catch { }
-    }, []);
-
-    useEffect(() => { fetchPatients(); fetchReminders(); }, [ fetchPatients, fetchReminders ]);
-
-    async function cancelJob(id: string) {
-        try {
-            await fetch(`${API_BASE}/notify/schedule/${id}`, { method: "DELETE" });
-            fetchReminders();
-        } catch { }
-    }
 
     const active = reminders.filter(reminder => reminder.status === ReminderStatus.PENDING);
     const history = reminders.filter(reminder => reminder.status !== ReminderStatus.PENDING);
@@ -70,7 +47,7 @@ export default function RemindersPage() {
         active: active.length,
         sent: reminders.filter(reminder => reminder.status === ReminderStatus.SENT).length,
         failed: reminders.filter(reminder => reminder.status === ReminderStatus.FAILED).length,
-        cancelled: reminders.filter(reminder => reminder.status === ReminderStatus.CANCELED).length,
+        cancelled: reminders.filter(reminder => reminder.status === ReminderStatus.CANCELLED).length,
     };
 
     return (
@@ -170,10 +147,10 @@ export default function RemindersPage() {
                                 <tbody>
                                     {loadingReminders && Array.from({ length: 4 }).map((_, i) => <SkeletonRow key={i} />)}
                                     {!loadingReminders && filteredActive.map((reminder, i) => (
-                                        <tr key={reminder.id} style={{ borderBottom: i < filteredActive.length - 1 ? "1px solid #F3F4F6" : "none" }}>
+                                        <tr key={reminder.id} style={{ borderBottom: i < filteredActive.length - 1 ? "1px solid #F3F4F6" : "none", cursor: "pointer" }}
+                                            onClick={() => setViewReminder(reminder)}>
                                             <td style={tdStyle}>
-                                                {/* TODO: Change for Patient from reminder */}
-                                                <div style={{ fontSize: 14, fontWeight: 600, color: "#111827" }}>{patients.find(p => p.whatsappNumber === reminder.to)?.fullName ?? "—"}</div>
+                                                <div style={{ fontSize: 14, fontWeight: 600, color: "#111827" }}>{patients.find(p => p.id === reminder.patientId)?.fullName ?? "—"}</div>
                                                 <div style={{ fontSize: 11, color: "#9CA3AF", fontFamily: "monospace" }}>{reminder.to}</div>
                                             </td>
                                             <td style={tdStyle}><ChannelBadge channel={reminder.channel} /></td>
@@ -185,12 +162,12 @@ export default function RemindersPage() {
                                                 </span>
                                             </td>
                                             <td style={{ ...tdStyle, fontSize: 13, color: "#9CA3AF" }}>{fmtDateTime(reminder.sendAt)}</td>
-                                            <td style={tdStyle}>
+                                            <td style={tdStyle} onClick={e => e.stopPropagation()}>
                                                 <div style={{ display: "flex", gap: 6 }}>
-                                                    <button onClick={() => { }} style={{ padding: "5px 12px", fontSize: 12, fontWeight: 600, background: "#EFF6FF", border: "none", borderRadius: 7, color: "#2563EB", cursor: "pointer" }}>
+                                                    <button onClick={() => setEditReminder(reminder)} style={{ padding: "5px 12px", fontSize: 12, fontWeight: 600, background: "#EFF6FF", border: "none", borderRadius: 7, color: "#2563EB", cursor: "pointer" }}>
                                                         Reprogramar
                                                     </button>
-                                                    <button onClick={() => cancelJob(reminder.id)} style={{ padding: "5px 12px", fontSize: 12, fontWeight: 600, background: "#FEF2F2", border: "none", borderRadius: 7, color: "#DC2626", cursor: "pointer" }}>
+                                                    <button onClick={() => setCancelReminder(reminder)} style={{ padding: "5px 12px", fontSize: 12, fontWeight: 600, background: "#FEF2F2", border: "none", borderRadius: 7, color: "#DC2626", cursor: "pointer" }}>
                                                         Cancelar
                                                     </button>
                                                 </div>
@@ -225,9 +202,11 @@ export default function RemindersPage() {
                                 <tbody>
                                     {loadingReminders && Array.from({ length: 5 }).map((_, i) => <SkeletonRow key={i} />)}
                                     {!loadingReminders && filteredHistory.map((reminder, i) => (
-                                        <tr key={reminder.id} style={{ borderBottom: i < filteredHistory.length - 1 ? "1px solid #F3F4F6" : "none" }}>
+                                        <tr key={reminder.id} style={{ borderBottom: i < filteredHistory.length - 1 ? "1px solid #F3F4F6" : "none", cursor: "pointer" }}
+                                            onClick={() => setViewReminder(reminder)}>
+
                                             <td style={tdStyle}>
-                                                <div style={{ fontSize: 14, fontWeight: 600, color: "#111827" }}>{patients.find(p => p.whatsappNumber === reminder.to)?.fullName ?? "—"}</div>
+                                                <div style={{ fontSize: 14, fontWeight: 600, color: "#111827" }}>{patients.find(p => p.id === reminder.patientId)?.fullName ?? "—"}</div>
                                                 <div style={{ fontSize: 11, color: "#9CA3AF", fontFamily: "monospace" }}>{reminder.to}</div>
                                             </td>
                                             <td style={tdStyle}><ChannelBadge channel={reminder.channel} /></td>
@@ -277,10 +256,28 @@ export default function RemindersPage() {
                 </main>
             </div>
             {showCreate && (
-                <ReminderModal patients={patients} onClose={() => {setShowCreate(false); fetchReminders()}} onSaved={fetchReminders} />
+                <ReminderModal patients={patients} onClose={() => { setShowCreate(false); fetchReminders() }} onSaved={fetchReminders} />
             )}
             {editReminder && (
-                <EditScheduledReminderJobModal job={editReminder} onClose={() => setEditReminder(null)} onSaved={fetchReminders} />
+                <EditScheduledReminderModal reminder={editReminder} patients={patients} onClose={() => setEditReminder(null)} onSaved={fetchReminders} />
+            )}
+            {viewReminder && (
+                <ReminderDrawer
+                    reminder={viewReminder}
+                    patientName={patients.find(p => p.id === viewReminder.patientId)?.fullName}
+                    onClose={() => setViewReminder(null)}
+                    onEdit={() => { setEditReminder(viewReminder); setViewReminder(null); }}
+                    onCancel={() => { setCancelReminder(viewReminder); setViewReminder(null); }}
+                />
+            )}
+            {cancelReminder && (
+                <DeleteReminderModal
+                    reminder={cancelReminder}
+                    onClose={() => setCancelReminder(null)}
+                    onCanceled={() => { setCancelReminder(null); fetchReminders(); }}
+                    patientName={patients.find(p => p.id === cancelReminder.patientId)?.fullName}
+                />
+
             )}
         </>
     );

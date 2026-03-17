@@ -1,10 +1,8 @@
-"use client";
-
-import { useState, useEffect, useCallback } from "react";
+"use client";;
+import { useState } from "react";
 
 import Sidebar from '../../components/Sidebar';
 import { Patient, PatientStatus } from "@/src/types/Patient";
-import { API_BASE, ApiResponse } from "@/src/types/API";
 import { getAvatarColor, getInitials } from "@/src/utils/AvatarHelper";
 import { btnPrimary } from "@/src/styles/theme";
 import { StatCard } from "@/src/components/StatCard";
@@ -14,34 +12,15 @@ import { SkeletonRow } from "@/src/components/Skeleton";
 import { PatientModal } from "@/src/components/PatientModal";
 import { DeletePatientModal } from "@/src/components/DeletePatientModal";
 import { Channel } from "@/src/types/Reminder";
+import { useFetchPatients } from "@/src/api/useFetchPatients";
 
 export default function PatientsPage() {
-    const [ patients, setPatients ] = useState<Patient[]>([]);
-    const [ loading, setLoading ] = useState(true);
-    const [ error, setError ] = useState<string | null>(null);
     const [ search, setSearch ] = useState("");
     const [ filterStatus, setFilterStatus ] = useState<PatientStatus | "ALL">("ALL");
     const [ showCreate, setShowCreate ] = useState(false);
     const [ editPatient, setEditPatient ] = useState<Patient | null>(null);
     const [ deletePatient, setDeletePatient ] = useState<Patient | null>(null);
-
-    const fetchPatients = useCallback(async () => {
-        setLoading(true);
-        setError(null);
-        try {
-            const res = await fetch(`${API_BASE}/patients`);
-            if (!res.ok) throw new Error(`Error del servidor: ${res.status}`);
-            const json: ApiResponse = await res.json();
-            if (!json.success) throw new Error("La API devolvió un error");
-            setPatients(json.data.data);
-        } catch (err) {
-            setError(err instanceof Error ? err.message : "Error al cargar pacientes");
-        } finally {
-            setLoading(false);
-        }
-    }, []);
-
-    useEffect(() => { fetchPatients(); }, [ fetchPatients ]);
+    const { patients, loading, error, fetchPatients } = useFetchPatients();
 
     const filtered = patients.filter(p => {
         const matchStatus = filterStatus === "ALL" || p.status === filterStatus;

@@ -1,21 +1,18 @@
 import { useState } from "react";
 import { btnSecondary } from "../styles/theme";
-import { API_BASE } from "../types/API";
 import { Appointment } from "../types/Appointment";
 import { fmtDate } from "../utils/TimeUtils";
+import { useDeleteAppointment } from "../api/useDeleteAppointment";
 
 export function DeleteModal({ appt, onClose, onDeleted }: { appt: Appointment; onClose: () => void; onDeleted: () => void }) {
-    const [ deleting, setDeleting ] = useState(false);
+    const { deleteAppointment, loading: deleting } = useDeleteAppointment();
     const [ error, setError ] = useState<string | null>(null);
 
     async function handleDelete() {
-        setDeleting(true);
         try {
-            const res = await fetch(`${API_BASE}/appointments/${appt.id}`, { method: "DELETE" });
-            const json = await res.json();
-            if (!res.ok || !json.success) throw new Error(json.error ?? "Error al eliminar");
+            await deleteAppointment(appt.id);
             onDeleted(); onClose();
-        } catch (err) { setError(err instanceof Error ? err.message : "Error"); setDeleting(false); }
+        } catch (err) { setError(err instanceof Error ? err.message : "Error"); }
     }
 
     return (

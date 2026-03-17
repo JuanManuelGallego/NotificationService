@@ -1,19 +1,19 @@
 import { useState } from "react";
 import { btnSecondary } from "../styles/theme";
-import { Patient } from "../types/Patient";
-import { useDeletePatient } from "../api/useDeletePatient";
+import { Reminder, ReminderStatus } from "../types/Reminder";
+import { useUpdateReminder } from "../api/useUpdateReminder";
 
-export function DeletePatientModal({ patient, onClose, onDeleted }: {
-    patient: Patient; onClose: () => void; onDeleted: () => void;
+export function DeleteReminderModal({ reminder, patientName, onClose, onCanceled }: {
+    reminder: Reminder; patientName?: string; onClose: () => void; onCanceled: () => void;
 }) {
-    const { deletePatient, loading: deleting } = useDeletePatient();
+    const { updateReminder, loading: deleting } = useUpdateReminder();
     const [ error, setError ] = useState<string | null>(null);
 
     async function handleDelete() {
         setError(null);
         try {
-            await deletePatient(patient.id);
-            onDeleted();
+            await updateReminder(reminder.id, { status: ReminderStatus.CANCELLED });
+            onCanceled();
             onClose();
         } catch (err) {
             setError(err instanceof Error ? err.message : "Error desconocido");
@@ -30,12 +30,12 @@ export function DeletePatientModal({ patient, onClose, onDeleted }: {
                 boxShadow: "0 25px 50px -12px rgba(0,0,0,0.25)",
             }} onClick={e => e.stopPropagation()}>
                 <div style={{ textAlign: "center", marginBottom: 24 }}>
-                    <div style={{ fontSize: 44, marginBottom: 12 }}>🗑️</div>
+                    <div style={{ fontSize: 44, marginBottom: 12 }}>🚫</div>
                     <h2 style={{ fontSize: 20, fontWeight: 700, color: "#111827", margin: "0 0 8px", fontFamily: "'Playfair Display', Georgia, serif" }}>
-                        Eliminar Paciente
+                        Cancelar Recordatorio
                     </h2>
                     <p style={{ fontSize: 14, color: "#6B7280", margin: 0 }}>
-                        ¿Estás seguro que deseas eliminar a <strong>{patient.fullName}</strong>? Esta acción no se puede deshacer.
+                        ¿Estás seguro que deseas cancelar el recordatorio para <strong>{patientName}</strong>?.
                     </p>
                 </div>
                 {error && (
@@ -44,13 +44,13 @@ export function DeletePatientModal({ patient, onClose, onDeleted }: {
                     </div>
                 )}
                 <div style={{ display: "flex", gap: 10 }}>
-                    <button onClick={onClose} style={{ ...btnSecondary, flex: 1 }} disabled={deleting}>Cancelar</button>
+                    <button onClick={onClose} style={{ ...btnSecondary, flex: 1 }} disabled={deleting}>Regresar</button>
                     <button onClick={handleDelete} disabled={deleting} style={{
                         flex: 1, padding: "10px 22px", background: "#DC2626", color: "#fff",
                         border: "none", borderRadius: 10, fontSize: 14, fontWeight: 600,
                         cursor: "pointer", opacity: deleting ? 0.7 : 1,
                     }}>
-                        {deleting ? "Eliminando…" : "Sí, eliminar"}
+                        {deleting ? "Cancelando…" : "Sí, cancelar"}
                     </button>
                 </div>
             </div>

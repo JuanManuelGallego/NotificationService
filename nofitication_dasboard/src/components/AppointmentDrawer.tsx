@@ -29,7 +29,7 @@ export function AppointmentDrawer({ appt, onClose, onEdit, onPay, onDelete }: {
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
                         <div>
                             <div style={{ fontSize: 22, marginBottom: 6 }}>{s.icon}</div>
-                            <h2 style={{ fontSize: 18, fontWeight: 700, color: "#111827", margin: 0, fontFamily: "'Playfair Display', Georgia, serif" }}>{appt.type.name}</h2>
+                            <h2 style={{ fontSize: 18, fontWeight: 700, color: "#111827", margin: 0, fontFamily: "'Playfair Display', Georgia, serif" }}>{appt.type}</h2>
                             <div style={{ marginTop: 8 }}><AppointmentStatusPill status={appt.status} /></div>
                         </div>
                         <button onClick={onClose} style={{ background: "rgba(0,0,0,0.08)", border: "none", borderRadius: 8, width: 32, height: 32, cursor: "pointer", fontSize: 16, color: "#6B7280" }}>✕</button>

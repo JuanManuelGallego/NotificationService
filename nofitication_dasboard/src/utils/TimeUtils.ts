@@ -10,6 +10,12 @@ function fmtDate(d: string) {
     });
 }
 
+function isoToLocal(iso: string) {
+    const date = new Date(iso);
+    const tzOffset = date.getTimezoneOffset() * 60000;
+    return new Date(date.getTime() - tzOffset).toISOString().slice(0, 16);
+}
+
 function fmtRelative(iso: string) {
     const diff = new Date(iso).getTime() - Date.now();
     const abs = Math.abs(diff);
@@ -29,4 +35,4 @@ const MONTH_NAMES_ES = [
 ];
 const DAY_NAMES_ES = [ "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom" ];
 
-export { fmtDateTime, fmtDate, fmtRelative, today, MONTH_NAMES_ES, DAY_NAMES_ES };
+export { fmtDateTime, fmtDate, isoToLocal, fmtRelative, today, MONTH_NAMES_ES, DAY_NAMES_ES };

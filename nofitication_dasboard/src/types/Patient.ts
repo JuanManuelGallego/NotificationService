@@ -4,10 +4,10 @@ export enum PatientStatus {
     ARCHIVED = "ARCHIVED"
 }
 
-export const PATIENT_STATUS_CONFIG: Record<PatientStatus, { label: string; color: string; bg: string }> = {
-    ACTIVE: { label: "Activo", color: "#16A34A", bg: "#F0FDF4" },
-    INACTIVE: { label: "Inactivo", color: "#D97706", bg: "#FFFBEB" },
-    ARCHIVED: { label: "Archivado", color: "#df4429", bg: "#f541412f" },
+export const PATIENT_STATUS_CONFIG: Record<PatientStatus, { label: string; color: string; bg: string, icon: string }> = {
+    ACTIVE: { label: "Activo", color: "#16A34A", bg: "#F0FDF4", icon: "✅" },
+    INACTIVE: { label: "Inactivo", color: "#D97706", bg: "#FFFBEB", icon: "⚠️" },
+    ARCHIVED: { label: "Archivado", color: "#df4429", bg: "#f541412f", icon: "🗃️" },
 };
 
 export interface Patient {

@@ -1,0 +1,43 @@
+import { useState, useCallback } from "react";
+import { API_BASE, ApiResponse } from "../types/API";
+import { Appointment, AppointmentForm } from "../types/Appointment";
+
+export const useUpdateAppointment = () => {
+    const [ loading, setLoading ] = useState(false);
+    const [ error, setError ] = useState<string | null>(null);
+
+    const updateAppointment = useCallback(async (appointmentId: string, appointmentData: Partial<AppointmentForm>) => {
+        setLoading(true);
+        setError(null);
+
+        try {
+            const res = await fetch(`${API_BASE}/appointments/${appointmentId}`, {
+                method: "PATCH",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(appointmentData),
+            });
+
+            if (!res.ok) {
+                throw new Error(`Server error: ${res.status}`);
+            }
+
+            const json: ApiResponse = await res.json();
+
+            if (!json.success) {
+                throw new Error("API returned an error");
+            }
+
+            return json.data as Appointment;
+        } catch (err) {
+            const errorMessage = err instanceof Error ? err.message : "Failed to update appointment";
+            setError(errorMessage);
+            throw err;
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    return { updateAppointment, loading, error };
+};

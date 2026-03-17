@@ -3,9 +3,10 @@ import { Appointment, APPOINTMENT_LOCATIONS, APPOINTMENT_TYPES, AppointmentDurat
 import { Patient } from "../types/Patient";
 import { ReminderType } from "../types/Reminder";
 import { today } from "../utils/TimeUtils";
-import { API_BASE } from "../types/API";
 import { btnDisabled, btnPrimary, btnSecondary, inp, lbl } from "../styles/theme";
 import { getAvatarColor, getInitials } from "../utils/AvatarHelper";
+import { useCreateAppointment } from "../api/useCreateAppointment";
+import { useUpdateAppointment } from "../api/useUpdateAppointment";
 
 export function AppointmentModal({ appt, patients, onClose, onSaved }: {
   appt?: Appointment;
@@ -13,8 +14,9 @@ export function AppointmentModal({ appt, patients, onClose, onSaved }: {
   onClose: () => void;
   onSaved: () => void;
 }) {
-  console.log(appt)
   const isEdit = !!appt;
+  const { createAppointment } = useCreateAppointment();
+  const { updateAppointment } = useUpdateAppointment();
   const [ step, setStep ] = useState(1);
   const [ saving, setSaving ] = useState(false);
   const [ error, setError ] = useState<string | null>(null);
@@ -24,10 +26,10 @@ export function AppointmentModal({ appt, patients, onClose, onSaved }: {
     date: appt?.date ?? today(),
     time: appt?.time ?? "09:00",
     status: appt?.status ?? AppointmentStatus.SCHEDULED,
-    reminderId: appt?.reminderId ?? "",
+    reminderId: appt?.reminderId ?? undefined,
     type: appt?.type ?? APPOINTMENT_TYPES[ 1 ].name,
     location: appt?.location ?? "",
-    meetingUrl: appt?.meetingUrl ?? "",
+    meetingUrl: appt?.meetingUrl ?? undefined,
     price: appt?.price ?? APPOINTMENT_TYPES[ 1 ].price,
     payed: appt?.payed ?? false,
     duration: appt?.duration ?? APPOINTMENT_TYPES[ 1 ].duration,
@@ -49,19 +51,19 @@ export function AppointmentModal({ appt, patients, onClose, onSaved }: {
   async function handleSubmit() {
     setSaving(true); setError(null);
     try {
-      const url = isEdit ? `${API_BASE}/appointments/${appt!.id}` : `${API_BASE}/appointments`;
-      const method = isEdit ? "PATCH" : "POST";
       const body = {
         ...form,
-        reminderId: form.reminderId || undefined,
-        meetingUrl: form.meetingUrl || undefined,
+        reminderId: form.reminderId,
+        meetingUrl: form.meetingUrl,
         type: form.type,
         price: form.price,
         duration: form.duration,
       };
-      const res = await fetch(url, { method, headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
-      const json = await res.json();
-      if (!res.ok || !json.success) throw new Error(json.error ?? "Error al guardar");
+      if (isEdit) {
+        await updateAppointment(appt!.id, body);
+      } else {
+        await createAppointment(body);
+      }
       onSaved(); onClose();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error desconocido");

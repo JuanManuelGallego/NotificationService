@@ -10,22 +10,23 @@ import { SkeletonRow } from "@/src/components/Skeleton";
 import { StatCard } from "@/src/components/StatCard";
 import { AppointmentStatusPill } from "@/src/components/StatusPill";
 import { btnPrimary, btnSecondary, inp, tdStyle, thStyle } from "@/src/styles/theme";
-import { API_BASE } from "@/src/types/API";
 import { Appointment, AppointmentStatus } from "@/src/types/Appointment";
 import { Patient } from "@/src/types/Patient";
 import { Reminder } from "@/src/types/Reminder";
 import { getAvatarColor, getInitials } from "@/src/utils/AvatarHelper";
 import { today, fmtDate } from "@/src/utils/TimeUtils";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
+import { useFetchAppointments } from "@/src/api/useFetchAppointments";
+import { useFetchPatients } from "@/src/api/useFetchPatients";
+import { useFetchReminders } from "@/src/api/useFetchReminders";
 
 type ViewMode = "list" | "calendar";
 
 export default function AppointmentsPage() {
   const [ appointments, setAppointments ] = useState<Appointment[]>([]);
-  const [ patients, setPatients ] = useState<Patient[]>([]);
-  const [ reminders, setReminders ] = useState<Reminder[]>([]);
-  const [ loading, setLoading ] = useState(true);
-  const [ error, setError ] = useState<string | null>(null);
+  const { patients } = useFetchPatients();
+  const { appointments: remoteAppointments, loading, error, fetchAppointments } = useFetchAppointments();
+  const { reminders } = useFetchReminders();
 
   const [ viewMode, setViewMode ] = useState<ViewMode>("list");
   const [ filterStatus, setFilterStatus ] = useState<AppointmentStatus | "ALL">(AppointmentStatus.SCHEDULED);
@@ -40,31 +41,15 @@ export default function AppointmentsPage() {
   const [ payingId, setPayingId ] = useState<string | null>(null);
   const [ prefillDate, setPrefillDate ] = useState<string | null>(null);
 
-  const fetchAll = useCallback(async () => {
-    setLoading(true); setError(null);
-    try {
-      const [ apptRes, patRes, remRes ] = await Promise.all([
-        fetch(`${API_BASE}/appointments`),
-        fetch(`${API_BASE}/patients`),
-        fetch(`${API_BASE}/reminders`),
-      ]);
-      const [ apptJson, patJson, remJson ] = await Promise.all([ apptRes.json(), patRes.json(), remRes.json() ]);
-      if (!apptJson.success) throw new Error(apptJson.error ?? "Error al cargar citas");
-      setAppointments(apptJson.data.data);
-      if (patJson.success) setPatients(patJson.data.data);
-      if (remJson.success) setReminders(remJson.data.data);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Error desconocido");
-    } finally { setLoading(false); }
-  }, []);
-
-  useEffect(() => { fetchAll(); }, [ fetchAll ]);
+  useEffect(() => {
+    setAppointments(remoteAppointments);
+  }, [ remoteAppointments ]);
 
   async function handlePay(id: string) {
     setPayingId(id);
     try {
-      await fetch(`${API_BASE}/appointments/${id}/pay`, { method: "POST" });
-      fetchAll();
+      await fetch(`http://localhost:3001/appointments/${id}/pay`, { method: "POST" });
+      fetchAppointments();
     } finally { setPayingId(null); }
   }
 
@@ -147,7 +132,7 @@ export default function AppointmentsPage() {
           {error && (
             <div style={{ background: "#FEF2F2", border: "1px solid #FCA5A5", borderRadius: 12, padding: "14px 20px", marginBottom: 20, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
               <span style={{ fontSize: 14, color: "#DC2626" }}>⚠️ {error}</span>
-              <button onClick={fetchAll} style={{ ...btnPrimary, background: "#DC2626", padding: "6px 14px", fontSize: 13 }}>Reintentar</button>
+              <button onClick={fetchAppointments} style={{ ...btnPrimary, background: "#DC2626", padding: "6px 14px", fontSize: 13 }}>Reintentar</button>
             </div>
           )}
           {viewMode === "list" && (
@@ -270,10 +255,10 @@ export default function AppointmentsPage() {
       </div>
       {showCreate && (
         <AppointmentModal
+          appt={undefined}
           patients={patients}
           onClose={() => { setShowCreate(false); setPrefillDate(null); }}
-          onSaved={fetchAll}
-          appt={undefined}
+          onSaved={fetchAppointments}
         />
       )}
       {editAppt && (
@@ -281,7 +266,7 @@ export default function AppointmentsPage() {
           appt={editAppt}
           patients={patients}
           onClose={() => setEditAppt(null)}
-          onSaved={fetchAll}
+          onSaved={fetchAppointments}
         />
       )}
       {viewAppt && !editAppt && !deleteAppt && (
@@ -297,7 +282,7 @@ export default function AppointmentsPage() {
         <DeleteModal
           appt={deleteAppt}
           onClose={() => setDeleteAppt(null)}
-          onDeleted={fetchAll}
+          onDeleted={fetchAppointments}
         />
       )}
     </>
