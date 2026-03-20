@@ -16,8 +16,8 @@ export const createAppointmentSchema = z.object({
   currency: z.string().optional(),
   paid: z.boolean().default(false),
   location: z.string().min(1, 'location is required').max(255),
-  meetingUrl: z.string().url('meetingUrl must be a valid URL').max(500).optional().or(z.literal('')),
-  notes: z.string().max(500).optional(),
+  meetingUrl: z.string().url('meetingUrl must be a valid URL').max(500).or(z.literal('')).nullable().optional(),
+  notes: z.string().max(500).nullable().optional(),
   type: z.string().min(1, 'type is required').max(120),
   status: z.nativeEnum(AppointmentStatus).default(AppointmentStatus.SCHEDULED),
   patientId: z.string().uuid('patientId must be a valid UUID'),
@@ -37,14 +37,11 @@ export const updateAppointmentSchema = z
     notes: z.string().max(500).optional(),
     type: z.string().min(1, 'type is required').max(120).optional(),
     status: z.nativeEnum(AppointmentStatus).default(AppointmentStatus.SCHEDULED).optional(),
-    cancelledAt: z.string().datetime().optional(),
-    confirmedAt: z.string().datetime().optional(),
-    completedAt: z.string().datetime().optional(),
     reminderId: z.string().uuid().nullable().optional(),
   })
   .refine(
     (d) => Object.keys(d).length > 0,
-    { message: 'At least one field must be provided for update' }
+    { message: 'At least one valid field must be provided for update' }
   );
 
 export const listAppointmentsSchema = z.object({

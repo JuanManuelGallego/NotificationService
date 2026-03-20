@@ -1,4 +1,4 @@
-import { Prisma, type Appointment } from '@prisma/client';
+import { AppointmentStatus, Prisma, type Appointment } from '@prisma/client';
 import { prisma } from '../prisma/prismaClient.js';
 import {
   type CreateAppointmentDto,
@@ -19,24 +19,22 @@ export const appointmentRepository = {
       if (!reminder) throw new AppointmentReminderNotFoundError(dto.reminderId);
     }
 
-    const appointmentData: Prisma.AppointmentUncheckedCreateInput = {
-      startAt: dto.startAt,
-      endAt: dto.endAt,
-      timezone: dto.timezone || "",
-      price: dto.price,
-      currency: dto.currency || "CST",
-      paid: dto.paid,
-      location: dto.location,
-      meetingUrl: dto.meetingUrl || null,
-      notes: dto.notes || null,
-      type: dto.type,
-      status: dto.status,
-      patientId: dto.patientId,
-      reminderId: dto.reminderId || null,
-    };
-
     return prisma.appointment.create({
-      data: appointmentData,
+      data: {
+        startAt: dto.startAt,
+        endAt: dto.endAt,
+        timezone: dto.timezone || 'CST',
+        price: dto.price,
+        currency: dto.currency || "COP",
+        paid: dto.paid,
+        location: dto.location,
+        meetingUrl: dto.meetingUrl || null,
+        notes: dto.notes || null,
+        type: dto.type,
+        status: dto.status,
+        patientId: dto.patientId,
+        reminderId: dto.reminderId || null,
+      },
       include: appointmentInclude,
     });
   },
@@ -91,7 +89,9 @@ export const appointmentRepository = {
       if (!reminder) throw new AppointmentReminderNotFoundError(dto.reminderId);
     }
 
-    const appointmentData: Prisma.AppointmentUncheckedUpdateInput = {
+    return prisma.appointment.update({
+      where: { id },
+      data: {
       ...(dto.startAt !== undefined && { startAt: dto.startAt }),
       ...(dto.endAt !== undefined && { endAt: dto.endAt }),
       ...(dto.timezone !== undefined && { timezone: dto.timezone }),
@@ -103,14 +103,11 @@ export const appointmentRepository = {
       ...(dto.notes !== undefined && { notes: dto.notes }),
       ...(dto.type !== undefined && { type: dto.type }),
       ...(dto.status !== undefined && { status: dto.status }),
-      ...(dto.cancelledAt !== undefined && { cancelledAt: dto.cancelledAt }),
-      ...(dto.completedAt !== undefined && { completedAt: dto.completedAt }),
+      ...(dto.status === AppointmentStatus.CONFIRMED && { confirmedAt: new Date()}),
+      ...(dto.status === AppointmentStatus.CANCELLED && { cancelledAt: new Date()}),
+      ...(dto.status === AppointmentStatus.COMPLETED && { completedAt: new Date()}),
       ...(dto.reminderId !== undefined && { reminderId: dto.reminderId }),
-    }
-
-    return prisma.appointment.update({
-      where: { id },
-      data: appointmentData,
+    },
       include: appointmentInclude,
     });
   },

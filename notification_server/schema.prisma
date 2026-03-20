@@ -105,10 +105,10 @@ model Appointment {
 
   startAt       DateTime
   endAt         DateTime
-  timezone      String?           @db.VarChar(50)@default("CST")
+  timezone      String            @db.VarChar(50)@default("CST")
 
   price         Int
-  currency      String?           @default("COP") @db.Char(3)
+  currency      String            @default("COP") @db.Char(3)
   paid          Boolean           @default(false)
 
   location      String            @db.VarChar(255)

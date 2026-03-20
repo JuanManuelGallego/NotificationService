@@ -84,7 +84,7 @@ export const patientRepository = {
           ...(dto.dateOfBirth !== undefined && { dateOfBirth: dto.dateOfBirth || null }),
           ...(dto.notes !== undefined && { notes: dto.notes || null }),
           ...(dto.status !== undefined && { status: dto.status }),
-          ...(dto.status === PatientStatus.ARCHIVED && { archivedAt: new Date().toISOString() })
+          ...({ archivedAt: dto.status === PatientStatus.ARCHIVED ? new Date() : null })
         },
       });
     } catch (err) {
