@@ -18,15 +18,6 @@ export const patientRouter = Router();
 /**
  * GET /patients
  * List all patients with optional filtering and pagination.
- *
- * Query params:
- *   status    — ACTIVE | INACTIVE | ARCHIVED
- *   search    — searches name, lastName, email (case-insensitive)
- *   page      — page number (default: 1)
- *   pageSize  — results per page (default: 20, max: 100)
- *   orderBy   — name | lastName | email | createdAt (default: createdAt)
- *   order     — asc | desc (default: desc)
- *
  * Response: { data: Patient[], total, page, pageSize, totalPages }
  */
 patientRouter.get<{}, any, any, ListPatientsQuery>(
@@ -62,16 +53,6 @@ patientRouter.get(
 /**
  * POST /patients
  * Create a new patient.
- *
- * Body:
- *   {
- *     "name":           "María",
- *     "lastName":       "García",
- *     "email":          "maria.garcia@example.com",
- *     "whatsappNumber": "+15551234567",   // optional, E.164
- *     "smsNumber":      "+15551234567",   // optional, E.164
- *     "status":         "ACTIVE"          // optional, default: ACTIVE
- *   }
  */
 patientRouter.post(
   '/',
@@ -90,12 +71,6 @@ patientRouter.post(
 /**
  * PATCH /patients/:id
  * Partially update a patient — only send the fields you want to change.
- *
- * Body (all fields optional):
- *   {
- *     "name":           "Juan",
- *     "status":         "INACTIVE"
- *   }
  */
 patientRouter.patch(
   '/:id',

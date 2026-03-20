@@ -16,14 +16,6 @@ export const reminderRouter = Router();
 /**
  * GET /reminders
  * List reminders with optional filters and pagination.
- *
- * Query params:
- *   status   — PENDING | SENT | FAILED | CANCELLED
- *   channel  — WHATSAPP | SMS
- *   page     — default 1
- *   pageSize — default 20, max 100
- *   orderBy  — sentAt | createdAt | status  (default: sentAt)
- *   order    — asc | desc  (default: asc)
  */
 reminderRouter.get<{}, any, any, ListRemindersQuery>(
   '/',
@@ -53,16 +45,6 @@ reminderRouter.get(
 /**
  * POST /reminders
  * Create a new reminder record.
- *
- * Body:
- *   {
- *     "channel":     "WHATSAPP",
- *     "to":          "+15551234567",
- *     "sendMode":        "SCHEDULED",
- *     "sentAt":      "2026-04-01T10:00:00Z",
- *     "sendAt": "2026-03-31T10:00:00Z",  // required when sendMode=SCHEDULED
- *     "contentSid":  "HXabc..."               // optional Twilio template SID
- *   }
  */
 reminderRouter.post(
   '/',

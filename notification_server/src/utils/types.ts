@@ -20,7 +20,7 @@ export interface SendSmsRequest {
 export interface ScheduleRequest {
   channel: Channel;
   payload: SendWhatsAppRequest /*| SendSmsRequest*/;
-  sentAt: string;
+  sendAt: string;
 }
 
 export interface NotificationResult {

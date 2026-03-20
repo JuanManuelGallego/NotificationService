@@ -4,23 +4,19 @@ import type { CreateReminderDto, UpdateReminderDto, ListRemindersQuery } from '.
 import { ReminderNotFoundError, ReminderNotCancellableError } from '../utils/errors.js';
 import type { PaginatedReminders } from '../utils/types.js';
 
-function toChannel(channel: string): Channel {
-  return channel.toUpperCase() as Channel;
-}
-
 export const reminderRepository = {
   async create(dto: CreateReminderDto): Promise<Reminder> {
     return prisma.reminder.create({
       data: {
-        channel: toChannel(dto.channel),
-        contentSid: dto.contentSid ?? null,
+        channel: dto.channel,
+        contentSid: dto.contentSid || null,
         ...(dto.contentVariables && { contentVariables: dto.contentVariables }),
-        messageId: dto.messageId ?? null,
+        messageId: dto.messageId || null,
         sendMode: dto.sendMode,
-        patientId: dto.patientId ?? null,
-        sendAt: dto.sendAt ? new Date(dto.sendAt) : null,
-        sentAt: dto.sentAt ? new Date(dto.sentAt) : null,
-        status: dto.status ?? ReminderStatus.PENDING,
+        patientId: dto.patientId,
+        appointmentId: dto.appointmentId || null,
+        sendAt: new Date(dto.sendAt),
+        status: dto.status,
         to: dto.to,
       },
     });
@@ -36,12 +32,20 @@ export const reminderRepository = {
   },
 
   async findMany(query: ListRemindersQuery): Promise<PaginatedReminders> {
-    const { status, channel, page, pageSize, orderBy, order } = query;
+    const { status, channel, patientId, dateTo, dateFrom, page, pageSize, orderBy, order } = query;
     const skip = (page - 1) * pageSize;
 
     const where: Prisma.ReminderWhereInput = {
       ...(status && { status }),
-      ...(channel && { channel: toChannel(channel) }),
+      ...(channel && { channel: channel }),
+      ...(patientId && { patientId: patientId }),
+      ...(dateFrom || dateTo
+        ? {
+          sendAt: {
+            ...(dateFrom && { gte: dateFrom }),
+            ...(dateTo && { lte: dateTo }),
+          },
+        } : {})
     };
 
     const [ data, total ] = await prisma.$transaction([
@@ -57,17 +61,15 @@ export const reminderRepository = {
     return prisma.reminder.update({
       where: { id },
       data: {
-        ...(dto.channel !== undefined && { channel: toChannel(dto.channel) }),
+        ...(dto.channel !== undefined && { channel: dto.channel }),
         ...(dto.contentSid !== undefined && { contentSid: dto.contentSid }),
         ...(dto.contentVariables !== undefined && { contentVariables: dto.contentVariables }),
         ...(dto.error !== undefined && { error: dto.error }),
         ...(dto.messageId !== undefined && { messageId: dto.messageId }),
         ...(dto.sendMode !== undefined && { sendMode: dto.sendMode }),
-        ...(dto.patientId !== undefined && { patientId: dto.patientId }),
-        ...(dto.sendAt !== undefined && { sendAt: dto.sendAt ? new Date(dto.sendAt) : null }),
-        ...(dto.sentAt !== undefined && { sentAt: new Date(dto.sentAt) }),
+        ...(dto.sendAt !== undefined && { sendAt: dto.sendAt}),
         ...(dto.status !== undefined && { status: dto.status }),
-        ...(dto.to !== undefined && { to: dto.to }),
+        ...(dto.status === ReminderStatus.SENT && { sentAt: new Date() })
       },
     });
   },

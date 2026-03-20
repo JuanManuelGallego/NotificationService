@@ -18,19 +18,6 @@ export const appointmentRouter = Router();
 /**
  * GET /appointments
  * List appointments with optional filters and pagination.
- *
- * Query params:
- *   patientId — filter by patient UUID
- *   status    — SCHEDULED | CONFIRMED | COMPLETED | CANCELLED | NO_SHOW
- *   startAt      — exact date filter   (YYYY-MM-DD)
- *   dateFrom  — range start         (YYYY-MM-DD)
- *   dateTo    — range end           (YYYY-MM-DD)
- *   paid     — true | false
- *   page      — default 1
- *   pageSize  — default 20, max 100
- *   orderBy   — startAt | createdAt | status | price  (default: startAt)
- *   order     — asc | desc  (default: asc)
- *
  * Response includes joined patient and reminder objects.
  */
 appointmentRouter.get<{}, any, any, ListAppointmentsQuery>(
@@ -61,21 +48,6 @@ appointmentRouter.get(
 /**
  * POST /appointments
  * Create a new appointment.
- *
- * Body:
- *   {
- *     "patientId":  "uuid",
- *     "startAt":       "2026-04-10",
- *     "time":       "09:00",
- *     "type":       "Revisión General",
- *     "location":   "Consultorio 3, Clínica Central",
- *     "price":      "150.00",
- *     "duration":   "30 min",
- *     "paid":      false,
- *     "status":     "SCHEDULED",       // optional, default: SCHEDULED
- *     "reminderId": "uuid",            // optional
- *     "meetingUrl": "https://..."      // optional
- *   }
  */
 appointmentRouter.post(
   '/',

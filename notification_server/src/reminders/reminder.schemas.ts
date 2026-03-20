@@ -2,13 +2,14 @@ import { z } from 'zod';
 import { Channel } from '../utils/types.js';
 import { ReminderMode, ReminderStatus } from '@prisma/client';
 
+// this will break with emails
 const e164 = z
   .string()
   .regex(/^\+[1-9]\d{7,14}$/, 'Must be E.164 format, e.g. +15551234567');
 
-const isoDate = z
-  .string()
-  .datetime({ message: 'Must be a valid ISO-8601 datetime string' });
+const futureDate = z.coerce.date().min(new Date(), {
+  message: "Event datetime must be in the future",
+})
 
 const contentVariablesSchema = z
   .record(z.string(), z.string())
@@ -19,13 +20,13 @@ export const createReminderSchema = z
     channel: z.nativeEnum(Channel),
     to: e164,
     sendMode: z.nativeEnum(ReminderMode),
-    contentSid: z.string().max(100).optional(),
+    contentSid: z.string().optional(),
     contentVariables: contentVariablesSchema,
-    sentAt: isoDate.optional(),
-    sendAt: isoDate.optional(),
-    status: z.nativeEnum(ReminderStatus).optional(),
-    messageId: z.string().max(100).optional(),
-    patientId: z.string().uuid().optional(),
+    sendAt: futureDate,
+    status: z.nativeEnum(ReminderStatus).optional().default(ReminderStatus.PENDING),
+    messageId: z.string().optional(),
+    patientId: z.string().uuid(),
+    appointmentId: z.string().uuid().optional(),
   })
   .refine(
     (d) => d.sendMode === ReminderMode.IMMEDIATE || !!d.sendAt,
@@ -35,16 +36,13 @@ export const createReminderSchema = z
 export const updateReminderSchema = z
   .object({
     channel: z.nativeEnum(Channel).optional(),
-    to: e164.optional(),
-    status: z.nativeEnum(ReminderStatus).optional(),
     contentVariables: contentVariablesSchema,
-    contentSid: z.string().max(100).optional(),
-    sendMode: z.nativeEnum(ReminderMode).optional(),
-    sendAt: isoDate.optional(),
-    sentAt: isoDate.optional(),
+    contentSid: z.string().nullish().optional(),
+    status: z.nativeEnum(ReminderStatus).optional(),
     error: z.string().max(1000).optional(),
-    messageId: z.string().max(100).optional(),
-    patientId: z.string().uuid().optional(),
+    sendMode: z.nativeEnum(ReminderMode).optional(),
+    sendAt: futureDate.optional(),
+    messageId: z.string().optional(),
   })
   .refine(
     (d) => Object.keys(d).length > 0,
@@ -54,6 +52,9 @@ export const updateReminderSchema = z
 export const listRemindersSchema = z.object({
   status: z.nativeEnum(ReminderStatus).optional(),
   channel: z.nativeEnum(Channel).optional(),
+  patientId: z.string().uuid().optional(),
+  dateFrom: z.string().date().optional(),
+  dateTo: z.string().date().optional(),
   page: z.coerce.number().int().min(1).default(1),
   pageSize: z.coerce.number().int().min(1).max(100).default(20),
   orderBy: z.enum([ 'sentAt', 'createdAt', 'status' ]).default('sentAt'),

@@ -120,7 +120,6 @@ export async function reminderWorker(): Promise<void> {
           logger.info({ reminderId: reminder.id, messageSid: result.messageSid }, "Reminder sent successfully");
           await reminderRepository.update(reminder.id, {
             status: ReminderStatus.SENT,
-            sentAt: new Date().toISOString(),
             messageId: result.messageSid ?? "",
           });
         } else {
