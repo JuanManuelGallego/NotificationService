@@ -1,12 +1,12 @@
+import { useCreateReminder } from "@/src/api/useCreateReminder";
+import { useNotify } from "@/src/api/useNotify";
+import { lbl, inp, btnSecondary, btnPrimary, btnDisabled } from "@/src/styles/theme";
+import { APPOINTMENT_TYPES } from "@/src/types/Appointment";
+import { Patient } from "@/src/types/Patient";
+import { Reminder, ReminderMode, CHANNEL_ICON, CHANNEL_LABEL, Channel } from "@/src/types/Reminder";
+import { getAvatarColor, getInitials } from "@/src/utils/AvatarHelper";
+import { fmtDateTime } from "@/src/utils/TimeUtils";
 import { useState } from "react";
-import { lbl, inp, btnSecondary, btnPrimary, btnDisabled } from "../styles/theme";
-import { APPOINTMENT_TYPES } from "../types/Appointment";
-import { Patient } from "../types/Patient";
-import { CHANNEL_LABEL, CHANNEL_ICON, Channel, ReminderMode, Reminder } from "../types/Reminder";
-import { getAvatarColor, getInitials } from "../utils/AvatarHelper";
-import { fmtDateTime } from "../utils/TimeUtils";
-import { useCreateReminder } from "../api/useCreateReminder";
-import { useNotify } from "../api/useNotify";
 
 export function ReminderModal({
     onClose, onSaved, patients, reminder,

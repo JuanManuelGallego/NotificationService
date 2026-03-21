@@ -1,7 +1,7 @@
 import { DatePicker } from "antd";
 import dayjs, { Dayjs } from "dayjs";
-import { lbl } from "../styles/theme";
 import { useFetchAppointments } from "../api/useFetchAppointments";
+import { lbl } from "../styles/theme";
 
 export function DateTimePicker({
     date,

@@ -1,10 +1,10 @@
-import { btnPrimary } from "../styles/theme";
-import { Patient, PATIENT_STATUS_CONFIG } from "../types/Patient";
-import { fmtDate, fmtDateTime } from "../utils/TimeUtils";
-import { Row, Section } from "./DrawerUtils";
-import { PatientStatusPill, AppointmentStatusPill, ReminderStatusPill } from "./StatusPill";
-import { REMINDER_STATUS_CONFIG } from "../types/Reminder";
-import { STATUS_CFG } from "../types/Appointment";
+import { btnPrimary } from "@/src/styles/theme";
+import { STATUS_CFG } from "@/src/types/Appointment";
+import { Patient, PATIENT_STATUS_CONFIG } from "@/src/types/Patient";
+import { REMINDER_STATUS_CONFIG } from "@/src/types/Reminder";
+import { fmtDate, fmtDateTime } from "@/src/utils/TimeUtils";
+import { PatientStatusPill, AppointmentStatusPill, ReminderStatusPill } from "../Info/StatusPill";
+import { Section, Row } from "./DrawerUtils";
 
 export function PatientDrawer({ patient, onClose, onEdit, onDelete }: {
     patient: Patient;

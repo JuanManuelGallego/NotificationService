@@ -1,10 +1,10 @@
+import { useCreatePatient } from "@/src/api/useCreatePatient";
+import { useUpdatePatient } from "@/src/api/useUpdatePatient";
+import { labelStyle, inputStyle, btnSecondary, btnPrimary, btnDisabled } from "@/src/styles/theme";
+import { Patient, PatientStatus, PATIENT_STATUS_CONFIG } from "@/src/types/Patient";
+import { validateEmail, validatePhoneNumber } from "@/src/utils/DataValidator";
 import { useState } from "react";
-import { labelStyle, inputStyle, btnSecondary, btnPrimary, btnDisabled } from "../styles/theme";
-import { Patient, PATIENT_STATUS_CONFIG, PatientStatus } from "../types/Patient";
-import { validateEmail, validatePhoneNumber } from "../utils/DataValidator";
-import { useCreatePatient } from "../api/useCreatePatient";
-import { useUpdatePatient } from "../api/useUpdatePatient";
-import { RequiredField } from "./Requiered";
+import { RequiredField } from "../Info/Requiered";
 
 export function PatientModal({
     onClose,

@@ -1,10 +1,10 @@
+import { lbl, inp, btnPrimary, btnSecondary, thStyle, tdStyle } from "@/src/styles/theme";
+import { API_BASE } from "@/src/types/API";
+import { Patient } from "@/src/types/Patient";
+import { ReminderMode, BulkRemindersResult, CHANNEL_ICON, CHANNEL_LABEL, Channel } from "@/src/types/Reminder";
+import { getAvatarColor, getInitials } from "@/src/utils/AvatarHelper";
 import { useState } from "react";
-import { lbl, inp, btnPrimary, btnSecondary, thStyle, tdStyle } from "../styles/theme";
-import { API_BASE } from "../types/API";
-import { Patient } from "../types/Patient";
-import { BulkRemindersResult, Channel, CHANNEL_ICON, CHANNEL_LABEL, ReminderMode } from "../types/Reminder";
-import { getAvatarColor, getInitials } from "../utils/AvatarHelper";
-import { ChannelBadge } from "./ChannelIcon";
+import { ChannelBadge } from "../Info/ChannelIcon";
 
 export function BulkSendWizard({ patients }: { patients: Patient[] }) {
     const [ step, setStep ] = useState(1);

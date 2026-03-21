@@ -1,11 +1,11 @@
-import { btnPrimary } from "../styles/theme";
-import { Appointment, STATUS_CFG } from "../types/Appointment";
-import { getAvatarColor, getInitials } from "../utils/AvatarHelper";
-import { fmtDate, fmtDateTime } from "../utils/TimeUtils";
-import { PayBadge } from "./PayBadge";
-import { AppointmentStatusPill } from "./StatusPill";
-import { CHANNEL_LABEL, REMINDER_STATUS_CONFIG } from '../types/Reminder';
-import { Row, Section } from "./DrawerUtils";
+import { btnPrimary } from "@/src/styles/theme";
+import { Appointment, STATUS_CFG } from "@/src/types/Appointment";
+import { CHANNEL_LABEL, REMINDER_STATUS_CONFIG } from "@/src/types/Reminder";
+import { getAvatarColor, getInitials } from "@/src/utils/AvatarHelper";
+import { fmtDate, fmtDateTime } from "@/src/utils/TimeUtils";
+import { PayBadge } from "../Info/PayBadge";
+import { AppointmentStatusPill } from "../Info/StatusPill";
+import { Section, Row } from "./DrawerUtils";
 
 export function AppointmentDrawer({ appt, onClose, onEdit, onPay, onDelete }: {
     appt: Appointment;

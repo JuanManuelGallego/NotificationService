@@ -1,10 +1,10 @@
+import { useUpdateAppointment } from "@/src/api/useUpdateAppointment";
+import { useUpdateReminder } from "@/src/api/useUpdateReminder";
+import { btnSecondary } from "@/src/styles/theme";
+import { Appointment, AppointmentStatus } from "@/src/types/Appointment";
+import { ReminderStatus } from "@/src/types/Reminder";
+import { fmtDate } from "@/src/utils/TimeUtils";
 import { useState } from "react";
-import { btnSecondary } from "../styles/theme";
-import { Appointment, AppointmentStatus } from "../types/Appointment";
-import { fmtDate } from "../utils/TimeUtils";
-import { useUpdateAppointment } from "../api/useUpdateAppointment";
-import { useUpdateReminder } from "../api/useUpdateReminder";
-import { ReminderStatus } from "../types/Reminder";
 
 export function CancelAppointmentModal({ appt, onClose, onCanceled }: { appt: Appointment; onClose: () => void; onCanceled: () => void }) {
     const { updateAppointment, loading: cancelingAppt } = useUpdateAppointment();

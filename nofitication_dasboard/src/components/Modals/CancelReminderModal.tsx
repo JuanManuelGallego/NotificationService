@@ -1,7 +1,7 @@
+import { useUpdateReminder } from "@/src/api/useUpdateReminder";
+import { btnSecondary } from "@/src/styles/theme";
+import { Reminder, ReminderStatus } from "@/src/types/Reminder";
 import { useState } from "react";
-import { btnSecondary } from "../styles/theme";
-import { Reminder, ReminderStatus } from "../types/Reminder";
-import { useUpdateReminder } from "../api/useUpdateReminder";
 
 export function CancelReminderModal({ reminder, patientName, onClose, onCanceled }: {
     reminder: Reminder; patientName?: string; onClose: () => void; onCanceled: () => void;

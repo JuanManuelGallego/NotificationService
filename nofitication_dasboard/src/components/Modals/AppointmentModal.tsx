@@ -1,15 +1,15 @@
+import { useCreateAppointment } from "@/src/api/useCreateAppointment";
+import { useCreateReminder } from "@/src/api/useCreateReminder";
+import { useUpdateAppointment } from "@/src/api/useUpdateAppointment";
+import { useUpdateReminder } from "@/src/api/useUpdateReminder";
+import { lbl, inp, btnSecondary, btnPrimary, btnDisabled } from "@/src/styles/theme";
+import { Appointment, AppointmentForm, AppointmentStatus, APPOINTMENT_TYPES, AppointmentDuration, APPOINTMENT_LOCATIONS, LOCATION_CFG, STATUS_CFG } from "@/src/types/Appointment";
+import { Patient } from "@/src/types/Patient";
+import { ReminderType, Reminder, ReminderMode, ReminderStatus, CHANNEL_ICON, CHANNEL_LABEL, Channel } from "@/src/types/Reminder";
+import { getAvatarColor, getInitials } from "@/src/utils/AvatarHelper";
+import { isReminderTypeFeasible, getDate, getTime } from "@/src/utils/TimeUtils";
 import { useState } from "react";
-import { Appointment, APPOINTMENT_LOCATIONS, APPOINTMENT_TYPES, AppointmentDuration, AppointmentForm, AppointmentStatus, LOCATION_CFG, STATUS_CFG } from "../types/Appointment";
-import { Patient } from "../types/Patient";
-import { Channel, CHANNEL_ICON, CHANNEL_LABEL, Reminder, ReminderMode, ReminderStatus, ReminderType } from "../types/Reminder";
-import { btnDisabled, btnPrimary, btnSecondary, inp, lbl } from "../styles/theme";
-import { getAvatarColor, getInitials } from "../utils/AvatarHelper";
-import { useCreateAppointment } from "../api/useCreateAppointment";
-import { useUpdateAppointment } from "../api/useUpdateAppointment";
-import { useCreateReminder } from "../api/useCreateReminder";
-import { useUpdateReminder } from "../api/useUpdateReminder";
-import { getDate, getRemindersentAt as getReminderscheduledSendTime, getTime, isReminderTypeFeasible } from "../utils/TimeUtils";
-import { DateTimePicker } from "./DateTimePicker";
+import { DateTimePicker } from "../DateTimePicker";
 
 export function AppointmentModal({ appt, patients, onClose, onSaved }: {
   appt?: Appointment;

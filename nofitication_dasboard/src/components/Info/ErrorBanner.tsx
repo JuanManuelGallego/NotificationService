@@ -1,4 +1,4 @@
-import { btnPrimary } from "../styles/theme";
+import { btnPrimary } from "@/src/styles/theme";
 
 export function ErrorBanner({ msg, onRetry }: { msg: string; onRetry: () => void }) {
     return (

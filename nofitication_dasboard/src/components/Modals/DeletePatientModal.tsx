@@ -1,7 +1,7 @@
+import { useUpdatePatient } from "@/src/api/useUpdatePatient";
+import { btnSecondary } from "@/src/styles/theme";
+import { Patient, PatientStatus } from "@/src/types/Patient";
 import { useState } from "react";
-import { btnSecondary } from "../styles/theme";
-import { Patient, PatientStatus } from "../types/Patient";
-import { useUpdatePatient } from "../api/useUpdatePatient";
 
 export function DeletePatientModal({ patient, onClose, onDeleted }: {
     patient: Patient; onClose: () => void; onDeleted: () => void;

@@ -1,8 +1,8 @@
-import { btnPrimary } from "../styles/theme";
-import { Reminder, ReminderMode, REMINDER_STATUS_CONFIG, getChannelIcon, getChannelLabel, ReminderStatus } from "../types/Reminder";
-import { fmtDateTime } from "../utils/TimeUtils";
-import { Row, Section } from "./DrawerUtils";
-import { ReminderStatusPill } from "./StatusPill";
+import { btnPrimary } from "@/src/styles/theme";
+import { Reminder, REMINDER_STATUS_CONFIG, getChannelLabel, getChannelIcon, ReminderStatus, ReminderMode } from "@/src/types/Reminder";
+import { fmtDateTime } from "@/src/utils/TimeUtils";
+import { ReminderStatusPill } from "../Info/StatusPill";
+import { Section, Row } from "./DrawerUtils";
 
 export function ReminderDrawer({ reminder, patientName, onClose, onEdit, onCancel }: {
     reminder: Reminder;

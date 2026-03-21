@@ -1,19 +1,19 @@
 "use client";;
 import { useState, useMemo } from "react";
 
-import Sidebar from '../../components/Sidebar';
+import Sidebar from '../../components/Navigation/Sidebar';
 import { Patient, PatientStatus } from "@/src/types/Patient";
 import { getAvatarColor, getInitials } from "@/src/utils/AvatarHelper";
 import { btnPrimary } from "@/src/styles/theme";
-import { StatCard } from "@/src/components/StatCard";
-import { PatientStatusPill } from "@/src/components/StatusPill";
-import { ChannelIcon } from "@/src/components/ChannelIcon";
-import { SkeletonRow } from "@/src/components/Skeleton";
-import { PatientModal } from "@/src/components/PatientModal";
-import { DeletePatientModal } from "@/src/components/DeletePatientModal";
+import { StatCard } from "@/src/components/Info/StatCard";
+import { ChannelIcon } from "@/src/components/Info/ChannelIcon";
+import { DataTable } from "@/src/components/DataTable";
+import { PatientModal } from "@/src/components/Modals/PatientModal";
+import { DeletePatientModal } from "@/src/components/Modals/DeletePatientModal";
 import { Channel } from "@/src/types/Reminder";
 import { useFetchPatients } from "@/src/api/useFetchPatients";
-import { PatientDrawer } from "@/src/components/PatientDrawer";
+import { PatientDrawer } from "@/src/components/Drawers/PatientDrawer";
+import { PatientStatusPill } from "@/src/components/Info/StatusPill";
 
 const PAGE_SIZE = 10;
 
@@ -43,22 +43,6 @@ export default function PatientsPage() {
 
     return (
         <>
-            <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@400;500;600&display=swap');
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'DM Sans', sans-serif; }
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-thumb { background: #D1D5DB; border-radius: 3px; }
-        @keyframes shimmer {
-          0%   { background-position: 200% 0; }
-          100% { background-position: -200% 0; }
-        }
-        @keyframes fadeIn {
-          from { opacity: 0; transform: translateY(8px); }
-          to   { opacity: 1; transform: translateY(0); }
-        }
-        tr:hover td { background: #F9FAFB !important; transition: background 0.1s; }
-      `}</style>
             <div style={{ display: "flex", minHeight: "100vh", background: "#F8F7F4", fontFamily: "'DM Sans', sans-serif" }}>
                 <Sidebar />
                 <main style={{ marginLeft: 240, flex: 1, padding: "36px 40px", maxWidth: "calc(100% - 240px)" }}>
@@ -130,116 +114,65 @@ export default function PatientsPage() {
                             </button>
                         </div>
                     )}
-                    <div style={{
-                        background: "#fff", borderRadius: 16,
-                        boxShadow: "0 1px 3px rgba(0,0,0,0.06)", overflow: "hidden",
-                        animation: "fadeIn 0.3s ease",
-                    }}>
-                        <table style={{ width: "100%", borderCollapse: "collapse" }}>
-                            <thead>
-                                <tr style={{ background: "#F9FAFB" }}>
-                                    {[ "Paciente", "Correo", "WhatsApp", "SMS", "Estado", "Registrado", "" ].map(h => (
-                                        <th key={h} style={{
-                                            padding: "13px 20px", textAlign: "left",
-                                            fontSize: 12, fontWeight: 600, color: "#6B7280",
-                                            letterSpacing: "0.05em", textTransform: "uppercase",
-                                            borderBottom: "1px solid #F3F4F6", whiteSpace: "nowrap",
-                                        }}>{h}</th>
-                                    ))}
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {loading && Array.from({ length: 5 }).map((_, i) => <SkeletonRow key={i} />)}
-                                {!loading && patients.map((p, i) => (
-                                    <tr onClick={() => setViewPatient(p)} key={p.id} style={{ borderBottom: i < patients.length - 1 ? "1px solid #F3F4F6" : "none", cursor: "pointer" }}>
-                                        <td style={{ padding: "14px 20px" }}>
-                                            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                                                <div style={{
-                                                    width: 38, height: 38, borderRadius: "50%",
-                                                    background: getAvatarColor(p.id),
-                                                    display: "flex", alignItems: "center", justifyContent: "center",
-                                                    fontSize: 13, fontWeight: 700, color: "#1E3A5F", flexShrink: 0,
-                                                }}>
-                                                    {getInitials(p.name, p.lastName)}
-                                                </div>
-                                                <div>
-                                                    <div style={{ fontSize: 14, fontWeight: 600, color: "#111827" }}>{p.name} {p.lastName}</div>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td style={{ padding: "14px 20px", fontSize: 13, color: "#374151" }}>
-                                            {p.email ?
-                                                <a href={`mailto:${p.email}`} style={{ color: "#2563EB", textDecoration: "none" }}>{p.email}</a>
-                                                :
-                                                <span style={{ fontSize: 11, color: "#828383", display: "flex", alignItems: "center", gap: 3 }}>
-                                                    <span style={{ textDecoration: "line-through", opacity: 0.5 }}>—</span>
-                                                </span>}
-                                        </td>
-                                        <td style={{ padding: "14px 20px" }}>
-                                            <ChannelIcon type={Channel.WHATSAPP} value={p.whatsappNumber} />
-                                        </td>
-                                        <td style={{ padding: "14px 20px" }}>
-                                            <ChannelIcon type={Channel.SMS} value={p.smsNumber} />
-                                        </td>
-                                        <td style={{ padding: "14px 20px" }}>
-                                            <PatientStatusPill status={p.status} />
-                                        </td>
-                                        <td style={{ padding: "14px 20px", fontSize: 13, color: "#6B7280", whiteSpace: "nowrap" }}>
-                                            {new Date(p.createdAt).toLocaleDateString("es-ES", { day: "numeric", month: "short", year: "numeric" })}
-                                        </td>
-                                        <td style={{ padding: "14px 20px" }}>
-                                            <div style={{ display: "flex", gap: 6 }}>
-                                                <button onClick={() => setEditPatient(p)} style={{
-                                                    padding: "5px 12px", fontSize: 12, fontWeight: 600,
-                                                    background: "#EFF6FF", border: "none", borderRadius: 7,
-                                                    color: "#2563EB", cursor: "pointer",
-                                                }}>Editar</button>
-                                                <button onClick={() => setDeletePatient(p)} style={{
-                                                    padding: "5px 12px", fontSize: 12, fontWeight: 600,
-                                                    background: "#FEF2F2", border: "none", borderRadius: 7,
-                                                    color: "#DC2626", cursor: "pointer",
-                                                }}>Eliminar</button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))}
-                                {!loading && !error && patients.length === 0 && (
-                                    <tr>
-                                        <td colSpan={7} style={{ padding: 56, textAlign: "center" }}>
-                                            <div style={{ fontSize: 36, marginBottom: 12 }}>🔍</div>
-                                            <div style={{ fontSize: 15, fontWeight: 600, color: "#374151", marginBottom: 6 }}>
-                                                {search || filterStatus !== "ALL" ? "Sin resultados" : "No hay pacientes aún"}
-                                            </div>
-                                            <div style={{ fontSize: 13, color: "#9CA3AF" }}>
-                                                {search || filterStatus !== "ALL"
-                                                    ? "Prueba ajustando los filtros de búsqueda."
-                                                    : "Haz clic en \"Nuevo Paciente\" para agregar el primero."}
-                                            </div>
-                                        </td>
-                                    </tr>
-                                )}
-                            </tbody>
-                        </table>
-                        {!loading && patients.length > 0 && (
-                            <div style={{
-                                padding: "12px 20px", borderTop: "1px solid #F3F4F6",
-                                display: "flex", justifyContent: "space-between", alignItems: "center",
-                                background: "#FAFAFA",
-                            }}>
+                    <DataTable
+                        columns={[ "Paciente", "Correo", "WhatsApp", "SMS", "Estado", "Registrado", "" ]}
+                        rows={patients}
+                        loading={loading}
+                        skeletonCount={5}
+                        renderRow={(p, i) => (
+                            <tr onClick={() => setViewPatient(p)} key={p.id} style={{ borderBottom: i < patients.length - 1 ? "1px solid #F3F4F6" : "none", cursor: "pointer" }}>
+                                <td style={{ padding: "14px 20px" }}>
+                                    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                                        <div style={{
+                                            width: 38, height: 38, borderRadius: "50%",
+                                            background: getAvatarColor(p.id),
+                                            display: "flex", alignItems: "center", justifyContent: "center",
+                                            fontSize: 13, fontWeight: 700, color: "#1E3A5F", flexShrink: 0,
+                                        }}>
+                                            {getInitials(p.name, p.lastName)}
+                                        </div>
+                                        <div style={{ fontSize: 14, fontWeight: 600, color: "#111827" }}>{p.name} {p.lastName}</div>
+                                    </div>
+                                </td>
+                                <td style={{ padding: "14px 20px", fontSize: 13, color: "#374151" }}>
+                                    {p.email
+                                        ? <a href={`mailto:${p.email}`} style={{ color: "#2563EB", textDecoration: "none" }}>{p.email}</a>
+                                        : <span style={{ fontSize: 11, color: "#828383" }}><span style={{ textDecoration: "line-through", opacity: 0.5 }}>—</span></span>}
+                                </td>
+                                <td style={{ padding: "14px 20px" }}><ChannelIcon type={Channel.WHATSAPP} value={p.whatsappNumber} /></td>
+                                <td style={{ padding: "14px 20px" }}><ChannelIcon type={Channel.SMS} value={p.smsNumber} /></td>
+                                <td style={{ padding: "14px 20px" }}><PatientStatusPill status={p.status} /></td>
+                                <td style={{ padding: "14px 20px", fontSize: 13, color: "#6B7280", whiteSpace: "nowrap" }}>
+                                    {new Date(p.createdAt).toLocaleDateString("es-ES", { day: "numeric", month: "short", year: "numeric" })}
+                                </td>
+                                <td style={{ padding: "14px 20px" }}>
+                                    <div style={{ display: "flex", gap: 6 }}>
+                                        <button onClick={e => { e.stopPropagation(); setEditPatient(p); }} style={{ padding: "5px 12px", fontSize: 12, fontWeight: 600, background: "#EFF6FF", border: "none", borderRadius: 7, color: "#2563EB", cursor: "pointer" }}>Editar</button>
+                                        <button onClick={e => { e.stopPropagation(); setDeletePatient(p); }} style={{ padding: "5px 12px", fontSize: 12, fontWeight: 600, background: "#FEF2F2", border: "none", borderRadius: 7, color: "#DC2626", cursor: "pointer" }}>Eliminar</button>
+                                    </div>
+                                </td>
+                            </tr>
+                        )}
+                        emptyState={
+                            <>
+                                <div style={{ fontSize: 36, marginBottom: 12 }}>🔍</div>
+                                <div style={{ fontSize: 15, fontWeight: 600, color: "#374151", marginBottom: 6 }}>
+                                    {search || filterStatus !== "ALL" ? "Sin resultados" : "No hay pacientes aún"}
+                                </div>
+                                <div style={{ fontSize: 13, color: "#9CA3AF" }}>
+                                    {search || filterStatus !== "ALL"
+                                        ? "Prueba ajustando los filtros de búsqueda."
+                                        : "Haz clic en \"Nuevo Paciente\" para agregar el primero."}
+                                </div>
+                            </>
+                        }
+                        footer={
+                            <>
                                 <span style={{ fontSize: 13, color: "#9CA3AF" }}>
                                     Mostrando <strong style={{ color: "#374151" }}>{(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, total)}</strong> de <strong style={{ color: "#374151" }}>{total}</strong> pacientes
                                 </span>
                                 <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                                    <button
-                                        onClick={() => setPage(p => Math.max(1, p - 1))}
-                                        disabled={page === 1}
-                                        style={{
-                                            padding: "5px 12px", borderRadius: 7, border: "1.5px solid #E5E7EB",
-                                            background: page === 1 ? "#F9FAFB" : "#fff",
-                                            color: page === 1 ? "#D1D5DB" : "#374151",
-                                            fontSize: 13, fontWeight: 500, cursor: page === 1 ? "default" : "pointer",
-                                        }}
-                                    >← Anterior</button>
+                                    <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} style={{ padding: "5px 12px", borderRadius: 7, border: "1.5px solid #E5E7EB", background: page === 1 ? "#F9FAFB" : "#fff", color: page === 1 ? "#D1D5DB" : "#374151", fontSize: 13, fontWeight: 500, cursor: page === 1 ? "default" : "pointer" }}>← Anterior</button>
                                     {Array.from({ length: totalPages }, (_, i) => i + 1)
                                         .filter(n => n === 1 || n === totalPages || Math.abs(n - page) <= 1)
                                         .reduce<(number | "...")[]>((acc, n, idx, arr) => {
@@ -251,35 +184,15 @@ export default function PatientsPage() {
                                             item === "..." ? (
                                                 <span key={`ellipsis-${idx}`} style={{ fontSize: 13, color: "#9CA3AF", padding: "0 4px" }}>…</span>
                                             ) : (
-                                                <button
-                                                    key={item}
-                                                    onClick={() => setPage(item as number)}
-                                                    style={{
-                                                        width: 32, height: 32, borderRadius: 7,
-                                                        border: "1.5px solid",
-                                                        borderColor: page === item ? "#1E3A5F" : "#E5E7EB",
-                                                        background: page === item ? "#1E3A5F" : "#fff",
-                                                        color: page === item ? "#fff" : "#374151",
-                                                        fontSize: 13, fontWeight: 500, cursor: "pointer",
-                                                    }}
-                                                >{item}</button>
+                                                <button key={item} onClick={() => setPage(item as number)} style={{ width: 32, height: 32, borderRadius: 7, border: "1.5px solid", borderColor: page === item ? "#1E3A5F" : "#E5E7EB", background: page === item ? "#1E3A5F" : "#fff", color: page === item ? "#fff" : "#374151", fontSize: 13, fontWeight: 500, cursor: "pointer" }}>{item}</button>
                                             )
                                         )
                                     }
-                                    <button
-                                        onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-                                        disabled={page === totalPages}
-                                        style={{
-                                            padding: "5px 12px", borderRadius: 7, border: "1.5px solid #E5E7EB",
-                                            background: page === totalPages ? "#F9FAFB" : "#fff",
-                                            color: page === totalPages ? "#D1D5DB" : "#374151",
-                                            fontSize: 13, fontWeight: 500, cursor: page === totalPages ? "default" : "pointer",
-                                        }}
-                                    >Siguiente →</button>
+                                    <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages} style={{ padding: "5px 12px", borderRadius: 7, border: "1.5px solid #E5E7EB", background: page === totalPages ? "#F9FAFB" : "#fff", color: page === totalPages ? "#D1D5DB" : "#374151", fontSize: 13, fontWeight: 500, cursor: page === totalPages ? "default" : "pointer" }}>Siguiente →</button>
                                 </div>
-                            </div>
-                        )}
-                    </div>
+                            </>
+                        }
+                    />
                 </main>
             </div>
             {showCreate && (

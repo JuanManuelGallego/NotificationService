@@ -1,6 +1,6 @@
-import { Channel, CHANNEL_ICON, getChannelIconAndLabel } from "../types/Reminder";
+import { Channel, CHANNEL_ICON, getChannelIconAndLabel } from "@/src/types/Reminder";
 
-export function ChannelIcon({ type, value }: { type: Channel; value: string | null | undefined}) {
+export function ChannelIcon({ type, value }: { type: Channel; value: string | null | undefined }) {
     if (!value) {
         return (
             <span style={{ fontSize: 11, color: "#828383", display: "flex", alignItems: "center", gap: 3 }}>

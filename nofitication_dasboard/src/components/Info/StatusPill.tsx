@@ -1,6 +1,6 @@
-import { AppointmentStatus, STATUS_CFG } from "../types/Appointment";
-import { PatientStatus, PATIENT_STATUS_CONFIG } from "../types/Patient";
-import { ReminderStatus, REMINDER_STATUS_CONFIG } from "../types/Reminder";
+import { AppointmentStatus, STATUS_CFG } from "@/src/types/Appointment";
+import { PatientStatus, PATIENT_STATUS_CONFIG } from "@/src/types/Patient";
+import { ReminderStatus, REMINDER_STATUS_CONFIG } from "@/src/types/Reminder";
 
 export function PatientStatusPill({ status }: { status: PatientStatus }) {
     const c = PATIENT_STATUS_CONFIG[ status ];

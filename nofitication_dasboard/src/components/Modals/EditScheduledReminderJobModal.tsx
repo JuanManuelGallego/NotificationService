@@ -1,9 +1,9 @@
+import { lbl, inp, btnSecondary, btnPrimary } from "@/src/styles/theme";
+import { API_BASE } from "@/src/types/API";
+import { Patient } from "@/src/types/Patient";
+import { Reminder, ReminderStatus, CHANNEL_ICON, CHANNEL_LABEL } from "@/src/types/Reminder";
+import { isoToLocal } from "@/src/utils/TimeUtils";
 import { useState } from "react";
-import { lbl, inp, btnSecondary, btnPrimary } from "../styles/theme";
-import { API_BASE } from "../types/API";
-import { CHANNEL_ICON, CHANNEL_LABEL, Reminder, ReminderStatus } from "../types/Reminder";
-import { isoToLocal } from "../utils/TimeUtils";
-import { Patient } from "../types/Patient";
 
 export function EditScheduledReminderModal({ reminder, patients, onClose, onSaved }: { reminder: Reminder; patients: Patient[]; onClose: () => void; onSaved: () => void }) {
     const [ sentAt, setsentAt ] = useState(isoToLocal(reminder.sentAt));

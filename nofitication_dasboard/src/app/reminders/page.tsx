@@ -1,22 +1,22 @@
 "use client";;
-import Sidebar from '../../components/Sidebar';
+import Sidebar from '../../components/Navigation/Sidebar';
 import { useState } from "react";
 import { Reminder, ReminderStatus } from '@/src/types/Reminder';
-import { btnPrimary, thStyle, tdStyle } from '@/src/styles/theme';
+import { btnPrimary, tdStyle } from '@/src/styles/theme';
 import { fmtDateTime, fmtRelative } from '@/src/utils/TimeUtils';
-import { ReminderStatusPill } from '@/src/components/StatusPill';
-import { StatCard } from '@/src/components/StatCard';
-import { ChannelBadge } from '@/src/components/ChannelIcon';
-import { ErrorBanner } from '@/src/components/ErrorBanner';
-import { ReminderModal } from '@/src/components/ReminderModal';
-import { EditScheduledReminderModal } from '@/src/components/EditScheduledReminderJobModal';
-import { ReminderDrawer } from '@/src/components/ReminderDrawer';
-import { BulkSendWizard } from '@/src/components/BulkSendWizard';
+import { StatCard } from '@/src/components/Info/StatCard';
+import { ChannelBadge } from '@/src/components/Info/ChannelIcon';
+import { ReminderModal } from '@/src/components/Modals/ReminderModal';
+import { EditScheduledReminderModal } from '@/src/components/Modals/EditScheduledReminderJobModal';
+import { ReminderDrawer } from '@/src/components/Drawers/ReminderDrawer';
+import { BulkSendWizard } from '@/src/components/Navigation/BulkSendWizard';
 import { EmptyState } from '@/src/components/EmptyState';
-import { SkeletonRow } from '@/src/components/Skeleton';
-import { CancelReminderModal } from '@/src/components/CancelReminderModal';
+import { DataTable } from '@/src/components/DataTable';
+import { CancelReminderModal } from '@/src/components/Modals/CancelReminderModal';
 import { useFetchReminders } from '@/src/api/useFetchReminders';
 import { useFetchPatients } from '@/src/api/useFetchPatients';
+import { ErrorBanner } from '@/src/components/Info/ErrorBanner';
+import { ReminderStatusPill } from '@/src/components/Info/StatusPill';
 
 type ActiveTab = "Active" | "History" | "Bulk";
 
@@ -49,22 +49,6 @@ export default function RemindersPage() {
 
     return (
         <>
-            <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@400;500;600&display=swap');
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'DM Sans', sans-serif; }
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-thumb { background: #D1D5DB; border-radius: 3px; }
-        @keyframes shimmer {
-          0%   { background-position: 200% 0; }
-          100% { background-position: -200% 0; }
-        }
-        @keyframes fadeIn {
-          from { opacity: 0; transform: translateY(8px); }
-          to   { opacity: 1; transform: translateY(0); }
-        }
-        tr:hover td { background: #F9FAFB !important; transition: background 0.1s; }
-      `}</style>
             <div style={{ display: "flex", minHeight: "100vh", background: "#F8F7F4", fontFamily: "'DM Sans', sans-serif" }}>
                 <Sidebar />
                 <main style={{ marginLeft: 240, flex: 1, padding: "36px 40px", maxWidth: "calc(100% - 240px)" }}>
@@ -132,109 +116,76 @@ export default function RemindersPage() {
                     )}
                     {errorReminders && activeTab !== "Bulk" && <ErrorBanner msg={errorReminders} onRetry={fetchReminders} />}
                     {activeTab === "Active" && (
-                        <div style={{ background: "#fff", borderRadius: 16, boxShadow: "0 1px 3px rgba(0,0,0,0.06)", overflow: "hidden", animation: "fadeIn 0.25s ease" }}>
-                            <table style={{ width: "100%", borderCollapse: "collapse" }}>
-                                <thead>
-                                    <tr style={{ background: "#F9FAFB" }}>
-                                        {[ "Destinatario", "Canal", "Estado", "Programado para", "En", "Creado el", "" ].map(h => (
-                                            <th key={h} style={thStyle}>{h}</th>
-                                        ))}
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {loadingReminders && Array.from({ length: 4 }).map((_, i) => <SkeletonRow key={i} />)}
-                                    {!loadingReminders && filteredActive.map((reminder, i) => (
-                                        <tr key={reminder.id} style={{ borderBottom: i < filteredActive.length - 1 ? "1px solid #F3F4F6" : "none", cursor: "pointer" }}
-                                            onClick={() => setViewReminder(reminder)}>
-                                            <td style={tdStyle}>
-                                                <div style={{ fontSize: 14, fontWeight: 600, color: "#111827" }}>{patients.find(p => p.id === reminder.patientId)?.name ?? "—"}</div>
-                                                <div style={{ fontSize: 11, color: "#9CA3AF", fontFamily: "monospace" }}>{reminder.to}</div>
-                                            </td>
-                                            <td style={tdStyle}><ChannelBadge channel={reminder.channel} /></td>
-                                            <td style={tdStyle}><ReminderStatusPill status={reminder.status} /></td>
-                                            <td style={{ ...tdStyle, fontSize: 13, color: "#374151" }}>{fmtDateTime(reminder.sendAt)}</td>
-                                            <td style={{ ...tdStyle, fontSize: 13, color: "#6B7280", whiteSpace: "nowrap" }}>
-                                                <span style={{ background: "#EFF6FF", color: "#2563EB", padding: "3px 9px", borderRadius: 20, fontSize: 12, fontWeight: 600 }}>
-                                                    {fmtRelative(reminder.sendAt)}
-                                                </span>
-                                            </td>
-                                            <td style={{ ...tdStyle, fontSize: 13, color: "#9CA3AF" }}>{fmtDateTime(reminder.sendAt)}</td>
-                                            <td style={tdStyle} onClick={e => e.stopPropagation()}>
-                                                <div style={{ display: "flex", gap: 6 }}>
-                                                    <button onClick={() => setEditReminder(reminder)} style={{ padding: "5px 12px", fontSize: 12, fontWeight: 600, background: "#EFF6FF", border: "none", borderRadius: 7, color: "#2563EB", cursor: "pointer" }}>
-                                                        Reprogramar
-                                                    </button>
-                                                    <button onClick={() => setCancelReminder(reminder)} style={{ padding: "5px 12px", fontSize: 12, fontWeight: 600, background: "#FEF2F2", border: "none", borderRadius: 7, color: "#DC2626", cursor: "pointer" }}>
-                                                        Cancelar
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                    {!loadingReminders && filteredActive.length === 0 && (
-                                        <EmptyState icon="🔔" title="Sin recordatorios activos" sub="Haz clic en Nuevo Recordatorio para programar el primero." />
-                                    )}
-                                </tbody>
-                            </table>
-                            {!loadingReminders && filteredActive.length > 0 && (
-                                <div style={{ padding: "12px 20px", borderTop: "1px solid #F3F4F6", background: "#FAFAFA", display: "flex", justifyContent: "space-between" }}>
-                                    <span style={{ fontSize: 13, color: "#9CA3AF" }}>
-                                        <strong style={{ color: "#374151" }}>{filteredActive.length}</strong> recordatorio(s) activo(s)
-                                    </span>
-                                    <span style={{ fontSize: 12, color: "#D1D5DB" }}>Actualizado: {new Date().toLocaleTimeString("es-ES")}</span>
-                                </div>
+                        <DataTable
+                            columns={[ "Destinatario", "Canal", "Estado", "Programado para", "En", "Creado el", "" ]}
+                            rows={filteredActive}
+                            loading={loadingReminders}
+                            skeletonCount={4}
+                            renderRow={(reminder, i) => (
+                                <tr key={reminder.id} style={{ borderBottom: i < filteredActive.length - 1 ? "1px solid #F3F4F6" : "none", cursor: "pointer" }}
+                                    onClick={() => setViewReminder(reminder)}>
+                                    <td style={tdStyle}>
+                                        <div style={{ fontSize: 14, fontWeight: 600, color: "#111827" }}>{patients.find(p => p.id === reminder.patientId)?.name ?? "—"}</div>
+                                        <div style={{ fontSize: 11, color: "#9CA3AF", fontFamily: "monospace" }}>{reminder.to}</div>
+                                    </td>
+                                    <td style={tdStyle}><ChannelBadge channel={reminder.channel} /></td>
+                                    <td style={tdStyle}><ReminderStatusPill status={reminder.status} /></td>
+                                    <td style={{ ...tdStyle, fontSize: 13, color: "#374151" }}>{fmtDateTime(reminder.sendAt)}</td>
+                                    <td style={{ ...tdStyle, fontSize: 13, color: "#6B7280", whiteSpace: "nowrap" }}>
+                                        <span style={{ background: "#EFF6FF", color: "#2563EB", padding: "3px 9px", borderRadius: 20, fontSize: 12, fontWeight: 600 }}>
+                                            {fmtRelative(reminder.sendAt)}
+                                        </span>
+                                    </td>
+                                    <td style={{ ...tdStyle, fontSize: 13, color: "#9CA3AF" }}>{fmtDateTime(reminder.sendAt)}</td>
+                                    <td style={tdStyle} onClick={e => e.stopPropagation()}>
+                                        <div style={{ display: "flex", gap: 6 }}>
+                                            <button onClick={() => setEditReminder(reminder)} style={{ padding: "5px 12px", fontSize: 12, fontWeight: 600, background: "#EFF6FF", border: "none", borderRadius: 7, color: "#2563EB", cursor: "pointer" }}>Reprogramar</button>
+                                            <button onClick={() => setCancelReminder(reminder)} style={{ padding: "5px 12px", fontSize: 12, fontWeight: 600, background: "#FEF2F2", border: "none", borderRadius: 7, color: "#DC2626", cursor: "pointer" }}>Cancelar</button>
+                                        </div>
+                                    </td>
+                                </tr>
                             )}
-                        </div>
+                            emptyState={<EmptyState icon="🔔" title="Sin recordatorios activos" sub="Haz clic en Nuevo Recordatorio para programar el primero." />}
+                            footer={
+                                <>
+                                    <span style={{ fontSize: 13, color: "#9CA3AF" }}><strong style={{ color: "#374151" }}>{filteredActive.length}</strong> recordatorio(s) activo(s)</span>
+                                    <span style={{ fontSize: 12, color: "#D1D5DB" }}>Actualizado: {new Date().toLocaleTimeString("es-ES")}</span>
+                                </>
+                            }
+                        />
                     )}
                     {activeTab === "History" && (
-                        <div style={{ background: "#fff", borderRadius: 16, boxShadow: "0 1px 3px rgba(0,0,0,0.06)", overflow: "hidden", animation: "fadeIn 0.25s ease" }}>
-                            <table style={{ width: "100%", borderCollapse: "collapse" }}>
-                                <thead>
-                                    <tr style={{ background: "#F9FAFB" }}>
-                                        {[ "Destinatario", "Canal", "Estado", "Enviado", "ID Mensaje", "Error" ].map(h => (
-                                            <th key={h} style={thStyle}>{h}</th>
-                                        ))}
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {loadingReminders && Array.from({ length: 5 }).map((_, i) => <SkeletonRow key={i} />)}
-                                    {!loadingReminders && filteredHistory.map((reminder, i) => (
-                                        <tr key={reminder.id} style={{ borderBottom: i < filteredHistory.length - 1 ? "1px solid #F3F4F6" : "none", cursor: "pointer" }}
-                                            onClick={() => setViewReminder(reminder)}>
-
-                                            <td style={tdStyle}>
-                                                <div style={{ fontSize: 14, fontWeight: 600, color: "#111827" }}>{patients.find(p => p.id === reminder.patientId)?.name ?? "—"}</div>
-                                                <div style={{ fontSize: 11, color: "#9CA3AF", fontFamily: "monospace" }}>{reminder.to}</div>
-                                            </td>
-                                            <td style={tdStyle}><ChannelBadge channel={reminder.channel} /></td>
-                                            <td style={tdStyle}><ReminderStatusPill status={reminder.status} /></td>
-                                            <td style={{ ...tdStyle, fontSize: 13, color: "#6B7280" }}>{fmtDateTime(reminder.sentAt)}</td>
-                                            <td style={{ ...tdStyle, fontSize: 12, color: "#9CA3AF", fontFamily: "monospace" }}>
-                                                {reminder.messageId ? (
-                                                    <span title={reminder.messageId}>{reminder.messageId}</span>
-                                                ) : "—"}
-                                            </td>
-                                            <td style={{ ...tdStyle, fontSize: 12, color: "#DC2626", maxWidth: 200 }}>
-                                                {reminder.error
-                                                    ? <span title={reminder.error} style={{ background: "#FEF2F2", padding: "3px 8px", borderRadius: 6 }}>{reminder.error.slice(0, 40)}{reminder.error.length > 40 ? "…" : ""}</span>
-                                                    : <span style={{ color: "#D1D5DB" }}>—</span>
-                                                }
-                                            </td>
-                                        </tr>
-                                    ))}
-                                    {!loadingReminders && filteredHistory.length === 0 && (
-                                        <EmptyState icon="📋" title="Sin historial aún" sub="Los recordatorios enviados, fallidos y cancelados aparecerán aquí." />
-                                    )}
-                                </tbody>
-                            </table>
-                            {!loadingReminders && filteredHistory.length > 0 && (
-                                <div style={{ padding: "12px 20px", borderTop: "1px solid #F3F4F6", background: "#FAFAFA" }}>
-                                    <span style={{ fontSize: 13, color: "#9CA3AF" }}>
-                                        <strong style={{ color: "#374151" }}>{filteredHistory.length}</strong> registros en el historial
-                                    </span>
-                                </div>
+                        <DataTable
+                            columns={[ "Destinatario", "Canal", "Estado", "Enviado", "ID Mensaje", "Error" ]}
+                            rows={filteredHistory}
+                            loading={loadingReminders}
+                            skeletonCount={5}
+                            renderRow={(reminder, i) => (
+                                <tr key={reminder.id} style={{ borderBottom: i < filteredHistory.length - 1 ? "1px solid #F3F4F6" : "none", cursor: "pointer" }}
+                                    onClick={() => setViewReminder(reminder)}>
+                                    <td style={tdStyle}>
+                                        <div style={{ fontSize: 14, fontWeight: 600, color: "#111827" }}>{patients.find(p => p.id === reminder.patientId)?.name ?? "—"}</div>
+                                        <div style={{ fontSize: 11, color: "#9CA3AF", fontFamily: "monospace" }}>{reminder.to}</div>
+                                    </td>
+                                    <td style={tdStyle}><ChannelBadge channel={reminder.channel} /></td>
+                                    <td style={tdStyle}><ReminderStatusPill status={reminder.status} /></td>
+                                    <td style={{ ...tdStyle, fontSize: 13, color: "#6B7280" }}>{fmtDateTime(reminder.sentAt)}</td>
+                                    <td style={{ ...tdStyle, fontSize: 12, color: "#9CA3AF", fontFamily: "monospace" }}>
+                                        {reminder.messageId ? <span title={reminder.messageId}>{reminder.messageId}</span> : "—"}
+                                    </td>
+                                    <td style={{ ...tdStyle, fontSize: 12, color: "#DC2626", maxWidth: 200 }}>
+                                        {reminder.error
+                                            ? <span title={reminder.error} style={{ background: "#FEF2F2", padding: "3px 8px", borderRadius: 6 }}>{reminder.error.slice(0, 40)}{reminder.error.length > 40 ? "…" : ""}</span>
+                                            : <span style={{ color: "#D1D5DB" }}>—</span>
+                                        }
+                                    </td>
+                                </tr>
                             )}
-                        </div>
+                            emptyState={<EmptyState icon="📋" title="Sin historial aún" sub="Los recordatorios enviados, fallidos y cancelados aparecerán aquí." />}
+                            footer={
+                                <span style={{ fontSize: 13, color: "#9CA3AF" }}><strong style={{ color: "#374151" }}>{filteredHistory.length}</strong> registros en el historial</span>
+                            }
+                        />
                     )}
                     {activeTab === "Bulk" && (
                         <div style={{ animation: "fadeIn 0.25s ease" }}>

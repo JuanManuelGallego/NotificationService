@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-import Sidebar from '../components/Sidebar';
+import Sidebar from '../components/Navigation/Sidebar';
 import { Patient, PatientStatus } from "../types/Patient";
 import { Channel, CHANNEL_ICON, REMINDER_STATUS_CONFIG, ReminderStatus } from "../types/Reminder";
 import { Appointment } from "../types/Appointment";
@@ -246,17 +246,6 @@ export default function NotificationsPage() {
 
   return (
     <>
-      {/* Google Font */}
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@400;500;600&display=swap');
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'DM Sans', sans-serif; }
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #D1D5DB; border-radius: 3px; }
-        tr:hover td { background: #F9FAFB !important; }
-      `}</style>
-
       <div style={{ display: "flex", minHeight: "100vh", background: "#F8F7F4", fontFamily: "'DM Sans', sans-serif" }}>
 
         <Sidebar />

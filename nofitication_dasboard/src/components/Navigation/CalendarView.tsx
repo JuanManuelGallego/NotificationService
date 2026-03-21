@@ -1,7 +1,7 @@
+import { btnSecondary } from "@/src/styles/theme";
+import { Appointment, LOCATION_CFG, AppointmentStatus } from "@/src/types/Appointment";
+import { getDate, today, MONTH_NAMES_ES, DAY_NAMES_ES, getTime } from "@/src/utils/TimeUtils";
 import { useState, useMemo } from "react";
-import { btnSecondary } from "../styles/theme";
-import { Appointment, AppointmentStatus, LOCATION_CFG } from "../types/Appointment";
-import { today, MONTH_NAMES_ES, DAY_NAMES_ES, getDate, getTime } from "../utils/TimeUtils";
 
 export function CalendarView({ appointments, onDayClick, onApptClick }: {
     appointments: Appointment[];
