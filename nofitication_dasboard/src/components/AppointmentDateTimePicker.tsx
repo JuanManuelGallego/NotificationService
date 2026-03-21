@@ -1,7 +1,6 @@
 import { DatePicker } from "antd";
 import dayjs, { Dayjs } from "dayjs";
 import { useFetchAppointments } from "../api/useFetchAppointments";
-import { lbl } from "../styles/theme";
 
 export function AppointmentDateTimePicker({
     date,
@@ -31,7 +30,6 @@ export function AppointmentDateTimePicker({
 
     return (
         <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 14 }}>
-            <label style={lbl}>Fecha y Hora</label>
             <DatePicker
                 value={date ? dayjs(date) : null}
                 onChange={handleChange}

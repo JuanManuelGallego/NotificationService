@@ -1,6 +1,6 @@
 import { btnSecondary } from "@/src/styles/theme";
 import { Appointment, LOCATION_CFG, AppointmentStatus } from "@/src/types/Appointment";
-import { formatDate, today, MONTH_NAMES_ES, DAY_NAMES_ES, formatTime } from "@/src/utils/TimeUtils";
+import { today, MONTH_NAMES_ES, DAY_NAMES_ES, formatTime, getDate } from "@/src/utils/TimeUtils";
 import { useState, useMemo } from "react";
 
 export function CalendarView({ appointments, onDayClick, onApptClick }: {
@@ -21,20 +21,22 @@ export function CalendarView({ appointments, onDayClick, onApptClick }: {
     const apptByDate = useMemo(() => {
         const map: Record<string, Appointment[]> = {};
         for (const a of appointments) {
-            const date = formatDate(a.startAt)
+            const date = getDate(a.startAt)
             if (!map[ date ]) map[ date ] = [];
             map[ date ].push(a);
         }
         return map;
     }, [ appointments ]);
-    console.log(apptByDate)
+
     function cellDate(cell: number): string | null {
         const day = cell - startOffset + 1;
         if (day < 1 || day > daysInMonth) return null;
+        
         return `${calYear}-${String(calMonth + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
     }
 
     const todayStr = today();
+    console.log("Appointments by date:", apptByDate);
 
     return (
         <div style={{ background: "#fff", borderRadius: 16, boxShadow: "0 1px 3px rgba(0,0,0,0.06)", overflow: "hidden" }}>
@@ -55,12 +57,12 @@ export function CalendarView({ appointments, onDayClick, onApptClick }: {
             <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)" }}>
                 {Array.from({ length: rows * 7 }).map((_, i) => {
                     const date = cellDate(i);
-                    console.log("cell Date: ", date)
                     const isToday = date === todayStr;
-                    const appts = date ? (apptByDate[ date ] ?? []) : [];
+                    const appts = date ? (apptByDate[ getDate(date) ] ?? []) : [];
+                    console.log(date, appts);
                     return (
                         <div key={i} onClick={() => date && onDayClick(date)} style={{
-                            minHeight: 90, padding: "8px 10px",
+                            minHeight: 150, padding: "8px 10px",
                             borderRight: (i + 1) % 7 !== 0 ? "1px solid #F3F4F6" : "none",
                             borderBottom: i < rows * 7 - 7 ? "1px solid #F3F4F6" : "none",
                             background: !date ? "#FAFAFA" : isToday ? "#F0F9FF" : "#fff",
@@ -86,8 +88,8 @@ export function CalendarView({ appointments, onDayClick, onApptClick }: {
                                         {appts.slice(0, 3).map(a => (
                                             <div key={a.id} onClick={e => { e.stopPropagation(); onApptClick(a); }} style={{
                                                 fontSize: 10, fontWeight: 600, padding: "2px 5px", borderRadius: 4,
-                                                background: LOCATION_CFG[ a.location ].bg,
-                                                color: LOCATION_CFG[ a.location ].color,
+                                                background: LOCATION_CFG[ a.location ]?.bg ?? "#E5E7EB",
+                                                color: LOCATION_CFG[ a.location ]?.color ?? "#374151",
                                                 whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
                                                 cursor: "pointer",
                                             }}>

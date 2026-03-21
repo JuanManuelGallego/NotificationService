@@ -35,16 +35,16 @@ export interface Appointment {
 export interface AppointmentForm {
     startAt: string;
     duration: string;
+    price: number;
+    paid: boolean;
     location: string;
     meetingUrl?: string;
     notes?: string;
+    type: string;
+    status: AppointmentStatus;
     patientId: string;
-    paid: boolean;
-    price: number;
     reminderId?: string;
     reminderType: ReminderType;
-    status: AppointmentStatus;
-    type: string;
 }
 
 export enum AppointmentStatus {
@@ -103,3 +103,17 @@ export const LOCATION_CFG: Record<string, { label: string; color: string; bg: st
     [ "Vamos a Terapia" ]: { label: "Vamos a Terapia", color: "#399efc", bg: "#c7e8fe", dot: "#fbbf24", icon: "🏢" },
     [ "Virtual" ]: { label: "Virtual", color: "#f56d73", bg: "#FEF2F2", dot: "#EF4444", icon: "�" },
 };
+
+export interface FetchAppointmentsFilters {
+    patientId?: string;
+    status?: AppointmentStatus;
+    startAt?: string;
+    dateFrom?: string;
+    dateTo?: string;
+    search?: string;
+    paid?: boolean;
+    page?: number;
+    pageSize?: number;
+    orderBy?: 'startAt' | 'createdAt' | 'status' | 'price' | 'location' | 'type' | 'patientName';
+    order?: 'asc' | 'desc';
+}

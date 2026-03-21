@@ -1,4 +1,5 @@
 import { PatientStatus } from './Patient';
+import { AppointmentStatus } from './Appointment';
 export interface ApiPaginatedResponse {
     success: boolean;
     data: {
@@ -24,6 +25,22 @@ export interface PatientStats {
         [ PatientStatus.INACTIVE ]: number;
         [ PatientStatus.ARCHIVED ]: number;
     };
+}
+
+export interface AppointmentStats {
+    total: number,
+    todayCount: number;
+    byStatus: {
+        [ AppointmentStatus.SCHEDULED ]: number,
+        [ AppointmentStatus.CONFIRMED ]: number,
+        [ AppointmentStatus.COMPLETED ]: number,
+        [ AppointmentStatus.CANCELLED ]: number,
+        [ AppointmentStatus.NO_SHOW ]: number
+    },
+    totalRevenue: number,
+    paidRevenue: number,
+    unpaidRevenue: number,
+    unpaidCount: number
 }
 
 export const API_BASE = "http://localhost:3001";

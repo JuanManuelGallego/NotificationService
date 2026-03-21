@@ -2,7 +2,7 @@ import { btnPrimary } from "@/src/styles/theme";
 import { Appointment, STATUS_CFG } from "@/src/types/Appointment";
 import { CHANNEL_LABEL, REMINDER_STATUS_CONFIG } from "@/src/types/Reminder";
 import { getAvatarColor, getInitials } from "@/src/utils/AvatarHelper";
-import { fmtDate, fmtDateAndTime, getDuration } from "@/src/utils/TimeUtils";
+import { fmtDate, fmtDateAndTime, fmtTime, getDuration } from "@/src/utils/TimeUtils";
 import { PayBadge } from "../Info/PayBadge";
 import { AppointmentStatusPill } from "../Info/StatusPill";
 import { Section, Row } from "./DrawerUtils";
@@ -47,7 +47,7 @@ export function AppointmentDrawer({ appt, onClose, onEdit, onPay, onDelete }: {
                     </Section>
                     <Section title="Fecha y Hora">
                         <Row icon="📅" label="Fecha" value={fmtDate(appt.startAt)} />
-                        <Row icon="🕐" label="Hora" value={fmtDateAndTime(appt.startAt)} />
+                        <Row icon="🕐" label="Hora" value={fmtTime(appt.startAt)} />
                         <Row icon="⏱️" label="Duración" value={getDuration(appt.startAt, appt.endAt)} />
                     </Section>
                     <Section title="Lugar">

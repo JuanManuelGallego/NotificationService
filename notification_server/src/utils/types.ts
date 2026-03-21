@@ -57,6 +57,16 @@ export interface PaginatedAppointments {
   totalPages: number;
 }
 
+export interface AppointmentStats {
+  total: number;
+  todayCount: number;
+  byStatus: Record<string, number>;
+  totalRevenue: number;
+  paidRevenue: number;
+  unpaidRevenue: number;
+  unpaidCount: number;
+}
+
 export interface PaginatedPatients {
   data: Patient[];
   total: number;

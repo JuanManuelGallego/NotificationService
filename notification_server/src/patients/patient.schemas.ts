@@ -41,8 +41,8 @@ export const listPatientsSchema = z.object({
   pageSize: z.coerce.number().int().min(1).max(100).default(20),
   orderBy: z.enum([ 'name', 'lastName', 'email', 'createdAt', 'updatedAt' ]).default('createdAt'),
   order: z.enum([ 'asc', 'desc' ]).default('desc'),
-  from: z.coerce.date().optional(),
-  to: z.coerce.date().optional(),
+  from: z.string().datetime().optional(),
+  to: z.string().datetime().optional(),
 });
 
 export const uuidParamSchema = z.object({

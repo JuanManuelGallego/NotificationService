@@ -2,7 +2,7 @@
 import { useState, useMemo } from "react";
 
 import Sidebar from '../../components/Navigation/Sidebar';
-import { Patient, PatientStatus } from "@/src/types/Patient";
+import { FetchPatientsFilters, Patient, PatientStatus } from "@/src/types/Patient";
 import { getAvatarColor, getInitials } from "@/src/utils/AvatarHelper";
 import { btnPrimary } from "@/src/styles/theme";
 import { StatCard } from "@/src/components/Info/StatCard";
@@ -30,11 +30,13 @@ export default function PatientsPage() {
     const [ viewPatient, setViewPatient ] = useState<Patient | null>(null);
     const { stats, fetchStats } = useFetchPatientsStats();
 
-    const filters = useMemo(() => ({
+    const filters = useMemo<FetchPatientsFilters>(() => ({
         search: debouncedSearch,
         status: filterStatus !== "ALL" ? filterStatus : undefined,
         page,
         pageSize: PAGE_SIZE,
+        orderBy: 'name',
+        order: 'asc',
     }), [ debouncedSearch, filterStatus, page ]);
 
     const { patients, loading, error, fetchPatients, total, totalPages } = useFetchPatients(filters);

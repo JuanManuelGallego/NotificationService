@@ -3,8 +3,10 @@ import {
   createAppointmentSchema,
   updateAppointmentSchema,
   listAppointmentsSchema,
+  appointmentStatsSchema,
   uuidParamSchema,
   type ListAppointmentsQuery,
+  type AppointmentStatsQuery,
 } from './appointment.schemas.js';
 import {
   appointmentRepository,
@@ -27,6 +29,21 @@ appointmentRouter.get<{}, any, any, ListAppointmentsQuery>(
     try {
       const result = await appointmentRepository.findMany(req.query);
       ok(res, result);
+    } catch (err) { handleError(res, err); }
+  }
+);
+
+/**
+ * GET /appointments/stats
+ * Aggregate statistics: totals by status, revenue (paid vs unpaid).
+ * Optional filters: patientId, dateFrom, dateTo.
+ */
+appointmentRouter.get<{}, any, any, AppointmentStatsQuery>(
+  '/stats',
+  validateQuery(appointmentStatsSchema),
+  async (req: Request<{}, any, any, AppointmentStatsQuery>, res: Response) => {
+    try {
+      ok(res, await appointmentRepository.getStats(req.query));
     } catch (err) { handleError(res, err); }
   }
 );

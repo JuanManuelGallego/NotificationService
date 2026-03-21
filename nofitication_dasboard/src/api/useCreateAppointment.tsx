@@ -1,12 +1,12 @@
 import { useState, useCallback } from "react";
 import { API_BASE, ApiResponse } from "../types/API";
-import { Appointment, AppointmentForm } from "../types/Appointment";
+import { Appointment } from "../types/Appointment";
 
 export const useCreateAppointment = () => {
     const [ loading, setLoading ] = useState(false);
     const [ error, setError ] = useState<string | null>(null);
 
-    const createAppointment = useCallback(async (appointmentData: AppointmentForm) => {
+    const createAppointment = useCallback(async (appointmentData: Partial<Appointment>) => {
         setLoading(true);
         setError(null);
 

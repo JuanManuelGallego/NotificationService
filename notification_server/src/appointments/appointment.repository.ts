@@ -4,9 +4,10 @@ import {
   type CreateAppointmentDto,
   type UpdateAppointmentDto,
   type ListAppointmentsQuery,
+  type AppointmentStatsQuery,
 } from './appointment.schemas.js';
 import { AppointmentPatientNotFoundError, AppointmentReminderNotFoundError, AppointmentNotFoundError } from '../utils/errors.js';
-import { appointmentInclude, type AppointmentWithRelations, type PaginatedAppointments } from '../utils/types.js';
+import { appointmentInclude, type AppointmentWithRelations, type PaginatedAppointments, type AppointmentStats } from '../utils/types.js';
 
 export const appointmentRepository = {
   async create(dto: CreateAppointmentDto): Promise<AppointmentWithRelations> {
@@ -49,14 +50,32 @@ export const appointmentRepository = {
   },
 
   async findMany(query: ListAppointmentsQuery): Promise<PaginatedAppointments> {
-    const { patientId, status, startAt, dateFrom, dateTo, paid, page, pageSize, orderBy, order } = query;
+    const { patientId, status, startAt, dateFrom, dateTo, paid, search, page, pageSize, orderBy, order } = query;
     const skip = (page - 1) * pageSize;
 
     const where: Prisma.AppointmentWhereInput = {
       ...(patientId && { patientId }),
       ...(status && { status }),
       ...(paid !== undefined && { paid }),
-      ...(startAt && { startAt }),
+      ...(startAt && {
+        startAt: {
+          gte: new Date(`${startAt}T00:00:00.000Z`),
+          lte: new Date(`${startAt}T23:59:59.999Z`),
+        },
+      }), // Only works in UTC...
+      ...(search && {
+        OR: [
+          { location: { contains: search, mode: 'insensitive' } },
+          { type: { contains: search, mode: 'insensitive' } },
+          {
+            patient: {
+              OR: [
+                { name: { contains: search, mode: 'insensitive' } },
+                { lastName: { contains: search, mode: 'insensitive' } }
+              ]
+            }
+          } ]
+      }),
       ...(dateFrom || dateTo
         ? {
           startAt: {
@@ -92,22 +111,22 @@ export const appointmentRepository = {
     return prisma.appointment.update({
       where: { id },
       data: {
-      ...(dto.startAt !== undefined && { startAt: dto.startAt }),
-      ...(dto.endAt !== undefined && { endAt: dto.endAt }),
-      ...(dto.timezone !== undefined && { timezone: dto.timezone }),
-      ...(dto.price !== undefined && { price: dto.price }),
-      ...(dto.currency !== undefined && { currency: dto.currency }),
-      ...(dto.paid !== undefined && { paid: dto.paid }),
-      ...(dto.location !== undefined && { location: dto.location }),
-      ...(dto.meetingUrl !== undefined && { meetingUrl: dto.meetingUrl }),
-      ...(dto.notes !== undefined && { notes: dto.notes }),
-      ...(dto.type !== undefined && { type: dto.type }),
-      ...(dto.status !== undefined && { status: dto.status }),
-      ...(dto.status === AppointmentStatus.CONFIRMED && { confirmedAt: new Date()}),
-      ...(dto.status === AppointmentStatus.CANCELLED && { cancelledAt: new Date()}),
-      ...(dto.status === AppointmentStatus.COMPLETED && { completedAt: new Date()}),
-      ...(dto.reminderId !== undefined && { reminderId: dto.reminderId }),
-    },
+        ...(dto.startAt !== undefined && { startAt: dto.startAt }),
+        ...(dto.endAt !== undefined && { endAt: dto.endAt }),
+        ...(dto.timezone !== undefined && { timezone: dto.timezone }),
+        ...(dto.price !== undefined && { price: dto.price }),
+        ...(dto.currency !== undefined && { currency: dto.currency }),
+        ...(dto.paid !== undefined && { paid: dto.paid }),
+        ...(dto.location !== undefined && { location: dto.location }),
+        ...(dto.meetingUrl !== undefined && { meetingUrl: dto.meetingUrl }),
+        ...(dto.notes !== undefined && { notes: dto.notes }),
+        ...(dto.type !== undefined && { type: dto.type }),
+        ...(dto.status !== undefined && { status: dto.status }),
+        ...(dto.status === AppointmentStatus.CONFIRMED && { confirmedAt: new Date() }),
+        ...(dto.status === AppointmentStatus.CANCELLED && { cancelledAt: new Date() }),
+        ...(dto.status === AppointmentStatus.COMPLETED && { completedAt: new Date() }),
+        ...(dto.reminderId !== undefined && { reminderId: dto.reminderId }),
+      },
       include: appointmentInclude,
     });
   },
@@ -124,6 +143,68 @@ export const appointmentRepository = {
       data: { paid: true },
       include: appointmentInclude,
     });
+  },
+
+  async getStats(query: AppointmentStatsQuery): Promise<AppointmentStats> {
+    const { patientId, dateFrom, dateTo } = query;
+    const where: Prisma.AppointmentWhereInput = {
+      ...(patientId && { patientId }),
+      ...(dateFrom || dateTo
+        ? {
+          startAt: {
+            ...(dateFrom && { gte: new Date(dateFrom) }),
+            ...(dateTo && { lte: new Date(dateTo) }),
+          },
+        }
+        : {}),
+    };
+
+    const todayStart = new Date();
+    todayStart.setUTCHours(0, 0, 0, 0);
+    const todayEnd = new Date();
+    todayEnd.setUTCHours(23, 59, 59, 999);
+
+    const [ statusGroups, paidAgg, unpaidAgg, todayAgg ] = await prisma.$transaction([
+      prisma.appointment.groupBy({
+        by: [ 'status' ],
+        _count: { id: true },
+        orderBy: { status: 'asc' },
+        where,
+      }),
+      prisma.appointment.aggregate({
+        _sum: { price: true },
+        _count: { _all: true },
+        where: { ...where, paid: true },
+      }),
+      prisma.appointment.aggregate({
+        _sum: { price: true },
+        _count: { _all: true },
+        where: { ...where, paid: false },
+      }),
+      prisma.appointment.count({
+        where: { ...where, startAt: { gte: todayStart, lte: todayEnd } },
+      }),
+    ]);
+
+    const byStatus: Record<string, number> = Object.fromEntries(
+      Object.values(AppointmentStatus).map(s => [ s, 0 ])
+    );
+    for (const group of statusGroups) {
+      byStatus[ group.status ] = (group._count as { id: number }).id;
+    }
+
+    const paidRevenue = paidAgg._sum.price ?? 0;
+    const unpaidRevenue = unpaidAgg._sum.price ?? 0;
+
+    return {
+      total: paidAgg._count._all + unpaidAgg._count._all,
+      todayCount: todayAgg,
+      byStatus,
+      totalRevenue: paidRevenue + unpaidRevenue,
+      paidRevenue,
+      unpaidRevenue,
+      unpaidCount: unpaidAgg._count._all,
+    };
   },
 };
 

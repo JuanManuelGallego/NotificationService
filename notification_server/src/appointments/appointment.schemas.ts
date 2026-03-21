@@ -47,14 +47,14 @@ export const updateAppointmentSchema = z
 export const listAppointmentsSchema = z.object({
   patientId: z.string().uuid().optional(),
   status: z.nativeEnum(AppointmentStatus).optional(),
-  startAt: z.string().date().optional(),
-  dateFrom: z.string().date().optional(),
-  dateTo: z.string().date().optional(),
-  location: z.string().optional(),
+  startAt: z.string().datetime().optional(),
+  dateFrom: z.string().datetime().optional(),
+  dateTo: z.string().datetime().optional(),
+  search: z.string().optional(),
   paid: z.enum([ 'true', 'false' ]).transform(v => v === 'true').optional(),
   page: z.coerce.number().int().min(1).default(1),
   pageSize: z.coerce.number().int().min(1).max(100).default(20),
-  orderBy: z.enum([ 'startAt', 'createdAt', 'status', 'price' ]).default('startAt'),
+  orderBy: z.enum([ 'startAt', 'createdAt', 'status', 'price', 'location', 'type', 'patientName' ]).default('startAt'),
   order: z.enum([ 'asc', 'desc' ]).default('asc'),
 });
 
@@ -62,6 +62,13 @@ export const uuidParamSchema = z.object({
   id: z.string().uuid('id must be a valid UUID'),
 });
 
+export const appointmentStatsSchema = z.object({
+  patientId: z.string().uuid().optional(),
+  dateFrom: z.string().datetime().optional(),
+  dateTo: z.string().datetime().optional(),
+});
+
 export type CreateAppointmentDto = z.infer<typeof createAppointmentSchema>;
 export type UpdateAppointmentDto = z.infer<typeof updateAppointmentSchema>;
 export type ListAppointmentsQuery = z.infer<typeof listAppointmentsSchema>;
+export type AppointmentStatsQuery = z.infer<typeof appointmentStatsSchema>;

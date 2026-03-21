@@ -46,7 +46,7 @@ export async function reminderWorker(): Promise<void> {
   try {
     logger.info("Running reminder scheduler worker...");
     const now = new Date();
-    const oneMinuteFromNow = new Date(now.getTime() + 60 * 1000);
+    const oneMinuteFromNow = new Date(now.getTime() + 60 * 950); // 950ms to account for processing time
     const remindersToSend = await prisma.reminder.findMany({
       where: {
         status: ReminderStatus.PENDING,

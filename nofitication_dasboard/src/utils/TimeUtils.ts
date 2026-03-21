@@ -1,3 +1,4 @@
+import { AppointmentDuration } from "../types/Appointment";
 import { ReminderType } from "../types/Reminder";
 
 function fmtDateTime(iso: string | undefined): string {
@@ -9,17 +10,23 @@ function fmtDateTime(iso: string | undefined): string {
 
 function fmtDateAndTime(d: string): string {
     if (!d) return "Invalid Date"
-    const date = new Date(d);
-    return new Date(date.getTime() - date.getTimezoneOffset() * 60000).toLocaleString("es-ES", {
+
+    return new Date(d).toLocaleString("es-ES", {
         day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit",
     });
 }
 
 function fmtDate(d: string | undefined): string {
     if (!d) return "Invalid Date"
+
     return new Date(d).toLocaleDateString("es-ES", {
         day: "numeric", month: "long", year: "numeric",
     });
+}
+
+function fmtTime(d: string | undefined): string {
+    if (!d) return "Invalid Date"
+    return new Date(d).toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" });
 }
 
 function fmtDateWeekDay(d: string | undefined): string {
@@ -90,31 +97,58 @@ function getRemindersendAt(date: string, reminderType: ReminderType): string {
 }
 
 function formatDate(d: string): string {
-    return new Date(d).toISOString().slice(0, 10);
+    return new Date(d).toLocaleDateString("es-ES", {
+        day: "numeric", month: "long", year: "numeric",
+    });
 }
 
 function formatTime(d: string): string {
-    return new Date(d).toISOString().slice(11, 16);
+    return new Date(d).toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" });
 }
 
-function getDuration(startAt: string | undefined, endAt: string | undefined): string | null {
-    if (!startAt || !endAt) return null;
+function getDuration(startAt: string | undefined, endAt: string | undefined): AppointmentDuration {
+    if (!startAt || !endAt) return AppointmentDuration.MIN_60; //default
 
     const diff = (new Date(endAt).getTime() - new Date(startAt).getTime()) / 60000;
-    if (diff < 60) return `${diff} min`;
-    return `${Math.round(diff / 60)} h`;
+    if (diff === 45) return AppointmentDuration.MIN_45;
+    if (diff === 50) return AppointmentDuration.MIN_50;
+    if (diff === 60) return AppointmentDuration.MIN_60;
+    if (diff === 90) return AppointmentDuration.MIN_90;
+
+    return AppointmentDuration.MIN_60; //default
+}
+
+function getAppointmentEndTime(startAt: string, duration: AppointmentDuration): string {
+    const start = new Date(startAt);
+    const dur = duration === AppointmentDuration.MIN_45 ? 45 : duration === AppointmentDuration.MIN_50 ? 50 : duration === AppointmentDuration.MIN_60 ? 60 : 90;
+    return new Date(start.getTime() + dur * 60000).toISOString();
+}
+
+function getTommorrowSixAm(): string {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    tomorrow.setHours(6, 0, 0, 0);
+    return tomorrow.toISOString();
+}
+
+function getDate(date: string): string {
+    return date.slice(0, 10);
 }
 
 export {
     fmtDate,
+    fmtTime,
     fmtDateAndTime,
     fmtDateTime,
     fmtDateWeekDay,
     fmtRelative,
     formatDate,
     formatTime,
+    getDate,
+    getAppointmentEndTime,
     getDuration,
     getRemindersendAt,
+    getTommorrowSixAm,
     isoToLocal,
     isReminderTypeFeasible,
     today,

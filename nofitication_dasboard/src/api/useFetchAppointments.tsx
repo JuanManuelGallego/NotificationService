@@ -1,18 +1,21 @@
 import { useState, useEffect, useCallback } from "react";
 import { API_BASE, ApiPaginatedResponse } from "../types/API";
-import { Appointment } from "../types/Appointment";
+import { Appointment, FetchAppointmentsFilters } from "../types/Appointment";
+import { buildAppointmentQueryString } from "../utils/ApiUtils";
 
-export const useFetchAppointments = () => {
+export const useFetchAppointments = (filters?: FetchAppointmentsFilters) => {
     const [ appointments, setAppointments ] = useState<Appointment[]>([]);
     const [ loading, setLoading ] = useState(false);
     const [ error, setError ] = useState<string | null>(null);
+    const [ total, setTotal ] = useState(0);
+    const [ totalPages, setTotalPages ] = useState(0);
 
     const fetchAppointments = useCallback(async () => {
-        setLoading(true);
-        setError(null);
+        setLoading(true); setError(null);
 
         try {
-            const res = await fetch(`${API_BASE}/appointments`);
+            const query = buildAppointmentQueryString(filters);
+            const res = await fetch(`${API_BASE}/appointments${query}`);
 
             if (!res.ok) {
                 throw new Error(`Server error: ${res.status}`);
@@ -25,12 +28,14 @@ export const useFetchAppointments = () => {
             }
 
             setAppointments(json.data.data as Appointment[]);
+            setTotal(json.data.total);
+            setTotalPages(json.data.totalPages);
         } catch (err) {
             setError(err instanceof Error ? err.message : "Failed to load appointments");
         } finally {
             setLoading(false);
         }
-    }, []);
+    }, [ filters ]);
 
     useEffect(() => {
         fetchAppointments();
@@ -38,5 +43,5 @@ export const useFetchAppointments = () => {
         return () => clearInterval(interval);
     }, [ fetchAppointments ]);
 
-    return { appointments, loading, error, fetchAppointments };
+    return { appointments, loading, error, fetchAppointments, total, totalPages };
 };

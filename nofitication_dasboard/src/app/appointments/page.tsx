@@ -8,73 +8,62 @@ import Sidebar from "@/src/components/Navigation/Sidebar";
 import { DataTable } from "@/src/components/DataTable";
 import { EmptyState } from "@/src/components/EmptyState";
 import { StatCard } from "@/src/components/Info/StatCard";
+import { DateTimePicker } from "@/src/components/DateTimePicker";
 import { btnPrimary, btnSecondary, inp, tdStyle } from "@/src/styles/theme";
-import { Appointment, AppointmentStatus, LOCATION_CFG } from "@/src/types/Appointment";
+import { Appointment, AppointmentStatus, FetchAppointmentsFilters, LOCATION_CFG } from "@/src/types/Appointment";
 import { ReminderStatus } from "@/src/types/Reminder";
 import { getAvatarColor, getInitials } from "@/src/utils/AvatarHelper";
-import { today, fmtDate, fmtDateAndTime } from "@/src/utils/TimeUtils";
-import { useState, useEffect } from "react";
+import { fmtDateAndTime } from "@/src/utils/TimeUtils";
+import { useState, useMemo } from "react";
 import { useFetchAppointments } from "@/src/api/useFetchAppointments";
 import { useFetchPatients } from "@/src/api/useFetchPatients";
 import { useFetchReminders } from "@/src/api/useFetchReminders";
 import { ReminderStatusPill, EmptyStatusPill, AppointmentStatusPill } from "@/src/components/Info/StatusPill";
+import { useFetchAppointmentsStats } from "@/src/api/useFetchAppointmentsStats";
+import { useUpdateAppointment } from "@/src/api/useUpdateAppointment";
 
 type ViewMode = "list" | "calendar";
+const PAGE_SIZE = 10;
 
 export default function AppointmentsPage() {
-  const [ appointments, setAppointments ] = useState<Appointment[]>([]);
   const { patients } = useFetchPatients();
-  const { appointments: remoteAppointments, loading, error, fetchAppointments } = useFetchAppointments();
   const { reminders, fetchReminders } = useFetchReminders();
+  const { stats, fetchStats } = useFetchAppointmentsStats();
+  const { updateAppointment } = useUpdateAppointment();
 
   const [ viewMode, setViewMode ] = useState<ViewMode>("list");
-  const [ filterStatus, setFilterStatus ] = useState<AppointmentStatus | "ALL">(AppointmentStatus.SCHEDULED);
+  const [ filterStatus, setFilterStatus ] = useState<AppointmentStatus | "ALL">("ALL");
   const [ filterpaid, setFilterpaid ] = useState<"ALL" | "true" | "false">("ALL");
   const [ search, setSearch ] = useState("");
   const [ dateFilter, setDateFilter ] = useState("");
+  const [ page, setPage ] = useState(1);
 
   const [ showCreate, setShowCreate ] = useState(false);
   const [ editAppt, setEditAppt ] = useState<Appointment | null>(null);
   const [ viewAppt, setViewAppt ] = useState<Appointment | null>(null);
   const [ deleteAppt, setDeleteAppt ] = useState<Appointment | null>(null);
-  const [ payingId, setPayingId ] = useState<string | null>(null);
   const [ prefillDate, setPrefillDate ] = useState<string | null>(null);
 
-  useEffect(() => {
-    setAppointments(remoteAppointments);
-  }, [ remoteAppointments ]);
+  const filters = useMemo<FetchAppointmentsFilters>(() => ({
+    patientId: undefined,
+    status: filterStatus !== "ALL" ? filterStatus : undefined,
+    startAt: undefined,
+    dateFrom: dateFilter ? `${dateFilter}T00:00:00.000Z` : undefined,
+    dateTo: dateFilter ? `${dateFilter}T23:59:59.999Z` : undefined,
+    search: search.trim() || undefined,
+    paid: filterpaid !== "ALL" ? filterpaid === "true" : undefined,
+    page: page,
+    pageSize: PAGE_SIZE,
+    orderBy: 'startAt',
+    order: 'asc',
+  }), [ filterStatus, filterpaid, search, dateFilter, page ]);
+  const { appointments, loading, error, fetchAppointments, total, totalPages } = useFetchAppointments(filters);
 
   async function handlePay(id: string) {
-    setPayingId(id);
     try {
-      await fetch(`http://localhost:3001/appointments/${id}/pay`, { method: "POST" });
-      fetchAppointments();
-    } finally { setPayingId(null); }
+      await updateAppointment(id, { paid: true });
+    } finally { fetchStats(); fetchAppointments(); }
   }
-
-  const filtered = appointments.filter(a => {
-    if (filterStatus !== "ALL" && a.status !== filterStatus) return false;
-    if (filterpaid !== "ALL" && String(a.paid) !== filterpaid) return false;
-    if (dateFilter && a.startAt.slice(0, 10) !== dateFilter) return false;
-    if (search) {
-      const q = search.toLowerCase();
-      return [ a.type, a.location, a.patient?.name ?? '', a.patient?.lastName ?? '', a.patient?.email ?? '' ].some(v => v.toLowerCase().includes(q));
-    }
-    return true;
-  });
-
-  const counts = {
-    total: appointments.length,
-    today: appointments.filter(a => new Date(a.startAt).getDate() === new Date().getDate()).length,
-    upcoming: appointments.filter(a => new Date(a.startAt) > new Date() && a.status === AppointmentStatus.SCHEDULED).length,
-    unpaid: appointments.filter(a => !a.paid && a.status !== AppointmentStatus.CANCELLED).length,
-    completed: appointments.filter(a => a.status === AppointmentStatus.COMPLETED).length,
-  };
-
-  const revenue = appointments
-    .filter(a => a.paid)
-    .reduce((sum, a) => sum + a.price, 0)
-    .toLocaleString("es-ES");
 
   return (
     <>
@@ -101,7 +90,7 @@ export default function AppointmentsPage() {
                   </button>
                 ))}
               </div>
-              <button onClick={() => { setPrefillDate(null); setShowCreate(true); }} style={{
+              <button onClick={() => { setShowCreate(true); }} style={{
                 ...btnPrimary, display: "flex", alignItems: "center", gap: 8,
                 boxShadow: "0 4px 14px rgba(30,58,95,0.3)", padding: "12px 24px",
               }}>
@@ -110,11 +99,11 @@ export default function AppointmentsPage() {
             </div>
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 16, marginBottom: 32 }}>
-            <StatCard label="Total" value={counts.total} sub="todas las citas" accent="#1E3A5F" />
-            <StatCard label="Hoy" value={counts.today} sub="citas de hoy" accent="#3B82F6" />
-            <StatCard label="Próximas" value={counts.upcoming} sub="sin confirmar" accent="#D97706" />
-            <StatCard label="Sin pagar" value={counts.unpaid} sub="requieren cobro" accent="#DC2626" />
-            <StatCard label="Ingresos" value={`$ ${revenue}`} sub="total cobrado" accent="#16A34A" />
+            <StatCard label="Total" value={stats?.total ?? 0} sub="todas las citas" accent="#1E3A5F" />
+            <StatCard label="Hoy" value={stats?.todayCount ?? 0} sub="citas de hoy" accent="#3B82F6" />
+            <StatCard label="Próximas" value={stats?.byStatus[ AppointmentStatus.SCHEDULED ] ?? 0} sub="sin confirmar" accent="#D97706" />
+            <StatCard label="Sin pagar" value={stats?.unpaidCount ?? 0} sub="requieren cobro" accent="#DC2626" />
+            <StatCard label="Ingresos" value={`$ ${stats?.paidRevenue.toLocaleString("es-ES") ?? 0}`} sub="total cobrado" accent="#16A34A" />
           </div>
           {error && (
             <div style={{ background: "#FEF2F2", border: "1px solid #FCA5A5", borderRadius: 12, padding: "14px 20px", marginBottom: 20, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
@@ -126,11 +115,11 @@ export default function AppointmentsPage() {
             <>
               <div style={{ background: "#fff", borderRadius: 16, padding: "16px 20px", display: "flex", alignItems: "center", gap: 12, marginBottom: 16, boxShadow: "0 1px 3px rgba(0,0,0,0.06)", flexWrap: "wrap" }}>
                 <input placeholder="Buscar paciente, tipo, ubicación…" value={search} onChange={e => setSearch(e.target.value)} style={{ flex: "1 1 200px", padding: "9px 14px", border: "1.5px solid #E5E7EB", borderRadius: 10, fontSize: 14, outline: "none", fontFamily: "inherit", color: "#111827", background: "#FAFAFA" }} />
-                <input type="date" value={dateFilter} onChange={e => setDateFilter(e.target.value)} style={{ ...inp, width: "auto", padding: "9px 12px" }} />
+                <DateTimePicker date={dateFilter} onChanged={iso => setDateFilter(iso.slice(0, 10))} isFuture />
                 {dateFilter && <button onClick={() => setDateFilter("")} style={{ ...btnSecondary, padding: "7px 12px", fontSize: 12 }}>✕ Fecha</button>}
                 <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
                   {([
-                    { k: "ALL", l: "Todos" },
+                    { k: "ALL", l: "Todas" },
                     { k: AppointmentStatus.SCHEDULED, l: "Programadas" },
                     { k: AppointmentStatus.CONFIRMED, l: "Confirmadas" },
                     { k: AppointmentStatus.COMPLETED, l: "Completadas" },
@@ -147,18 +136,18 @@ export default function AppointmentsPage() {
                   ))}
                 </div>
                 <select value={filterpaid} onChange={e => setFilterpaid(e.target.value as "true" | "false" | "ALL")} style={{ ...inp, width: "auto", padding: "8px 12px", fontSize: 13 }}>
-                  <option value="ALL">💳 Todos</option>
-                  <option value="true">💳 Pagados</option>
+                  <option value="ALL">💳 Todas</option>
+                  <option value="true">💳 Pagadas</option>
                   <option value="false">⏳ Sin pagar</option>
                 </select>
               </div>
               <DataTable
                 columns={[ "Paciente", "Tipo", "Fecha", "Recordatorio", "Ubicación", "Estado", "Pago", "" ]}
-                rows={filtered}
+                rows={appointments}
                 loading={loading}
                 skeletonCount={6}
                 renderRow={(a, i) => (
-                  <tr key={a.id} style={{ borderBottom: i < filtered.length - 1 ? "1px solid #F3F4F6" : "none", cursor: "pointer" }}
+                  <tr key={a.id} style={{ borderBottom: i < appointments.length - 1 ? "1px solid #F3F4F6" : "none", cursor: "pointer" }}
                     onClick={() => setViewAppt(a)}>
                     <td style={tdStyle}>
                       <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
@@ -186,8 +175,8 @@ export default function AppointmentsPage() {
                       <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                         <PayBadge paid={a.paid} />
                         {!a.paid && a.status !== AppointmentStatus.CANCELLED && (
-                          <button onClick={() => handlePay(a.id)} disabled={payingId === a.id} style={{ padding: "3px 9px", fontSize: 11, fontWeight: 600, background: "#DCFCE7", border: "none", borderRadius: 6, color: "#16A34A", cursor: "pointer", opacity: payingId === a.id ? 0.6 : 1 }}>
-                            {payingId === a.id ? "…" : "Pagó"}
+                          <button onClick={() => handlePay(a.id)} style={{ padding: "3px 9px", fontSize: 11, fontWeight: 600, background: "#DCFCE7", border: "none", borderRadius: 6, color: "#16A34A", cursor: "pointer", opacity: 1 }}>
+                            Pagó
                           </button>
                         )}
                       </div>
@@ -204,9 +193,27 @@ export default function AppointmentsPage() {
                 footer={
                   <>
                     <span style={{ fontSize: 13, color: "#9CA3AF" }}>
-                      Mostrando <strong style={{ color: "#374151" }}>{filtered.length}</strong> de <strong style={{ color: "#374151" }}>{appointments.length}</strong> citas
+                      Mostrando <strong style={{ color: "#374151" }}>{(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, total)}</strong> de <strong style={{ color: "#374151" }}>{total}</strong> pacientes
                     </span>
-                    <span style={{ fontSize: 12, color: "#D1D5DB" }}>Última actualización: {new Date().toLocaleTimeString("es-ES")}</span>
+                    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                      {page !== 1 && <button onClick={() => setPage(p => Math.max(1, p - 1))} style={{ padding: "5px 12px", borderRadius: 7, border: "1.5px solid #E5E7EB", background: page === 1 ? "#F9FAFB" : "#fff", color: page === 1 ? "#D1D5DB" : "#374151", fontSize: 13, fontWeight: 500, cursor: page === 1 ? "default" : "pointer" }}>← Anterior</button>}
+                      {Array.from({ length: totalPages }, (_, i) => i + 1)
+                        .filter(n => n === 1 || n === totalPages || Math.abs(n - page) <= 1)
+                        .reduce<(number | "...")[]>((acc, n, idx, arr) => {
+                          if (idx > 0 && n - (arr[ idx - 1 ] as number) > 1) acc.push("...");
+                          acc.push(n);
+                          return acc;
+                        }, [])
+                        .map((item, idx) =>
+                          item === "..." ? (
+                            <span key={`ellipsis-${idx}`} style={{ fontSize: 13, color: "#9CA3AF", padding: "0 4px" }}>…</span>
+                          ) : (
+                            <button key={item} onClick={() => setPage(item as number)} style={{ width: 32, height: 32, borderRadius: 7, border: "1.5px solid", borderColor: page === item ? "#1E3A5F" : "#E5E7EB", background: page === item ? "#1E3A5F" : "#fff", color: page === item ? "#fff" : "#374151", fontSize: 13, fontWeight: 500, cursor: "pointer" }}>{item}</button>
+                          )
+                        )
+                      }
+                      <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages} style={{ padding: "5px 12px", borderRadius: 7, border: "1.5px solid #E5E7EB", background: page === totalPages ? "#F9FAFB" : "#fff", color: page === totalPages ? "#D1D5DB" : "#374151", fontSize: 13, fontWeight: 500, cursor: page === totalPages ? "default" : "pointer" }}>Siguiente →</button>
+                    </div>
                   </>
                 }
               />
@@ -215,7 +222,7 @@ export default function AppointmentsPage() {
           {viewMode === "calendar" && (
             <div style={{ animation: "fadeIn 0.25s ease" }}>
               <CalendarView
-                appointments={filtered}
+                appointments={appointments}
                 onDayClick={date => { setPrefillDate(date); setShowCreate(true); }}
                 onApptClick={a => setViewAppt(a)}
               />
@@ -227,8 +234,9 @@ export default function AppointmentsPage() {
         <AppointmentModal
           appt={undefined}
           patients={patients}
+          prefillDate={prefillDate}
           onClose={() => { setShowCreate(false); setPrefillDate(null); }}
-          onSaved={() => { fetchAppointments(); fetchReminders(); }}
+          onSaved={() => { fetchAppointments(); fetchReminders(); fetchStats(); }}
         />
       )}
       {editAppt && (
@@ -236,7 +244,7 @@ export default function AppointmentsPage() {
           appt={editAppt}
           patients={patients}
           onClose={() => setEditAppt(null)}
-          onSaved={() => { fetchAppointments(); fetchReminders(); }}
+          onSaved={() => { fetchAppointments(); fetchReminders(); fetchStats(); }}
         />
       )}
       {viewAppt && !editAppt && !deleteAppt && (
@@ -252,7 +260,7 @@ export default function AppointmentsPage() {
         <CancelAppointmentModal
           appt={deleteAppt}
           onClose={() => setDeleteAppt(null)}
-          onCanceled={() => { fetchAppointments(); fetchReminders(); }}
+          onCanceled={() => { fetchAppointments(); fetchReminders(); fetchStats() }}
         />
       )}
     </>

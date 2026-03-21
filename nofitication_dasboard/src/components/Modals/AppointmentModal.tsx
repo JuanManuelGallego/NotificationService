@@ -7,14 +7,15 @@ import { Appointment, AppointmentForm, AppointmentStatus, APPOINTMENT_TYPES, App
 import { Patient } from "@/src/types/Patient";
 import { ReminderType, Reminder, ReminderMode, ReminderStatus, CHANNEL_ICON, CHANNEL_LABEL, Channel } from "@/src/types/Reminder";
 import { getAvatarColor, getInitials } from "@/src/utils/AvatarHelper";
-import { isReminderTypeFeasible, formatDate, formatTime, getDuration, getRemindersendAt } from "@/src/utils/TimeUtils";
+import { isReminderTypeFeasible, formatDate, formatTime, getDuration, getRemindersendAt, getAppointmentEndTime, getTommorrowSixAm } from "@/src/utils/TimeUtils";
 import { useState } from "react";
-import { DateTimePicker } from "../DateTimePicker";
 import { AppointmentDateTimePicker } from "../AppointmentDateTimePicker";
+import { RequiredField } from "../Info/Requiered";
 
-export function AppointmentModal({ appt, patients, onClose, onSaved }: {
+export function AppointmentModal({ appt, patients, prefillDate, onClose, onSaved }: {
   appt?: Appointment;
   patients: Patient[];
+  prefillDate?: string | null;
   onClose: () => void;
   onSaved: () => void;
 }) {
@@ -30,9 +31,9 @@ export function AppointmentModal({ appt, patients, onClose, onSaved }: {
 
   const [ form, setForm ] = useState<AppointmentForm>({
     patientId: appt?.patientId ?? "",
-    startAt: appt?.startAt ?? new Date().toISOString(),
+    startAt: appt?.startAt ?? prefillDate ?? getTommorrowSixAm(),
     status: appt?.status ?? AppointmentStatus.SCHEDULED,
-    type: appt?.type ?? APPOINTMENT_TYPES[ 1 ].name,
+    type: appt?.type ?? "Seleccionar tipo…",
     location: appt?.location ?? "",
     meetingUrl: appt?.meetingUrl ?? undefined,
     price: appt?.price ?? APPOINTMENT_TYPES[ 1 ].price,
@@ -70,25 +71,32 @@ export function AppointmentModal({ appt, patients, onClose, onSaved }: {
     };
   }
 
+  function buildAppointmentPayload(): Partial<Appointment> {
+    return {
+      ...form,
+      endAt: getAppointmentEndTime(form.startAt, form.duration as AppointmentDuration),
+    }
+  }
+
   async function handleSubmit() {
     setSaving(true); setError(null);
     try {
       if (isEdit) {
         if (appt!.reminderId) {
-          await updateReminder(appt!.reminderId, buildReminderPayload()); // Remove new sendAt???
+          await updateReminder(appt!.reminderId, buildReminderPayload());
         } else if (form.reminderType !== ReminderType.NONE) {
           const reminder = await createReminder(buildReminderPayload())
           form.reminderId = reminder.id;
         }
 
-        await updateAppointment(appt!.id, form);
+        await updateAppointment(appt!.id, buildAppointmentPayload());
       } else {
         if (form.reminderType !== ReminderType.NONE) {
           const reminder = await createReminder(buildReminderPayload())
           form.reminderId = reminder.id;
         }
 
-        await createAppointment(form);
+        await createAppointment(buildAppointmentPayload());
       }
       onSaved(); onClose();
     } catch (err) {
@@ -97,6 +105,7 @@ export function AppointmentModal({ appt, patients, onClose, onSaved }: {
   }
 
   const steps = [ "Paciente & Tipo", "Lugar & Hora", "Pago & Estado" ];
+  console.log(form.startAt);
   return (
     <div style={{ position: "fixed", inset: 0, background: "rgba(17,24,39,0.55)", backdropFilter: "blur(4px)", zIndex: 200, display: "flex", alignItems: "center", justifyContent: "center" }} onClick={onClose}>
       <div style={{ background: "#fff", borderRadius: 20, padding: 36, width: 580, maxWidth: "calc(100vw - 40px)", boxShadow: "0 25px 50px -12px rgba(0,0,0,0.3)", animation: "slideUp 0.2s ease" }} onClick={e => e.stopPropagation()}>
@@ -120,7 +129,7 @@ export function AppointmentModal({ appt, patients, onClose, onSaved }: {
         {step === 1 && (
           <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
             {!isEdit && <label style={lbl}>
-              Paciente
+              <RequiredField label="Paciente" />
               <select style={inp} value={form.patientId} onChange={set("patientId")}>
                 <option value="">Seleccionar paciente…</option>
                 {patients.filter(p => p.status === "ACTIVE").map(p => (
@@ -140,9 +149,12 @@ export function AppointmentModal({ appt, patients, onClose, onSaved }: {
                 </div>
               </div>
             )}
-            <AppointmentDateTimePicker date={form.startAt} onChanged={(date) => setForm(f => ({ ...f, startAt: date }))} />
             <label style={lbl}>
-              Tipo de cita
+              <RequiredField label="Fecha y Hora" />
+              <AppointmentDateTimePicker date={form.startAt} onChanged={(date) => setForm(f => ({ ...f, startAt: date }))} />
+            </label>
+            <label style={lbl}>
+              <RequiredField label="Tipo de cita" />
               <select style={inp} value={form.type} onChange={(e) => {
                 setForm(f => ({ ...f, type: e.target.value, price: APPOINTMENT_TYPES.find(t => t.name === e.target.value)?.price ?? APPOINTMENT_TYPES[ 0 ].price, duration: APPOINTMENT_TYPES.find(t => t.name === e.target.value)?.duration ?? APPOINTMENT_TYPES[ 0 ].duration }))
               }}>
@@ -156,14 +168,14 @@ export function AppointmentModal({ appt, patients, onClose, onSaved }: {
         {step === 2 && (
           <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
             <label style={lbl}>
-              Duración
+              <RequiredField label="Duración" />
               <select style={inp} value={form.duration} onChange={set("duration")}>
                 {Object.values(AppointmentDuration).map(d => <option key={d} value={d}>{d}</option>)}
               </select>
             </label>
 
             <label style={lbl}>
-              Ubicación
+              <RequiredField label="Ubicación" />
               <select style={inp} value={form.location} onChange={set("location")}>
                 <option value="">Seleccionar ubicación…</option>
                 {APPOINTMENT_LOCATIONS.map(d => <option key={d} value={d}>{LOCATION_CFG[ d ]?.label || d}</option>)}
@@ -176,45 +188,57 @@ export function AppointmentModal({ appt, patients, onClose, onSaved }: {
                 <input type="url" style={inp} value={form.meetingUrl} onChange={set("meetingUrl")} placeholder="https://meet.example.com/sala" />
               </label>
             )}
-            <label style={lbl}>
-              Recordatorio
-              <select style={inp} value={form.reminderType} onChange={set("reminderType")}>
-                <option value={ReminderType.NONE}>Sin recordatorio</option>
-                <option value={ReminderType.ONE_HOUR_BEFORE} disabled={!isReminderTypeFeasible(form.startAt, ReminderType.ONE_HOUR_BEFORE)}>1 hora antes</option>
-                <option value={ReminderType.ONE_DAY_BEFORE} disabled={!isReminderTypeFeasible(form.startAt, ReminderType.ONE_DAY_BEFORE)}>1 día antes</option>
-                <option value={ReminderType.ONE_WEEK_BEFORE} disabled={!isReminderTypeFeasible(form.startAt, ReminderType.ONE_WEEK_BEFORE)}>1 semana antes</option>
-              </select>
-            </label>
-            {form.reminderType !== ReminderType.NONE && (<div>
-              <div style={{ fontSize: 13, fontWeight: 600, color: "#374151", marginBottom: 10 }}>Canal de notificación</div>
-              <div style={{ display: "flex", gap: 10 }}>
-                {Object.values(Channel).map(c => {
-                  const available = (c === Channel.WHATSAPP && !!selectedPatient?.whatsappNumber) || (c === Channel.SMS && !!selectedPatient?.smsNumber);
-                  return (
-                    <button key={c} onClick={() => available && setReminderChannel(c)} style={{
-                      flex: 1, display: "flex", alignItems: "center", gap: 10,
-                      padding: "12px 16px", borderRadius: 12,
-                      border: `2px solid ${reminderChannel === c ? "#1E3A5F" : "#E5E7EB"}`,
-                      background: !available ? "#F9FAFB" : reminderChannel === c ? "#EFF6FF" : "#fff",
-                      cursor: available ? "pointer" : "not-allowed",
-                      opacity: available ? 1 : 0.5,
-                    }}>
-                      <span style={{ fontSize: 22 }}>{CHANNEL_ICON[ c ]}</span>
-                      <div style={{ textAlign: "left" }}>
-                        <div style={{ fontSize: 13, fontWeight: 600, color: "#111827" }}>{CHANNEL_LABEL[ c ]}</div>
-                        <div style={{ fontSize: 11, color: "#9CA3AF" }}>
-                          {available
-                            ? (c === Channel.WHATSAPP ? selectedPatient?.whatsappNumber : selectedPatient?.smsNumber)
-                            : "No disponible"}
-                        </div>
-                      </div>
-                      {reminderChannel === c && available && <span style={{ marginLeft: "auto", color: "#1E3A5F" }}>✓</span>}
-                    </button>
-                  );
-                })}
+            {selectedPatient?.whatsappNumber || selectedPatient?.email || selectedPatient?.smsNumber ?
+              <div>
+                <label style={lbl}>
+                  Recordatorio
+                  <select style={inp} value={form.reminderType} onChange={set("reminderType")}>
+                    <option value={ReminderType.NONE}>Sin recordatorio</option>
+                    <option value={ReminderType.ONE_HOUR_BEFORE} disabled={!isReminderTypeFeasible(form.startAt, ReminderType.ONE_HOUR_BEFORE)}>1 hora antes</option>
+                    <option value={ReminderType.ONE_DAY_BEFORE} disabled={!isReminderTypeFeasible(form.startAt, ReminderType.ONE_DAY_BEFORE)}>1 día antes</option>
+                    <option value={ReminderType.ONE_WEEK_BEFORE} disabled={!isReminderTypeFeasible(form.startAt, ReminderType.ONE_WEEK_BEFORE)}>1 semana antes</option>
+                  </select>
+                </label>
+                {form.reminderType !== ReminderType.NONE && (<div>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: "#374151", marginBottom: 10 }}>Canal de notificación</div>
+                  <div style={{ display: "flex", gap: 10 }}>
+                    {Object.values(Channel).map(c => {
+                      const available = (c === Channel.WHATSAPP && !!selectedPatient?.whatsappNumber) || (c === Channel.SMS && !!selectedPatient?.smsNumber);
+                      return (
+                        <button key={c} onClick={() => available && setReminderChannel(c)} style={{
+                          flex: 1, display: "flex", alignItems: "center", gap: 10,
+                          padding: "12px 16px", borderRadius: 12,
+                          border: `2px solid ${reminderChannel === c ? "#1E3A5F" : "#E5E7EB"}`,
+                          background: !available ? "#F9FAFB" : reminderChannel === c ? "#EFF6FF" : "#fff",
+                          cursor: available ? "pointer" : "not-allowed",
+                          opacity: available ? 1 : 0.5,
+                        }}>
+                          <span style={{ fontSize: 22 }}>{CHANNEL_ICON[ c ]}</span>
+                          <div style={{ textAlign: "left" }}>
+                            <div style={{ fontSize: 13, fontWeight: 600, color: "#111827" }}>{CHANNEL_LABEL[ c ]}</div>
+                            <div style={{ fontSize: 11, color: "#9CA3AF" }}>
+                              {available
+                                ? (c === Channel.WHATSAPP ? selectedPatient?.whatsappNumber : selectedPatient?.smsNumber)
+                                : "No disponible"}
+                            </div>
+                          </div>
+                          {reminderChannel === c && available && <span style={{ marginLeft: "auto", color: "#1E3A5F" }}>✓</span>}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+                )}
               </div>
-            </div>
-            )}
+              : <div>
+                <label style={lbl}>
+                  Recordatorio
+                </label>
+                <div style={{ background: "#FEF2F2", border: "1px solid #FCA5A5", borderRadius: 10, padding: "10px 14px", fontSize: 13, color: "#DC2626" }}>
+                  ⚠️ El paciente no tiene forma de contacto registrada, por lo que no se podrán enviar recordatorios automáticos.
+                </div>
+              </div>
+            }
           </div>
         )}
         {step === 3 && (
