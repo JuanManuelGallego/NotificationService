@@ -1,18 +1,31 @@
+import { Appointment } from "./Appointment";
+import { Patient } from "./Patient";
+
 export interface Reminder {
-    channel: Channel;
-    contentSid?: string;
-    contentVariables?: Record<string, string>;
-    createdAt: string;
-    error?: string;
-    id: string;
-    messageId?: string;
-    sendMode: ReminderMode;
-    sendAt?: string;
-    sentAt: string;
-    status: ReminderStatus;
-    to: string;
-    updatedAt: string;
-    patientId?: string;
+  id: string;
+
+  createdAt: Date;
+  updatedAt: Date;
+
+  channel: Channel;
+  to: string;
+
+  contentSid?: string | null;
+  contentVariables?: string | null;
+
+  status: ReminderStatus;
+  error?: string | null;
+
+  sendMode: ReminderMode;
+  sendAt: Date;
+  sentAt?: Date | null;
+  messageId?: string | null;
+
+  appointmentId?: string | null;
+  patientId: string;
+
+  appointment?: Appointment | null;
+  patient?: Patient;
 }
 
 export enum ReminderStatus {

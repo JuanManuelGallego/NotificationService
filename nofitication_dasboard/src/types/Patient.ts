@@ -1,3 +1,6 @@
+import { Appointment } from "./Appointment";
+import { Reminder } from "./Reminder";
+
 export enum PatientStatus {
     ACTIVE = "ACTIVE",
     INACTIVE = "INACTIVE",
@@ -11,14 +14,34 @@ export const PATIENT_STATUS_CONFIG: Record<PatientStatus, { label: string; color
 };
 
 export interface Patient {
-    avatar: string;
-    createdAt: string;
-    email: string;
-    id: string;
-    lastName: string;
-    name: string;
-    smsNumber: string | null;
-    status: PatientStatus;
-    updatedAt: string;
-    whatsappNumber: string | null;
+  id: string;
+
+  name: string;
+  lastName: string;
+
+  whatsappNumber?: string | null;
+  smsNumber?: string | null;
+  email?: string | null;
+
+  dateOfBirth?: Date | null;
+  notes?: string | null;
+
+  status: PatientStatus;
+  archivedAt?: Date | null;
+  createdAt: Date;
+  updatedAt: Date;
+
+  appointments?: Appointment[];
+  reminders?: Reminder[];
+}
+
+export interface FetchPatientsFilters {
+    status?: string | string[];
+    search?: string;
+    page?: number;
+    pageSize?: number;
+    orderBy?: 'name' | 'lastName' | 'email' | 'createdAt' | 'updatedAt';
+    order?: 'asc' | 'desc';
+    from?: Date | string;
+    to?: Date | string;
 }

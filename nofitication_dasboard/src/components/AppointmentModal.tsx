@@ -171,12 +171,12 @@ export function AppointmentModal({ appt, patients, onClose, onSaved }: {
 
             {form.location === "Virtual" && (
               <label style={lbl}>
-                URL de videollamada <span style={{ fontWeight: 400, color: "#9CA3AF" }}>(opcional)</span>
+                URL de videollamada
                 <input type="url" style={inp} value={form.meetingUrl} onChange={set("meetingUrl")} placeholder="https://meet.example.com/sala" />
               </label>
             )}
             <label style={lbl}>
-              Recordatorio <span style={{ fontWeight: 400, color: "#9CA3AF" }}>(opcional)</span>
+              Recordatorio
               <select style={inp} value={form.reminderType} onChange={set("reminderType")}>
                 <option value={ReminderType.NONE}>Sin recordatorio</option>
                 <option value={ReminderType.ONE_HOUR_BEFORE} disabled={!isReminderTypeFeasible(form.date, ReminderType.ONE_HOUR_BEFORE)}>1 hora antes</option>

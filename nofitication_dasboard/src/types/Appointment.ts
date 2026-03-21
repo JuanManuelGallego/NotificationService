@@ -1,26 +1,39 @@
+import { Patient } from "./Patient";
 import { Reminder, ReminderType } from "./Reminder";
 
 export interface Appointment {
-    createdAt: string;
-    date: string;
-    duration: string;
     id: string;
+
+    createdAt: Date;
+    updatedAt: Date;
+
+    startAt: Date;
+    endAt: Date;
+    timezone: string;
+
+    price: number;
+    currency: string;
+    paid: boolean;
+
     location: string;
-    meetingUrl: string | null;
-    notes: string;
-    patient: { id: string; name: string; lastName: string; email: string };
-    patientId: string;
-    payed: boolean;
-    price: string;
-    reminder: Reminder | null;
-    reminderId: string | null;
-    status: AppointmentStatus;
+    meetingUrl?: string | null;
+    notes?: string | null;
     type: string;
-    updatedAt: string;
+
+    status: AppointmentStatus;
+    confirmedAt?: Date | null;
+    cancelledAt?: Date | null;
+    completedAt?: Date | null;
+
+    patientId: string;
+    reminderId?: string | null;
+
+    patient?: Patient;
+    reminder?: Reminder | null;
 }
 
 export interface AppointmentForm {
-    date: string;
+    startAt: Date;
     duration: string;
     location: string;
     meetingUrl?: string;

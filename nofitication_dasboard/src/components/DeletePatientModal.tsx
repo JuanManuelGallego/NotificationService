@@ -1,20 +1,19 @@
 import { useState } from "react";
 import { btnSecondary } from "../styles/theme";
-import { Patient } from "../types/Patient";
-import { useDeletePatient } from "../api/useDeletePatient";
+import { Patient, PatientStatus } from "../types/Patient";
+import { useUpdatePatient } from "../api/useUpdatePatient";
 
 export function DeletePatientModal({ patient, onClose, onDeleted }: {
     patient: Patient; onClose: () => void; onDeleted: () => void;
 }) {
-    const { deletePatient, loading: deleting } = useDeletePatient();
+    const { updatePatient, loading: deleting } = useUpdatePatient();
     const [ error, setError ] = useState<string | null>(null);
 
     async function handleDelete() {
         setError(null);
         try {
-            await deletePatient(patient.id);
-            onDeleted();
-            onClose();
+            await updatePatient(patient.id, { status: PatientStatus.ARCHIVED });
+            onDeleted(); onClose();
         } catch (err) {
             setError(err instanceof Error ? err.message : "Error desconocido");
         }

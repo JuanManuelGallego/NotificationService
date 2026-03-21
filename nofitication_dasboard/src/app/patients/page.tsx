@@ -1,5 +1,5 @@
 "use client";;
-import { useState } from "react";
+import { useState, useMemo } from "react";
 
 import Sidebar from '../../components/Sidebar';
 import { Patient, PatientStatus } from "@/src/types/Patient";
@@ -13,27 +13,32 @@ import { PatientModal } from "@/src/components/PatientModal";
 import { DeletePatientModal } from "@/src/components/DeletePatientModal";
 import { Channel } from "@/src/types/Reminder";
 import { useFetchPatients } from "@/src/api/useFetchPatients";
+import { PatientDrawer } from "@/src/components/PatientDrawer";
+
+const PAGE_SIZE = 10;
 
 export default function PatientsPage() {
     const [ search, setSearch ] = useState("");
     const [ filterStatus, setFilterStatus ] = useState<PatientStatus | "ALL">("ALL");
+    const [ page, setPage ] = useState(1);
     const [ showCreate, setShowCreate ] = useState(false);
     const [ editPatient, setEditPatient ] = useState<Patient | null>(null);
     const [ deletePatient, setDeletePatient ] = useState<Patient | null>(null);
-    const { patients, loading, error, fetchPatients } = useFetchPatients();
+    const [ viewPatient, setViewPatient ] = useState<Patient | null>(null);
 
-    const filtered = patients.filter(p => {
-        const matchStatus = filterStatus === "ALL" || p.status === filterStatus;
-        const q = search.toLowerCase();
-        const matchSearch = !q || [ p.name, p.lastName, p.email ].some(v => v.toLowerCase().includes(q));
-        return matchStatus && matchSearch;
-    });
+    const filters = useMemo(() => ({
+        search: search || undefined,
+        status: filterStatus !== "ALL" ? filterStatus : undefined,
+        page,
+        pageSize: PAGE_SIZE,
+    }), [ search, filterStatus, page ]);
+
+    const { patients, loading, error, fetchPatients, total, totalPages } = useFetchPatients(filters);
 
     const counts = {
-        total: patients.length,
+        total,
         active: patients.filter(p => p.status === PatientStatus.ACTIVE).length,
         inactive: patients.filter(p => p.status === PatientStatus.INACTIVE).length,
-        archived: patients.filter(p => p.status === PatientStatus.ARCHIVED).length,
     };
 
     return (
@@ -81,7 +86,6 @@ export default function PatientsPage() {
                         <StatCard label="Total Pacientes" value={counts.total} sub="en el sistema" accent="#1E3A5F" />
                         <StatCard label="Activos" value={counts.active} sub="reciben notificaciones" accent="#16A34A" />
                         <StatCard label="Inactivos" value={counts.inactive} sub="sin notificaciones" accent="#D97706" />
-                        <StatCard label="Archivados" value={counts.archived} sub="fuera del sistema" accent="#9CA3AF" />
                     </div>
                     <div style={{
                         background: "#fff", borderRadius: 16, padding: "18px 24px",
@@ -91,7 +95,7 @@ export default function PatientsPage() {
                         <input
                             placeholder="Buscar por nombre, apellido o correo…"
                             value={search}
-                            onChange={e => setSearch(e.target.value)}
+                            onChange={e => { setSearch(e.target.value); setPage(1); }}
                             style={{
                                 flex: 1, padding: "9px 14px", border: "1.5px solid #E5E7EB",
                                 borderRadius: 10, fontSize: 14, outline: "none", fontFamily: "inherit",
@@ -103,9 +107,8 @@ export default function PatientsPage() {
                                 { key: "ALL", label: "Todos" },
                                 { key: PatientStatus.ACTIVE, label: "Activos" },
                                 { key: PatientStatus.INACTIVE, label: "Inactivos" },
-                                { key: PatientStatus.ARCHIVED, label: "Archivados" },
                             ] as const).map(({ key, label }) => (
-                                <button key={key} onClick={() => setFilterStatus(key)} style={{
+                                <button key={key} onClick={() => { setFilterStatus(key); setPage(1); }} style={{
                                     padding: "7px 14px", borderRadius: 8, border: "1.5px solid",
                                     borderColor: filterStatus === key ? "#1E3A5F" : "#E5E7EB",
                                     background: filterStatus === key ? "#1E3A5F" : "#fff",
@@ -122,7 +125,7 @@ export default function PatientsPage() {
                             display: "flex", alignItems: "center", justifyContent: "space-between",
                         }}>
                             <span style={{ fontSize: 14, color: "#DC2626" }}>⚠️ {error}</span>
-                            <button onClick={fetchPatients} style={{ ...btnPrimary, background: "#DC2626", padding: "6px 14px", fontSize: 13 }}>
+                            <button onClick={() => fetchPatients()} style={{ ...btnPrimary, background: "#DC2626", padding: "6px 14px", fontSize: 13 }}>
                                 Reintentar
                             </button>
                         </div>
@@ -147,8 +150,8 @@ export default function PatientsPage() {
                             </thead>
                             <tbody>
                                 {loading && Array.from({ length: 5 }).map((_, i) => <SkeletonRow key={i} />)}
-                                {!loading && filtered.map((p, i) => (
-                                    <tr key={p.id} style={{ borderBottom: i < filtered.length - 1 ? "1px solid #F3F4F6" : "none" }}>
+                                {!loading && patients.map((p, i) => (
+                                    <tr onClick={() => setViewPatient(p)} key={p.id} style={{ borderBottom: i < patients.length - 1 ? "1px solid #F3F4F6" : "none", cursor: "pointer" }}>
                                         <td style={{ padding: "14px 20px" }}>
                                             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                                                 <div style={{
@@ -160,12 +163,17 @@ export default function PatientsPage() {
                                                     {getInitials(p.name, p.lastName)}
                                                 </div>
                                                 <div>
-                                                    <div style={{ fontSize: 14, fontWeight: 600, color: "#111827" }}>{p.name}</div>
+                                                    <div style={{ fontSize: 14, fontWeight: 600, color: "#111827" }}>{p.name} {p.lastName}</div>
                                                 </div>
                                             </div>
                                         </td>
                                         <td style={{ padding: "14px 20px", fontSize: 13, color: "#374151" }}>
-                                            <a href={`mailto:${p.email}`} style={{ color: "#2563EB", textDecoration: "none" }}>{p.email}</a>
+                                            {p.email ?
+                                                <a href={`mailto:${p.email}`} style={{ color: "#2563EB", textDecoration: "none" }}>{p.email}</a>
+                                                :
+                                                <span style={{ fontSize: 11, color: "#828383", display: "flex", alignItems: "center", gap: 3 }}>
+                                                    <span style={{ textDecoration: "line-through", opacity: 0.5 }}>—</span>
+                                                </span>}
                                         </td>
                                         <td style={{ padding: "14px 20px" }}>
                                             <ChannelIcon type={Channel.WHATSAPP} value={p.whatsappNumber} />
@@ -195,7 +203,7 @@ export default function PatientsPage() {
                                         </td>
                                     </tr>
                                 ))}
-                                {!loading && !error && filtered.length === 0 && (
+                                {!loading && !error && patients.length === 0 && (
                                     <tr>
                                         <td colSpan={7} style={{ padding: 56, textAlign: "center" }}>
                                             <div style={{ fontSize: 36, marginBottom: 12 }}>🔍</div>
@@ -212,18 +220,63 @@ export default function PatientsPage() {
                                 )}
                             </tbody>
                         </table>
-                        {!loading && filtered.length > 0 && (
+                        {!loading && patients.length > 0 && (
                             <div style={{
                                 padding: "12px 20px", borderTop: "1px solid #F3F4F6",
                                 display: "flex", justifyContent: "space-between", alignItems: "center",
                                 background: "#FAFAFA",
                             }}>
                                 <span style={{ fontSize: 13, color: "#9CA3AF" }}>
-                                    Mostrando <strong style={{ color: "#374151" }}>{filtered.length}</strong> de <strong style={{ color: "#374151" }}>{patients.length}</strong> pacientes
+                                    Mostrando <strong style={{ color: "#374151" }}>{(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, total)}</strong> de <strong style={{ color: "#374151" }}>{total}</strong> pacientes
                                 </span>
-                                <span style={{ fontSize: 12, color: "#D1D5DB" }}>
-                                    Última actualización: {new Date().toLocaleTimeString("es-ES")}
-                                </span>
+                                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                                    <button
+                                        onClick={() => setPage(p => Math.max(1, p - 1))}
+                                        disabled={page === 1}
+                                        style={{
+                                            padding: "5px 12px", borderRadius: 7, border: "1.5px solid #E5E7EB",
+                                            background: page === 1 ? "#F9FAFB" : "#fff",
+                                            color: page === 1 ? "#D1D5DB" : "#374151",
+                                            fontSize: 13, fontWeight: 500, cursor: page === 1 ? "default" : "pointer",
+                                        }}
+                                    >← Anterior</button>
+                                    {Array.from({ length: totalPages }, (_, i) => i + 1)
+                                        .filter(n => n === 1 || n === totalPages || Math.abs(n - page) <= 1)
+                                        .reduce<(number | "...")[]>((acc, n, idx, arr) => {
+                                            if (idx > 0 && n - (arr[ idx - 1 ] as number) > 1) acc.push("...");
+                                            acc.push(n);
+                                            return acc;
+                                        }, [])
+                                        .map((item, idx) =>
+                                            item === "..." ? (
+                                                <span key={`ellipsis-${idx}`} style={{ fontSize: 13, color: "#9CA3AF", padding: "0 4px" }}>…</span>
+                                            ) : (
+                                                <button
+                                                    key={item}
+                                                    onClick={() => setPage(item as number)}
+                                                    style={{
+                                                        width: 32, height: 32, borderRadius: 7,
+                                                        border: "1.5px solid",
+                                                        borderColor: page === item ? "#1E3A5F" : "#E5E7EB",
+                                                        background: page === item ? "#1E3A5F" : "#fff",
+                                                        color: page === item ? "#fff" : "#374151",
+                                                        fontSize: 13, fontWeight: 500, cursor: "pointer",
+                                                    }}
+                                                >{item}</button>
+                                            )
+                                        )
+                                    }
+                                    <button
+                                        onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                                        disabled={page === totalPages}
+                                        style={{
+                                            padding: "5px 12px", borderRadius: 7, border: "1.5px solid #E5E7EB",
+                                            background: page === totalPages ? "#F9FAFB" : "#fff",
+                                            color: page === totalPages ? "#D1D5DB" : "#374151",
+                                            fontSize: 13, fontWeight: 500, cursor: page === totalPages ? "default" : "pointer",
+                                        }}
+                                    >Siguiente →</button>
+                                </div>
                             </div>
                         )}
                     </div>
@@ -247,6 +300,14 @@ export default function PatientsPage() {
                     patient={deletePatient}
                     onClose={() => setDeletePatient(null)}
                     onDeleted={fetchPatients}
+                />
+            )}
+            {viewPatient && (
+                <PatientDrawer
+                    patient={viewPatient}
+                    onClose={() => setViewPatient(null)}
+                    onDelete={() => { setDeletePatient(viewPatient); setViewPatient(null) }}
+                    onEdit={() => { setEditPatient(viewPatient); setViewPatient(null) }}
                 />
             )}
         </>

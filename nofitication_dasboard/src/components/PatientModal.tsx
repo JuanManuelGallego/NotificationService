@@ -4,6 +4,7 @@ import { Patient, PATIENT_STATUS_CONFIG, PatientStatus } from "../types/Patient"
 import { validateEmail, validatePhoneNumber } from "../utils/DataValidator";
 import { useCreatePatient } from "../api/useCreatePatient";
 import { useUpdatePatient } from "../api/useUpdatePatient";
+import { RequiredField } from "./Requiered";
 
 export function PatientModal({
     onClose,
@@ -22,18 +23,20 @@ export function PatientModal({
     const [ form, setForm ] = useState({
         name: patient?.name ?? "",
         lastName: patient?.lastName ?? "",
-        email: patient?.email ?? "",
-        whatsappNumber: patient?.whatsappNumber ?? "",
-        smsNumber: patient?.smsNumber ?? "",
+        email: patient?.email ?? undefined,
+        whatsappNumber: patient?.whatsappNumber ?? undefined,
+        smsNumber: patient?.smsNumber ?? undefined,
+        dateOfBirth: patient?.dateOfBirth ? new Date(patient.dateOfBirth).toISOString().split('T')[ 0 ] : "",
+        notes: patient?.notes ?? "",
         status: patient?.status ?? "ACTIVE" as PatientStatus,
     });
-    const isValid = !!form.name && !!form.lastName && !!form.email;
+    const isValid = !!form.name && !!form.lastName;
 
     const set = (field: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
         setForm(f => ({ ...f, [ field ]: e.target.value }));
 
     function validateForm() {
-        if (!form.name || !form.lastName || !form.email) {
+        if (!form.name || !form.lastName) {
             setError("Por favor, completa todos los campos requeridos.");
             return false;
         }
@@ -58,20 +61,16 @@ export function PatientModal({
         setSaving(true);
         setError(null);
         try {
-            const body = {
+            const formData = {
                 ...form,
-                whatsappNumber: form.whatsappNumber || undefined,
-                smsNumber: form.smsNumber || undefined,
+                dateOfBirth: form.dateOfBirth ? new Date(form.dateOfBirth) : null,
             };
-
             if (isEdit) {
-                await updatePatient(patient!.id, body);
+                await updatePatient(patient!.id, formData);
             } else {
-                await createPatient(body);
+                await createPatient(formData);
             }
-
-            onSaved();
-            onClose();
+            onSaved(); onClose();
         } catch (err) {
             setError(err instanceof Error ? err.message : "Error desconocido");
         } finally {
@@ -111,18 +110,38 @@ export function PatientModal({
                 <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
                         <label style={labelStyle}>
-                            Nombre
+                            <RequiredField label="Nombre" />
                             <input style={inputStyle} value={form.name} onChange={set("name")} placeholder="ej. María" />
                         </label>
                         <label style={labelStyle}>
-                            Apellido
+                            <RequiredField label="Apellido" />
                             <input style={inputStyle} value={form.lastName} onChange={set("lastName")} placeholder="ej. García" />
                         </label>
                     </div>
 
                     <label style={labelStyle}>
-                        Correo electrónico
+                        📅 Fecha de Nacimiento
+                        <input style={inputStyle} type="date" value={form.dateOfBirth} onChange={set("dateOfBirth")} />
+                    </label>
+
+                    <label style={labelStyle}>
+                        ✉️ Correo electrónico
                         <input style={inputStyle} type="email" value={form.email} onChange={set("email")} placeholder="paciente@ejemplo.com" />
+                    </label>
+
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+                        <label style={labelStyle}>
+                            💬 WhatsApp
+                            <input style={inputStyle} value={form.whatsappNumber} onChange={set("whatsappNumber")} placeholder="+15551234567" />
+                        </label>
+                        <label style={labelStyle}>
+                            📱 SMS
+                            <input style={inputStyle} value={form.smsNumber} onChange={set("smsNumber")} placeholder="+15551234567" />
+                        </label>
+                    </div>
+                    <label style={labelStyle}>
+                        📝 Notas
+                        <textarea style={{ ...inputStyle, fontFamily: "inherit", resize: "vertical", minHeight: "80px" }} value={form.notes} onChange={(e) => setForm(f => ({ ...f, notes: e.target.value }))} placeholder="Notas adicionales sobre el paciente..." />
                     </label>
 
                     {isEdit && <label style={labelStyle}>
@@ -135,17 +154,6 @@ export function PatientModal({
                             ))}
                         </select>
                     </label>}
-
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
-                        <label style={labelStyle}>
-                            💬 WhatsApp <span style={{ fontWeight: 400, color: "#9CA3AF" }}>(opcional)</span>
-                            <input style={inputStyle} value={form.whatsappNumber} onChange={set("whatsappNumber")} placeholder="+15551234567" />
-                        </label>
-                        <label style={labelStyle}>
-                            📱 SMS <span style={{ fontWeight: 400, color: "#9CA3AF" }}>(opcional)</span>
-                            <input style={inputStyle} value={form.smsNumber} onChange={set("smsNumber")} placeholder="+15551234567" />
-                        </label>
-                    </div>
                 </div>
                 <div style={{ display: "flex", justifyContent: "flex-end", gap: 10, marginTop: 28 }}>
                     <button onClick={onClose} style={btnSecondary} disabled={saving}>Cancelar</button>

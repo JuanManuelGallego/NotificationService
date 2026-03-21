@@ -28,7 +28,13 @@ export const patientRepository = {
   },
 
   async findById(id: string): Promise<Patient> {
-    const patient = await prisma.patient.findUnique({ where: { id } });
+    const patient = await prisma.patient.findUnique({
+      where: { id },
+      include: {
+        appointments: true,
+        reminders: true,
+      },
+    });
     if (!patient) throw new PatientNotFoundError(id);
     return patient;
   },
@@ -38,7 +44,9 @@ export const patientRepository = {
     const skip = (page - 1) * pageSize;
 
     const where: any = {
-      ...(status && { status }),
+      ...(status && {
+        status: Array.isArray(status) ? { in: status } : status
+      }),
       ...(search && {
         OR: [
           { name: { contains: search, mode: 'insensitive' } },
@@ -56,6 +64,10 @@ export const patientRepository = {
         skip,
         take: pageSize,
         orderBy: { [ orderBy ]: order },
+        include: {
+          appointments: true,
+          reminders: true,
+        },
       }),
       prisma.patient.count({ where }),
     ]);
