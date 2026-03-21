@@ -95,7 +95,7 @@ export function ReminderModal({
             ...buildPayload(),
             channel: form.channel,
             sendMode: sendMode,
-            sendAt: new Date(form.sendAt),
+            sendAt: new Date(form.sendAt).toISOString(),
         };
     }
 

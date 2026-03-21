@@ -35,17 +35,11 @@ export const buildPatientQueryString = (filters?: FetchPatientsFilters): string 
     }
 
     if (filters?.from) {
-        params.set(
-            "from",
-            filters.from instanceof Date ? filters.from.toISOString() : filters.from
-        );
+        params.set("from", filters.from);
     }
 
     if (filters?.to) {
-        params.set(
-            "to",
-            filters.to instanceof Date ? filters.to.toISOString() : filters.to
-        );
+        params.set("to", filters.to);
     }
 
     const qs = params.toString();

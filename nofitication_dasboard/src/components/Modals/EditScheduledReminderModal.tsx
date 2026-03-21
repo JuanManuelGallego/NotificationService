@@ -50,7 +50,7 @@ export function EditScheduledReminderModal({ reminder, patients, onClose, onSave
                 {error && <div style={{ background: "#FEF2F2", border: "1px solid #FCA5A5", borderRadius: 10, padding: "10px 14px", marginBottom: 16, fontSize: 13, color: "#DC2626" }}>⚠️ {error}</div>}
                 <label style={lbl}>
                     Nueva fecha y hora de envío
-                    <input type="datetime-local" style={inp} value={sendAt.toISOString().slice(0, 16)} min={new Date().toISOString().slice(0, 16)} onChange={e => setsendAt(new Date(e.target.value))} />
+                    <input type="datetime-local" style={inp} value={new Date(sendAt).toISOString().slice(0, 16)} min={new Date().toISOString().slice(0, 16)} onChange={e => setsendAt(new Date(e.target.value).toISOString())} />
                 </label>
                 <div style={{ display: "flex", gap: 10, marginTop: 24 }}>
                     <button onClick={onClose} style={{ ...btnSecondary, flex: 1 }} disabled={saving}>Cancelar</button>

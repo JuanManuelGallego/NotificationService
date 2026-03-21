@@ -34,6 +34,23 @@ patientRouter.get<{}, any, any, ListPatientsQuery>(
 );
 
 /**
+ * GET /patients/stats
+ * Get total patient count and a breakdown by status.
+ * Response: { total: number, byStatus: Record<PatientStatus, number> }
+ */
+patientRouter.get(
+  '/stats',
+  async (_req: Request, res: Response) => {
+    try {
+      const stats = await patientRepository.getStats();
+      ok(res, stats);
+    } catch (err) {
+      handleError(res, err);
+    }
+  }
+);
+
+/**
  * GET /patients/:id
  * Get a single patient by UUID.
  */

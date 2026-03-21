@@ -1,6 +1,6 @@
 import { btnPrimary } from "@/src/styles/theme";
 import { Reminder, REMINDER_STATUS_CONFIG, getChannelLabel, getChannelIcon, ReminderStatus, ReminderMode } from "@/src/types/Reminder";
-import { fmtDateTime, fmtDateAndTime } from "@/src/utils/TimeUtils";
+import { fmtDateAndTime } from "@/src/utils/TimeUtils";
 import { ReminderStatusPill } from "../Info/StatusPill";
 import { Section, Row } from "./DrawerUtils";
 
@@ -21,7 +21,7 @@ export function ReminderDrawer({ reminder, patientName, onClose, onEdit, onCance
             <div style={{ flex: 1, background: "rgba(17,24,39,0.4)", backdropFilter: "blur(3px)" }} />
             <div style={{
                 width: 420, background: "#fff", height: "100%", overflowY: "auto",
-                boxShadow: "-10px 0 40px rgba(0,0,0,0.15)", animation: "slideInRight 0.25s ease",
+                boxShadow: "-10px 0 40px rgba(0,0,0,0.15)",
                 display: "flex", flexDirection: "column",
             }} onClick={e => e.stopPropagation()}>
                 <div style={{ background: s.bg, padding: "24px 24px 20px", borderBottom: `3px solid ${s.dot}` }}>

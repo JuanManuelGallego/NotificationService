@@ -3,13 +3,13 @@ import { btnSecondary } from "@/src/styles/theme";
 import { Patient, PatientStatus } from "@/src/types/Patient";
 import { useState } from "react";
 
-export function DeletePatientModal({ patient, onClose, onDeleted }: {
+export function ArchivePatientModal({ patient, onClose, onDeleted }: {
     patient: Patient; onClose: () => void; onDeleted: () => void;
 }) {
     const { updatePatient, loading: deleting } = useUpdatePatient();
     const [ error, setError ] = useState<string | null>(null);
 
-    async function handleDelete() {
+    async function handleArchive() {
         setError(null);
         try {
             await updatePatient(patient.id, { status: PatientStatus.ARCHIVED });
@@ -34,8 +34,9 @@ export function DeletePatientModal({ patient, onClose, onDeleted }: {
                         Eliminar Paciente
                     </h2>
                     <p style={{ fontSize: 14, color: "#6B7280", margin: 0 }}>
-                        ¿Estás seguro que deseas eliminar a <strong>{patient.name}</strong>? Esta acción no se puede deshacer.
+                        ¿Estás seguro que deseas eliminar a <strong>{patient.name} {patient.lastName}</strong>? 
                     </p>
+                    <p style={{ fontSize: 14, color: "#6B7280", margin: 0 }}>Esta acción no se puede deshacer.</p>
                 </div>
                 {error && (
                     <div style={{ background: "#FEF2F2", border: "1px solid #FCA5A5", borderRadius: 10, padding: "10px 14px", marginBottom: 16, fontSize: 13, color: "#DC2626" }}>
@@ -44,7 +45,7 @@ export function DeletePatientModal({ patient, onClose, onDeleted }: {
                 )}
                 <div style={{ display: "flex", gap: 10 }}>
                     <button onClick={onClose} style={{ ...btnSecondary, flex: 1 }} disabled={deleting}>Cancelar</button>
-                    <button onClick={handleDelete} disabled={deleting} style={{
+                    <button onClick={handleArchive} disabled={deleting} style={{
                         flex: 1, padding: "10px 22px", background: "#DC2626", color: "#fff",
                         border: "none", borderRadius: 10, fontSize: 14, fontWeight: 600,
                         cursor: "pointer", opacity: deleting ? 0.7 : 1,

@@ -10,6 +10,7 @@ import { getAvatarColor, getInitials } from "@/src/utils/AvatarHelper";
 import { isReminderTypeFeasible, formatDate, formatTime, getDuration, getRemindersendAt } from "@/src/utils/TimeUtils";
 import { useState } from "react";
 import { DateTimePicker } from "../DateTimePicker";
+import { AppointmentDateTimePicker } from "../AppointmentDateTimePicker";
 
 export function AppointmentModal({ appt, patients, onClose, onSaved }: {
   appt?: Appointment;
@@ -29,7 +30,7 @@ export function AppointmentModal({ appt, patients, onClose, onSaved }: {
 
   const [ form, setForm ] = useState<AppointmentForm>({
     patientId: appt?.patientId ?? "",
-    startAt: appt?.startAt ?? new Date(),
+    startAt: appt?.startAt ?? new Date().toISOString(),
     status: appt?.status ?? AppointmentStatus.SCHEDULED,
     type: appt?.type ?? APPOINTMENT_TYPES[ 1 ].name,
     location: appt?.location ?? "",
@@ -139,7 +140,7 @@ export function AppointmentModal({ appt, patients, onClose, onSaved }: {
                 </div>
               </div>
             )}
-            <DateTimePicker date={form.startAt} onChanged={(date) => setForm(f => ({ ...f, startAt: date }))} />
+            <AppointmentDateTimePicker date={form.startAt} onChanged={(date) => setForm(f => ({ ...f, startAt: date }))} />
             <label style={lbl}>
               Tipo de cita
               <select style={inp} value={form.type} onChange={(e) => {

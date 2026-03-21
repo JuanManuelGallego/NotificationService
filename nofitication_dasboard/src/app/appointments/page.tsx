@@ -12,7 +12,7 @@ import { btnPrimary, btnSecondary, inp, tdStyle } from "@/src/styles/theme";
 import { Appointment, AppointmentStatus, LOCATION_CFG } from "@/src/types/Appointment";
 import { ReminderStatus } from "@/src/types/Reminder";
 import { getAvatarColor, getInitials } from "@/src/utils/AvatarHelper";
-import { today, fmtDate } from "@/src/utils/TimeUtils";
+import { today, fmtDate, fmtDateAndTime } from "@/src/utils/TimeUtils";
 import { useState, useEffect } from "react";
 import { useFetchAppointments } from "@/src/api/useFetchAppointments";
 import { useFetchPatients } from "@/src/api/useFetchPatients";
@@ -55,7 +55,7 @@ export default function AppointmentsPage() {
   const filtered = appointments.filter(a => {
     if (filterStatus !== "ALL" && a.status !== filterStatus) return false;
     if (filterpaid !== "ALL" && String(a.paid) !== filterpaid) return false;
-    if (dateFilter && a.startAt !== new Date(dateFilter)) return false;
+    if (dateFilter && a.startAt.slice(0, 10) !== dateFilter) return false;
     if (search) {
       const q = search.toLowerCase();
       return [ a.type, a.location, a.patient?.name ?? '', a.patient?.lastName ?? '', a.patient?.email ?? '' ].some(v => v.toLowerCase().includes(q));
@@ -65,8 +65,8 @@ export default function AppointmentsPage() {
 
   const counts = {
     total: appointments.length,
-    today: appointments.filter(a => a.startAt.getDate() === new Date().getDate()).length,
-    upcoming: appointments.filter(a => a.startAt > new Date() && a.status === AppointmentStatus.SCHEDULED).length,
+    today: appointments.filter(a => new Date(a.startAt).getDate() === new Date().getDate()).length,
+    upcoming: appointments.filter(a => new Date(a.startAt) > new Date() && a.status === AppointmentStatus.SCHEDULED).length,
     unpaid: appointments.filter(a => !a.paid && a.status !== AppointmentStatus.CANCELLED).length,
     completed: appointments.filter(a => a.status === AppointmentStatus.COMPLETED).length,
   };
@@ -174,7 +174,7 @@ export default function AppointmentsPage() {
                     <td style={{ ...tdStyle, fontSize: 13, color: "#374151", maxWidth: 140 }}>
                       <div style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{a.type}</div>
                     </td>
-                    <td style={{ ...tdStyle, fontSize: 13, color: "#111827", fontWeight: 500, whiteSpace: "nowrap" }}>{fmtDate(a.startAt)}</td>
+                    <td style={{ ...tdStyle, fontSize: 13, color: "#111827", fontWeight: 500, whiteSpace: "nowrap" }}>{fmtDateAndTime(a.startAt)}</td>
                     <td style={{ ...tdStyle, fontSize: 12, color: "#000000" }}>{a.reminderId ? <ReminderStatusPill status={reminders.find(r => r.id === a.reminderId)?.status || ReminderStatus.FAILED} /> : <EmptyStatusPill label="Sin Recordatorio" />}</td>
                     <td style={{ ...tdStyle, fontSize: 12, color: "#6B7280", maxWidth: 130 }}>
                       <div style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", backgroundColor: LOCATION_CFG[ a.location ]?.bg || "#F3F4F6", color: LOCATION_CFG[ a.location ]?.color || "#374151", padding: "4px 10px", borderRadius: 8, display: "inline-flex", alignItems: "center", gap: 6, fontWeight: 600, fontSize: 12 }}>

@@ -6,7 +6,7 @@ import { fmtDateAndTime, fmtRelative } from '@/src/utils/TimeUtils';
 import { StatCard } from '@/src/components/Info/StatCard';
 import { ChannelBadge } from '@/src/components/Info/ChannelIcon';
 import { ReminderModal } from '@/src/components/Modals/ReminderModal';
-import { EditScheduledReminderModal } from '@/src/components/Modals/EditScheduledReminderJobModal';
+import { EditScheduledReminderModal } from '@/src/components/Modals/EditScheduledReminderModal';
 import { ReminderDrawer } from '@/src/components/Drawers/ReminderDrawer';
 import { BulkSendWizard } from '@/src/components/Navigation/BulkSendWizard';
 import { EmptyState } from '@/src/components/EmptyState';

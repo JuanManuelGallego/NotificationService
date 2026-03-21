@@ -4,8 +4,8 @@ import { Patient } from "./Patient";
 export interface Reminder {
     id: string;
 
-    createdAt: Date;
-    updatedAt: Date;
+    createdAt: string;
+    updatedAt: string;
 
     channel: Channel;
     to: string;
@@ -17,8 +17,8 @@ export interface Reminder {
     error?: string | null;
 
     sendMode: ReminderMode;
-    sendAt: Date;
-    sentAt?: Date | null;
+    sendAt: string;
+    sentAt?: string | null;
     messageId?: string | null;
 
     appointmentId?: string | null;

@@ -12,9 +12,9 @@ export const createPatientSchema = z.object({
   lastName: z.string().min(1, 'lastName is required').max(100),
   whatsappNumber: e164OrEmpty,
   smsNumber: e164OrEmpty,
-  email: z.string().email('Must be a valid email address').optional().nullable(),
-  dateOfBirth: z.coerce.date().optional().nullable(),
-  notes: z.string().max(500).optional().nullable(),
+  email: z.string().email('Must be a valid email address').nullish(),
+  dateOfBirth: z.string().datetime().nullish(),
+  notes: z.string().max(500).nullish(),
   status: z.nativeEnum(PatientStatus).default(PatientStatus.ACTIVE),
 });
 
@@ -23,9 +23,9 @@ export const updatePatientSchema = z.object({
   lastName: z.string().min(1).max(100).optional(),
   whatsappNumber: e164OrEmpty,
   smsNumber: e164OrEmpty,
-  email: z.string().email('Must be a valid email address').optional().nullable(),
-  dateOfBirth: z.coerce.date().optional().nullable(),
-  notes: z.string().max(500).optional().nullable(),
+  email: z.string().email('Must be a valid email address').nullish(),
+  dateOfBirth: z.string().datetime().nullish(),
+  notes: z.string().max(500).nullish(),
   status: z.nativeEnum(PatientStatus).optional(),
 }).refine(
   (data) => Object.keys(data).length > 0,

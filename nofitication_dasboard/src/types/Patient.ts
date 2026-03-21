@@ -14,25 +14,25 @@ export const PATIENT_STATUS_CONFIG: Record<PatientStatus, { label: string; color
 };
 
 export interface Patient {
-  id: string;
+    id: string;
 
-  name: string;
-  lastName: string;
+    name: string;
+    lastName: string;
 
-  whatsappNumber?: string | null;
-  smsNumber?: string | null;
-  email?: string | null;
+    whatsappNumber?: string | null;
+    smsNumber?: string | null;
+    email?: string | null;
 
-  dateOfBirth?: Date | null;
-  notes?: string | null;
+    dateOfBirth?: string | null;
+    notes?: string | null;
 
-  status: PatientStatus;
-  archivedAt?: Date | null;
-  createdAt: Date;
-  updatedAt: Date;
+    status: PatientStatus;
+    archivedAt?: string | null;
+    createdAt: string;
+    updatedAt: string;
 
-  appointments?: Appointment[];
-  reminders?: Reminder[];
+    appointments?: Appointment[];
+    reminders?: Reminder[];
 }
 
 export interface FetchPatientsFilters {
@@ -42,6 +42,6 @@ export interface FetchPatientsFilters {
     pageSize?: number;
     orderBy?: 'name' | 'lastName' | 'email' | 'createdAt' | 'updatedAt';
     order?: 'asc' | 'desc';
-    from?: Date | string;
-    to?: Date | string;
+    from?: string;
+    to?: string;
 }

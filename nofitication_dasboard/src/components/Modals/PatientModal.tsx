@@ -5,6 +5,7 @@ import { Patient, PatientStatus, PATIENT_STATUS_CONFIG } from "@/src/types/Patie
 import { validateEmail, validatePhoneNumber } from "@/src/utils/DataValidator";
 import { useState } from "react";
 import { RequiredField } from "../Info/Requiered";
+import { DateTimePicker } from "../DateTimePicker";
 
 export function PatientModal({
     onClose,
@@ -23,11 +24,11 @@ export function PatientModal({
     const [ form, setForm ] = useState({
         name: patient?.name ?? "",
         lastName: patient?.lastName ?? "",
-        email: patient?.email ?? undefined,
-        whatsappNumber: patient?.whatsappNumber ?? undefined,
-        smsNumber: patient?.smsNumber ?? undefined,
-        dateOfBirth: patient?.dateOfBirth ? new Date(patient.dateOfBirth).toISOString().split('T')[ 0 ] : "",
-        notes: patient?.notes ?? "",
+        email: patient?.email,
+        whatsappNumber: patient?.whatsappNumber,
+        smsNumber: patient?.smsNumber,
+        dateOfBirth: patient?.dateOfBirth,
+        notes: patient?.notes,
         status: patient?.status ?? "ACTIVE" as PatientStatus,
     });
     const isValid = !!form.name && !!form.lastName;
@@ -61,14 +62,11 @@ export function PatientModal({
         setSaving(true);
         setError(null);
         try {
-            const formData = {
-                ...form,
-                dateOfBirth: form.dateOfBirth ? new Date(form.dateOfBirth) : null,
-            };
+
             if (isEdit) {
-                await updatePatient(patient!.id, formData);
+                await updatePatient(patient!.id, form);
             } else {
-                await createPatient(formData);
+                await createPatient(form);
             }
             onSaved(); onClose();
         } catch (err) {
@@ -94,7 +92,7 @@ export function PatientModal({
                             {isEdit ? "Editar Paciente" : "Nuevo Paciente"}
                         </h2>
                         <p style={{ fontSize: 13, color: "#9CA3AF", margin: "4px 0 0" }}>
-                            {isEdit ? `Modificando: ${patient!.name}` : "Registrar un nuevo paciente en el sistema"}
+                            {isEdit ? `Modificando: ${patient!.name} ${patient!.lastName}` : "Registrar un nuevo paciente en el sistema"}
                         </p>
                     </div>
                     <button onClick={onClose} style={{ background: "#F3F4F6", border: "none", borderRadius: 8, width: 32, height: 32, cursor: "pointer", fontSize: 16, color: "#6B7280" }}>✕</button>
@@ -115,33 +113,37 @@ export function PatientModal({
                         </label>
                         <label style={labelStyle}>
                             <RequiredField label="Apellido" />
-                            <input style={inputStyle} value={form.lastName} onChange={set("lastName")} placeholder="ej. García" />
+                            <input autoComplete="family-name"
+                                style={inputStyle} value={form.lastName} onChange={set("lastName")} placeholder="ej. García" />
                         </label>
                     </div>
 
                     <label style={labelStyle}>
                         📅 Fecha de Nacimiento
-                        <input style={inputStyle} type="date" value={form.dateOfBirth} onChange={set("dateOfBirth")} />
+                        <DateTimePicker
+                            date={form.dateOfBirth || undefined}
+                            onChanged={(date) => setForm(f => ({ ...f, dateOfBirth: date }))}
+                        />
                     </label>
 
                     <label style={labelStyle}>
                         ✉️ Correo electrónico
-                        <input style={inputStyle} type="email" value={form.email} onChange={set("email")} placeholder="paciente@ejemplo.com" />
+                        <input style={inputStyle} type="email" value={form.email || undefined} onChange={set("email")} placeholder="paciente@ejemplo.com" />
                     </label>
 
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
                         <label style={labelStyle}>
                             💬 WhatsApp
-                            <input style={inputStyle} value={form.whatsappNumber} onChange={set("whatsappNumber")} placeholder="+15551234567" />
+                            <input style={inputStyle} value={form.whatsappNumber || undefined} onChange={set("whatsappNumber")} placeholder="+15551234567" />
                         </label>
                         <label style={labelStyle}>
                             📱 SMS
-                            <input style={inputStyle} value={form.smsNumber} onChange={set("smsNumber")} placeholder="+15551234567" />
+                            <input style={inputStyle} value={form.smsNumber || undefined} onChange={set("smsNumber")} placeholder="+15551234567" />
                         </label>
                     </div>
                     <label style={labelStyle}>
                         📝 Notas
-                        <textarea style={{ ...inputStyle, fontFamily: "inherit", resize: "vertical", minHeight: "80px" }} value={form.notes} onChange={(e) => setForm(f => ({ ...f, notes: e.target.value }))} placeholder="Notas adicionales sobre el paciente..." />
+                        <textarea style={{ ...inputStyle, fontFamily: "inherit", resize: "vertical", minHeight: "80px" }} value={form.notes || undefined} onChange={(e) => setForm(f => ({ ...f, notes: e.target.value }))} placeholder="Notas adicionales sobre el paciente..." />
                     </label>
 
                     {isEdit && <label style={labelStyle}>

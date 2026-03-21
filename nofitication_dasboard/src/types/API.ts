@@ -1,3 +1,4 @@
+import { PatientStatus } from './Patient';
 export interface ApiPaginatedResponse {
     success: boolean;
     data: {
@@ -16,5 +17,13 @@ export interface ApiResponse {
     timestamp: string;
 }
 
+export interface PatientStats {
+    total: number;
+    byStatus: {
+        [ PatientStatus.ACTIVE ]: number;
+        [ PatientStatus.INACTIVE ]: number;
+        [ PatientStatus.ARCHIVED ]: number;
+    };
+}
 
 export const API_BASE = "http://localhost:3001";

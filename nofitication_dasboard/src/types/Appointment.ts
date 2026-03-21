@@ -4,11 +4,11 @@ import { Reminder, ReminderType } from "./Reminder";
 export interface Appointment {
     id: string;
 
-    createdAt: Date;
-    updatedAt: Date;
+    createdAt: string;
+    updatedAt: string;
 
-    startAt: Date;
-    endAt: Date;
+    startAt: string;
+    endAt: string;
     timezone: string;
 
     price: number;
@@ -21,9 +21,9 @@ export interface Appointment {
     type: string;
 
     status: AppointmentStatus;
-    confirmedAt?: Date | null;
-    cancelledAt?: Date | null;
-    completedAt?: Date | null;
+    confirmedAt?: string | null;
+    cancelledAt?: string | null;
+    completedAt?: string | null;
 
     patientId: string;
     reminderId?: string | null;
@@ -33,7 +33,7 @@ export interface Appointment {
 }
 
 export interface AppointmentForm {
-    startAt: Date;
+    startAt: string;
     duration: string;
     location: string;
     meetingUrl?: string;

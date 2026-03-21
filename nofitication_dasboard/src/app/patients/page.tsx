@@ -9,37 +9,35 @@ import { StatCard } from "@/src/components/Info/StatCard";
 import { ChannelIcon } from "@/src/components/Info/ChannelIcon";
 import { DataTable } from "@/src/components/DataTable";
 import { PatientModal } from "@/src/components/Modals/PatientModal";
-import { DeletePatientModal } from "@/src/components/Modals/DeletePatientModal";
+import { ArchivePatientModal } from "@/src/components/Modals/DeletePatientModal";
 import { Channel } from "@/src/types/Reminder";
 import { useFetchPatients } from "@/src/api/useFetchPatients";
 import { PatientDrawer } from "@/src/components/Drawers/PatientDrawer";
 import { PatientStatusPill } from "@/src/components/Info/StatusPill";
+import { useDebounceState } from "@/src/utils/useDebounceState";
+import { useFetchPatientsStats } from "@/src/api/useFetchPatientsStats";
 
 const PAGE_SIZE = 10;
 
 export default function PatientsPage() {
     const [ search, setSearch ] = useState("");
+    const debouncedSearch = useDebounceState(search, 250);
     const [ filterStatus, setFilterStatus ] = useState<PatientStatus | "ALL">("ALL");
     const [ page, setPage ] = useState(1);
     const [ showCreate, setShowCreate ] = useState(false);
     const [ editPatient, setEditPatient ] = useState<Patient | null>(null);
     const [ deletePatient, setDeletePatient ] = useState<Patient | null>(null);
     const [ viewPatient, setViewPatient ] = useState<Patient | null>(null);
+    const { stats, fetchStats } = useFetchPatientsStats();
 
     const filters = useMemo(() => ({
-        search: search || undefined,
+        search: debouncedSearch,
         status: filterStatus !== "ALL" ? filterStatus : undefined,
         page,
         pageSize: PAGE_SIZE,
-    }), [ search, filterStatus, page ]);
+    }), [ debouncedSearch, filterStatus, page ]);
 
     const { patients, loading, error, fetchPatients, total, totalPages } = useFetchPatients(filters);
-
-    const counts = {
-        total,
-        active: patients.filter(p => p.status === PatientStatus.ACTIVE).length,
-        inactive: patients.filter(p => p.status === PatientStatus.INACTIVE).length,
-    };
 
     return (
         <>
@@ -67,25 +65,37 @@ export default function PatientsPage() {
                         </div>
                     </div>
                     <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 20, marginBottom: 36 }}>
-                        <StatCard label="Total Pacientes" value={counts.total} sub="en el sistema" accent="#1E3A5F" />
-                        <StatCard label="Activos" value={counts.active} sub="reciben notificaciones" accent="#16A34A" />
-                        <StatCard label="Inactivos" value={counts.inactive} sub="sin notificaciones" accent="#D97706" />
+                        <StatCard label="Total Pacientes" value={stats?.total ?? 0} sub="en el sistema" accent="#1E3A5F" />
+                        <StatCard label="Activos" value={stats?.byStatus[ PatientStatus.ACTIVE ] ?? 0} sub="reciben notificaciones" accent="#16A34A" />
+                        <StatCard label="Inactivos" value={stats?.byStatus[ PatientStatus.INACTIVE ] ?? 0} sub="sin notificaciones" accent="#D97706" />
                     </div>
                     <div style={{
                         background: "#fff", borderRadius: 16, padding: "18px 24px",
                         display: "flex", alignItems: "center", gap: 16, marginBottom: 20,
                         boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
                     }}>
-                        <input
-                            placeholder="Buscar por nombre, apellido o correo…"
-                            value={search}
-                            onChange={e => { setSearch(e.target.value); setPage(1); }}
-                            style={{
-                                flex: 1, padding: "9px 14px", border: "1.5px solid #E5E7EB",
-                                borderRadius: 10, fontSize: 14, outline: "none", fontFamily: "inherit",
-                                color: "#111827", background: "#FAFAFA",
-                            }}
-                        />
+                        <div style={{ position: "relative", flex: 1 }}>
+                            <input
+                                placeholder="Buscar por nombre, apellido o correo…"
+                                value={search}
+                                onChange={e => { setSearch(e.target.value); setPage(1); }}
+                                autoComplete="new-password"
+                                style={{
+                                    width: "100%", padding: "9px 36px 9px 14px", border: "1.5px solid #E5E7EB",
+                                    borderRadius: 10, fontSize: 14, outline: "none", fontFamily: "inherit",
+                                    color: "#111827", background: "#FAFAFA", boxSizing: "border-box",
+                                }}
+                            />
+                            <button
+                                onClick={() => { setSearch(""); setPage(1); }}
+                                style={{
+                                    position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)",
+                                    background: "none", border: "none", cursor: "pointer",
+                                    color: "#9CA3AF", fontSize: 16, lineHeight: 1, padding: 2,
+                                }}
+                                aria-label="Limpiar búsqueda"
+                            >✕</button>
+                        </div>
                         <div style={{ display: "flex", gap: 8 }}>
                             {([
                                 { key: "ALL", label: "Todos" },
@@ -172,7 +182,7 @@ export default function PatientsPage() {
                                     Mostrando <strong style={{ color: "#374151" }}>{(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, total)}</strong> de <strong style={{ color: "#374151" }}>{total}</strong> pacientes
                                 </span>
                                 <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                                    <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} style={{ padding: "5px 12px", borderRadius: 7, border: "1.5px solid #E5E7EB", background: page === 1 ? "#F9FAFB" : "#fff", color: page === 1 ? "#D1D5DB" : "#374151", fontSize: 13, fontWeight: 500, cursor: page === 1 ? "default" : "pointer" }}>← Anterior</button>
+                                    {page !== 1 && <button onClick={() => setPage(p => Math.max(1, p - 1))} style={{ padding: "5px 12px", borderRadius: 7, border: "1.5px solid #E5E7EB", background: page === 1 ? "#F9FAFB" : "#fff", color: page === 1 ? "#D1D5DB" : "#374151", fontSize: 13, fontWeight: 500, cursor: page === 1 ? "default" : "pointer" }}>← Anterior</button>}
                                     {Array.from({ length: totalPages }, (_, i) => i + 1)
                                         .filter(n => n === 1 || n === totalPages || Math.abs(n - page) <= 1)
                                         .reduce<(number | "...")[]>((acc, n, idx, arr) => {
@@ -198,21 +208,21 @@ export default function PatientsPage() {
             {showCreate && (
                 <PatientModal
                     onClose={() => setShowCreate(false)}
-                    onSaved={fetchPatients}
+                    onSaved={() => { fetchPatients(); fetchStats(); }}
                 />
             )}
             {editPatient && (
                 <PatientModal
                     patient={editPatient}
                     onClose={() => setEditPatient(null)}
-                    onSaved={fetchPatients}
+                    onSaved={() => { fetchPatients(); fetchStats(); }}
                 />
             )}
             {deletePatient && (
-                <DeletePatientModal
+                <ArchivePatientModal
                     patient={deletePatient}
                     onClose={() => setDeletePatient(null)}
-                    onDeleted={fetchPatients}
+                    onDeleted={() => { fetchPatients(); fetchStats(); }}
                 />
             )}
             {viewPatient && (

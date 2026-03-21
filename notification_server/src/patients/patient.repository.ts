@@ -27,6 +27,23 @@ export const patientRepository = {
     }
   },
 
+  async getStats(): Promise<{ total: number; byStatus: Record<string, number> }> {
+    const counts = await prisma.patient.groupBy({
+      by: [ 'status' ],
+      _count: { _all: true },
+    });
+
+    const byStatus: Record<string, number> = {};
+    let total = 0;
+    for (const row of counts) {
+      if(!row.status || row.status === PatientStatus.ARCHIVED) continue;
+      byStatus[ row.status ] = row._count._all;
+      total += row._count._all;
+    }
+
+    return { total, byStatus };
+  },
+
   async findById(id: string): Promise<Patient> {
     const patient = await prisma.patient.findUnique({
       where: { id },
