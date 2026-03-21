@@ -28,9 +28,9 @@ function isoToLocal(iso: string) {
     return new Date(date.getTime() - tzOffset).toISOString().slice(0, 16);
 }
 
-function fmtRelative(iso: string | undefined) {
-    if (!iso) return "Invalid Date"
-    const diff = new Date(iso).getTime() - Date.now();
+function fmtRelative(d: Date | undefined) {
+    if (!d) return "Invalid Date"
+    const diff = d.getTime() - Date.now();
     const abs = Math.abs(diff);
     if (abs < 60_000) return "Ahora mismo";
     if (abs < 3_600_000) return `${Math.round(abs / 60_000)} min`;
@@ -49,13 +49,12 @@ const MONTH_NAMES_ES = [
 const DAY_NAMES_ES = [ "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom" ];
 
 
-function isReminderTypeFeasible(date: string, reminderType: ReminderType): boolean {
+function isReminderTypeFeasible(date: Date, reminderType: ReminderType): boolean {
     if (reminderType === ReminderType.NONE) return true;
     if (!date) return false;
 
-    const appointmentDateTime = new Date(date);
     const now = new Date();
-    const timeUntilAppointment = appointmentDateTime.getTime() - now.getTime();
+    const timeUntilAppointment = date.getTime() - now.getTime();
 
     const reminderOffsets: Record<ReminderType, number> = {
         [ ReminderType.ONE_HOUR_BEFORE ]: 60 * 60 * 1000,
@@ -69,31 +68,33 @@ function isReminderTypeFeasible(date: string, reminderType: ReminderType): boole
 }
 
 
-function getRemindersentAt(date: string, reminderType: ReminderType): string {
+function getRemindersendAt(date: Date, reminderType: ReminderType): Date {
     switch (reminderType) {
         case ReminderType.ONE_HOUR_BEFORE:
-            return new Date(new Date(date).getTime() - 60 * 60 * 1000).toISOString();
+            return new Date(date.getTime() - 60 * 60 * 1000);
         case ReminderType.ONE_DAY_BEFORE:
-            return new Date(new Date(date).getTime() - 24 * 60 * 60 * 1000).toISOString();
+            return new Date(date.getTime() - 24 * 60 * 60 * 1000);
         case ReminderType.ONE_WEEK_BEFORE:
-            return new Date(new Date(date).getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
+            return new Date(date.getTime() - 7 * 24 * 60 * 60 * 1000);
         default:
-            return new Date(date).toISOString();
+            return date;
     }
 }
 
-function getDate(iso: string) {
-    return new Date(iso).toISOString().slice(0, 10);
+function formatDate(d: Date): string {
+    return d.toISOString().slice(0, 10);
 }
 
-function getTime(iso: string) {
-    return new Date(iso).toISOString().slice(11, 16);
+function formatTime(d: Date): string {
+    return d.toISOString().slice(11, 16);
 }
 
-function getDuration(startAt: Date, endAt: Date): string {
+function getDuration(startAt: Date | undefined, endAt: Date | undefined) {
+    if (!startAt || !endAt) return null;
+
     const diff = (endAt.getTime() - startAt.getTime()) / 60000;
     if (diff < 60) return `${diff} min`;
     return `${Math.round(diff / 60)} h`;
 }
 
-export { fmtDateTime, fmtDate, isoToLocal, fmtRelative, today, MONTH_NAMES_ES, DAY_NAMES_ES, getRemindersentAt, isReminderTypeFeasible, getDate, getTime, fmtDateAndTime, getDuration };
+export { fmtDateTime, fmtDate, isoToLocal, fmtRelative, today, MONTH_NAMES_ES, DAY_NAMES_ES, getRemindersendAt, isReminderTypeFeasible, formatDate, formatTime, fmtDateAndTime, getDuration };

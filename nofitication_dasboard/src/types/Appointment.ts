@@ -40,7 +40,7 @@ export interface AppointmentForm {
     notes?: string;
     patientId: string;
     paid: boolean;
-    price: string;
+    price: number;
     reminderId?: string;
     reminderType: ReminderType;
     status: AppointmentStatus;
@@ -72,15 +72,15 @@ export enum AppointmentDuration {
 export interface AppointmentType {
     id: string;
     name: AppointmentName;
-    price: string;
+    price: number;
     duration: AppointmentDuration;
 }
 
 export const APPOINTMENT_TYPES: AppointmentType[] = [
-    { id: "1", name: AppointmentName.KID, price: "115000", duration: AppointmentDuration.MIN_60 },
-    { id: "2", name: AppointmentName.INDIVIDUAL, price: "115000", duration: AppointmentDuration.MIN_60 },
-    { id: "3", name: AppointmentName.COUPLE, price: "220000", duration: AppointmentDuration.MIN_60 },
-    { id: "4", name: AppointmentName.FAMILY, price: "220000", duration: AppointmentDuration.MIN_60 },
+    { id: "1", name: AppointmentName.KID, price: 115000, duration: AppointmentDuration.MIN_60 },
+    { id: "2", name: AppointmentName.INDIVIDUAL, price: 115000, duration: AppointmentDuration.MIN_60 },
+    { id: "3", name: AppointmentName.COUPLE, price: 220000, duration: AppointmentDuration.MIN_60 },
+    { id: "4", name: AppointmentName.FAMILY, price: 220000, duration: AppointmentDuration.MIN_60 },
 ];
 
 export const STATUS_CFG: Record<AppointmentStatus, { label: string; color: string; bg: string; dot: string; icon: string }> = {

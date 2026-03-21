@@ -7,8 +7,8 @@ export function DateTimePicker({
     date,
     onChanged,
 }: {
-    date: string;
-    onChanged: (date: string) => void;
+    date: Date | undefined;
+    onChanged: (date: Date) => void;
 }) {
     const { appointments } = useFetchAppointments();
 
@@ -18,7 +18,7 @@ export function DateTimePicker({
         const selectedDateObj = selectedDate.toDate();
 
         const isBooked = appointments.some((a) => {
-            return new Date(a.date).getTime() === selectedDateObj.getTime();
+            return new Date(a.startAt).getTime() === selectedDateObj.getTime();
         });
 
         if (isBooked) {
@@ -26,7 +26,7 @@ export function DateTimePicker({
             return;
         }
 
-        onChanged(selectedDateObj.toISOString());
+        onChanged(selectedDateObj);
     };
 
     return (

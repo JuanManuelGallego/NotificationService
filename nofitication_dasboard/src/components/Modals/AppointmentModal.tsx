@@ -7,7 +7,7 @@ import { Appointment, AppointmentForm, AppointmentStatus, APPOINTMENT_TYPES, App
 import { Patient } from "@/src/types/Patient";
 import { ReminderType, Reminder, ReminderMode, ReminderStatus, CHANNEL_ICON, CHANNEL_LABEL, Channel } from "@/src/types/Reminder";
 import { getAvatarColor, getInitials } from "@/src/utils/AvatarHelper";
-import { isReminderTypeFeasible, getDate, getTime } from "@/src/utils/TimeUtils";
+import { isReminderTypeFeasible, formatDate, formatTime, getDuration, getRemindersendAt } from "@/src/utils/TimeUtils";
 import { useState } from "react";
 import { DateTimePicker } from "../DateTimePicker";
 
@@ -29,20 +29,20 @@ export function AppointmentModal({ appt, patients, onClose, onSaved }: {
 
   const [ form, setForm ] = useState<AppointmentForm>({
     patientId: appt?.patientId ?? "",
-    date: appt?.date ?? "",
+    startAt: appt?.startAt ?? new Date(),
     status: appt?.status ?? AppointmentStatus.SCHEDULED,
     type: appt?.type ?? APPOINTMENT_TYPES[ 1 ].name,
     location: appt?.location ?? "",
     meetingUrl: appt?.meetingUrl ?? undefined,
     price: appt?.price ?? APPOINTMENT_TYPES[ 1 ].price,
     paid: appt?.paid ?? false,
-    duration: appt?.duration ?? APPOINTMENT_TYPES[ 1 ].duration,
+    duration: getDuration(appt?.startAt, appt?.endAt) ?? APPOINTMENT_TYPES[ 1 ].duration,
     reminderType: appt?.reminderId ? ReminderType.ONE_DAY_BEFORE : ReminderType.NONE,
     notes: appt?.notes ?? undefined,
   });
 
   const isValid = step === 1
-    ? !!form.patientId && !!form.type && !!form.date
+    ? !!form.patientId && !!form.type && !!form.startAt
     : step === 2
       ? !!form.location && (form.reminderType !== ReminderType.NONE ? reminderChannel : true)
       : !!form.price;
@@ -65,7 +65,7 @@ export function AppointmentModal({ appt, patients, onClose, onSaved }: {
       channel: reminderChannel,
       sendMode: ReminderMode.SCHEDULED,
       status: ReminderStatus.PENDING,
-      sendAt: new Date(getReminderscheduledSendTime(form.date, form.reminderType)).toISOString(), //sendAt instead  
+      sendAt: getRemindersendAt(form.startAt, form.reminderType),
     };
   }
 
@@ -139,11 +139,11 @@ export function AppointmentModal({ appt, patients, onClose, onSaved }: {
                 </div>
               </div>
             )}
-            <DateTimePicker date={form.date} onChanged={(date) => setForm(f => ({ ...f, date: date }))} />
+            <DateTimePicker date={form.startAt} onChanged={(date) => setForm(f => ({ ...f, startAt: date }))} />
             <label style={lbl}>
               Tipo de cita
               <select style={inp} value={form.type} onChange={(e) => {
-                setForm(f => ({ ...f, type: e.target.value, price: APPOINTMENT_TYPES.find(t => t.name === e.target.value)?.price ?? "", duration: APPOINTMENT_TYPES.find(t => t.name === e.target.value)?.duration ?? "" }))
+                setForm(f => ({ ...f, type: e.target.value, price: APPOINTMENT_TYPES.find(t => t.name === e.target.value)?.price ?? APPOINTMENT_TYPES[ 0 ].price, duration: APPOINTMENT_TYPES.find(t => t.name === e.target.value)?.duration ?? APPOINTMENT_TYPES[ 0 ].duration }))
               }}>
                 <option value="">Seleccionar tipo…</option>
                 {APPOINTMENT_TYPES.map(t => <option key={t.id} value={t.name}>{t.name}</option>)}
@@ -179,9 +179,9 @@ export function AppointmentModal({ appt, patients, onClose, onSaved }: {
               Recordatorio
               <select style={inp} value={form.reminderType} onChange={set("reminderType")}>
                 <option value={ReminderType.NONE}>Sin recordatorio</option>
-                <option value={ReminderType.ONE_HOUR_BEFORE} disabled={!isReminderTypeFeasible(form.date, ReminderType.ONE_HOUR_BEFORE)}>1 hora antes</option>
-                <option value={ReminderType.ONE_DAY_BEFORE} disabled={!isReminderTypeFeasible(form.date, ReminderType.ONE_DAY_BEFORE)}>1 día antes</option>
-                <option value={ReminderType.ONE_WEEK_BEFORE} disabled={!isReminderTypeFeasible(form.date, ReminderType.ONE_WEEK_BEFORE)}>1 semana antes</option>
+                <option value={ReminderType.ONE_HOUR_BEFORE} disabled={!isReminderTypeFeasible(form.startAt, ReminderType.ONE_HOUR_BEFORE)}>1 hora antes</option>
+                <option value={ReminderType.ONE_DAY_BEFORE} disabled={!isReminderTypeFeasible(form.startAt, ReminderType.ONE_DAY_BEFORE)}>1 día antes</option>
+                <option value={ReminderType.ONE_WEEK_BEFORE} disabled={!isReminderTypeFeasible(form.startAt, ReminderType.ONE_WEEK_BEFORE)}>1 semana antes</option>
               </select>
             </label>
             {form.reminderType !== ReminderType.NONE && (<div>
@@ -262,7 +262,7 @@ export function AppointmentModal({ appt, patients, onClose, onSaved }: {
               {[
                 [ "Paciente", selectedPatient ? selectedPatient.name : "—" ],
                 [ "Tipo", form.type || "—" ],
-                [ "Fecha", `${getDate(form.date)} a las ${getTime(form.date)}` ],
+                [ "Fecha", `${formatDate(form.startAt)} a las ${formatTime(form.startAt)}` ],
                 [ "Duración", form.duration ],
                 [ "Ubicación", form.location || "—" ],
                 [ "Precio", `$${form.price}` ],
@@ -295,3 +295,4 @@ export function AppointmentModal({ appt, patients, onClose, onSaved }: {
     </div>
   );
 }
+

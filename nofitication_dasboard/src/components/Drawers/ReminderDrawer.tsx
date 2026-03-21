@@ -1,6 +1,6 @@
 import { btnPrimary } from "@/src/styles/theme";
 import { Reminder, REMINDER_STATUS_CONFIG, getChannelLabel, getChannelIcon, ReminderStatus, ReminderMode } from "@/src/types/Reminder";
-import { fmtDateTime } from "@/src/utils/TimeUtils";
+import { fmtDateTime, fmtDateAndTime } from "@/src/utils/TimeUtils";
 import { ReminderStatusPill } from "../Info/StatusPill";
 import { Section, Row } from "./DrawerUtils";
 
@@ -41,8 +41,8 @@ export function ReminderDrawer({ reminder, patientName, onClose, onEdit, onCance
                         <Row icon="📢" label="Modo" value={reminder.sendMode === ReminderMode.IMMEDIATE ? "Inmediato" : "Programado"} />
                     </Section>
                     <Section title="Programación">
-                        <Row icon="⏰" label={isPending ? "Se envia el" : "Enviado el"} value={fmtDateTime(reminder.sentAt)} />
-                        {reminder.sendAt && <Row icon="🗓️" label="Programado" value={fmtDateTime(reminder.sendAt)} />}
+                        <Row icon="⏰" label={isPending ? "Se envia el" : "Enviado el"} value={fmtDateAndTime(reminder.sendAt)} />
+                        {reminder.sendAt && <Row icon="🗓️" label="Programado" value={fmtDateAndTime(reminder.sendAt)} />}
                     </Section>
                     <Section title="Mensaje">
                         <Row icon="✉️" label="Mensaje" value={<span style={{ fontFamily: "monospace" }}>{reminder.contentSid}</span>} />
@@ -56,8 +56,8 @@ export function ReminderDrawer({ reminder, patientName, onClose, onEdit, onCance
                     )}
                     <Section title="Información del sistema">
                         <Row icon="🆔" label="ID" value={<span style={{ fontFamily: "monospace", fontSize: 11 }}>{reminder.id}</span>} />
-                        <Row icon="📆" label="Creado" value={fmtDateTime(reminder.createdAt)} />
-                        <Row icon="🔁" label="Actualizado" value={fmtDateTime(reminder.updatedAt)} />
+                        <Row icon="📆" label="Creado" value={fmtDateAndTime(reminder.createdAt)} />
+                        <Row icon="🔁" label="Actualizado" value={fmtDateAndTime(reminder.updatedAt)} />
                         <Row icon="🆔" label="Twillo ID" value={<span style={{ fontFamily: "monospace" }}>{reminder.messageId ?? '-'}</span>} />
                     </Section>
                 </div>

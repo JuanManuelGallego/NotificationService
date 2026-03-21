@@ -2,11 +2,10 @@ import { lbl, inp, btnSecondary, btnPrimary } from "@/src/styles/theme";
 import { API_BASE } from "@/src/types/API";
 import { Patient } from "@/src/types/Patient";
 import { Reminder, ReminderStatus, CHANNEL_ICON, CHANNEL_LABEL } from "@/src/types/Reminder";
-import { isoToLocal } from "@/src/utils/TimeUtils";
 import { useState } from "react";
 
 export function EditScheduledReminderModal({ reminder, patients, onClose, onSaved }: { reminder: Reminder; patients: Patient[]; onClose: () => void; onSaved: () => void }) {
-    const [ sentAt, setsentAt ] = useState(isoToLocal(reminder.sentAt));
+    const [ sendAt, setsendAt ] = useState(reminder.sendAt);
     const [ saving, setSaving ] = useState(false);
     const [ error, setError ] = useState<string | null>(null);
 
@@ -15,7 +14,7 @@ export function EditScheduledReminderModal({ reminder, patients, onClose, onSave
         try {
             const body = {
                 sendAt: new Date().toISOString(),
-                sentAt: new Date(sentAt).toISOString(),
+                sentAt: new Date(sendAt).toISOString(),
                 status: ReminderStatus.PENDING
             }
             const res = await fetch(`${API_BASE}/reminders/${reminder.id}`, {
@@ -51,7 +50,7 @@ export function EditScheduledReminderModal({ reminder, patients, onClose, onSave
                 {error && <div style={{ background: "#FEF2F2", border: "1px solid #FCA5A5", borderRadius: 10, padding: "10px 14px", marginBottom: 16, fontSize: 13, color: "#DC2626" }}>⚠️ {error}</div>}
                 <label style={lbl}>
                     Nueva fecha y hora de envío
-                    <input type="datetime-local" style={inp} value={sentAt} min={new Date().toISOString().slice(0, 16)} onChange={e => setsentAt(e.target.value)} />
+                    <input type="datetime-local" style={inp} value={sendAt.toISOString().slice(0, 16)} min={new Date().toISOString().slice(0, 16)} onChange={e => setsendAt(new Date(e.target.value))} />
                 </label>
                 <div style={{ display: "flex", gap: 10, marginTop: 24 }}>
                     <button onClick={onClose} style={{ ...btnSecondary, flex: 1 }} disabled={saving}>Cancelar</button>

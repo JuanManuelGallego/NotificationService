@@ -46,7 +46,7 @@ export function PatientDrawer({ patient, onClose, onEdit, onDelete }: {
                         )}
                     </Section>
                     <Section title="Información Adicional">
-                        {patient.dateOfBirth && <Row icon="📅" label="Fecha de Nacimiento" value={fmtDate(typeof patient.dateOfBirth === 'string' ? patient.dateOfBirth : patient.dateOfBirth.toISOString())} />}
+                        {patient.dateOfBirth && <Row icon="📅" label="Fecha de Nacimiento" value={fmtDate(patient.dateOfBirth)} />}
                         {patient.notes && <div style={{ display: "flex", gap: 10 }}>
                             <span style={{ fontSize: 14, width: 20, textAlign: "center", flexShrink: 0 }}>📝</span>
                             <div style={{ flex: 1 }}>

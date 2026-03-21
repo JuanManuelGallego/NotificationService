@@ -1,6 +1,6 @@
 import { btnSecondary } from "@/src/styles/theme";
 import { Appointment, LOCATION_CFG, AppointmentStatus } from "@/src/types/Appointment";
-import { getDate, today, MONTH_NAMES_ES, DAY_NAMES_ES, getTime } from "@/src/utils/TimeUtils";
+import { formatDate, today, MONTH_NAMES_ES, DAY_NAMES_ES, formatTime } from "@/src/utils/TimeUtils";
 import { useState, useMemo } from "react";
 
 export function CalendarView({ appointments, onDayClick, onApptClick }: {
@@ -21,7 +21,7 @@ export function CalendarView({ appointments, onDayClick, onApptClick }: {
     const apptByDate = useMemo(() => {
         const map: Record<string, Appointment[]> = {};
         for (const a of appointments) {
-            const date = getDate(a.date)
+            const date = formatDate(a.startAt)
             if (!map[ date ]) map[ date ] = [];
             map[ date ].push(a);
         }
@@ -91,7 +91,7 @@ export function CalendarView({ appointments, onDayClick, onApptClick }: {
                                                 whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
                                                 cursor: "pointer",
                                             }}>
-                                                {getTime(a.date)} {a.patient.name} - {a.location} {a.status == AppointmentStatus.CONFIRMED && "✅"}
+                                                {formatTime(a.startAt)} {a.patient.name} - {a.location} {a.status == AppointmentStatus.CONFIRMED && "✅"}
                                             </div>
                                         ))}
                                         {appts.length > 3 && (

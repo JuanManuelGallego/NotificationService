@@ -1,9 +1,8 @@
 "use client";;
-import Sidebar from '../../components/Navigation/Sidebar';
 import { useState } from "react";
 import { Reminder, ReminderStatus } from '@/src/types/Reminder';
 import { btnPrimary, tdStyle } from '@/src/styles/theme';
-import { fmtDateTime, fmtRelative } from '@/src/utils/TimeUtils';
+import { fmtDateAndTime, fmtRelative } from '@/src/utils/TimeUtils';
 import { StatCard } from '@/src/components/Info/StatCard';
 import { ChannelBadge } from '@/src/components/Info/ChannelIcon';
 import { ReminderModal } from '@/src/components/Modals/ReminderModal';
@@ -17,6 +16,7 @@ import { useFetchReminders } from '@/src/api/useFetchReminders';
 import { useFetchPatients } from '@/src/api/useFetchPatients';
 import { ErrorBanner } from '@/src/components/Info/ErrorBanner';
 import { ReminderStatusPill } from '@/src/components/Info/StatusPill';
+import Sidebar from "@/src/components/Navigation/Sidebar";
 
 type ActiveTab = "Active" | "History" | "Bulk";
 
@@ -130,13 +130,13 @@ export default function RemindersPage() {
                                     </td>
                                     <td style={tdStyle}><ChannelBadge channel={reminder.channel} /></td>
                                     <td style={tdStyle}><ReminderStatusPill status={reminder.status} /></td>
-                                    <td style={{ ...tdStyle, fontSize: 13, color: "#374151" }}>{fmtDateTime(reminder.sendAt)}</td>
+                                    <td style={{ ...tdStyle, fontSize: 13, color: "#374151" }}>{fmtDateAndTime(reminder.sendAt)}</td>
                                     <td style={{ ...tdStyle, fontSize: 13, color: "#6B7280", whiteSpace: "nowrap" }}>
                                         <span style={{ background: "#EFF6FF", color: "#2563EB", padding: "3px 9px", borderRadius: 20, fontSize: 12, fontWeight: 600 }}>
                                             {fmtRelative(reminder.sendAt)}
                                         </span>
                                     </td>
-                                    <td style={{ ...tdStyle, fontSize: 13, color: "#9CA3AF" }}>{fmtDateTime(reminder.sendAt)}</td>
+                                    <td style={{ ...tdStyle, fontSize: 13, color: "#9CA3AF" }}>{fmtDateAndTime(reminder.sendAt)}</td>
                                     <td style={tdStyle} onClick={e => e.stopPropagation()}>
                                         <div style={{ display: "flex", gap: 6 }}>
                                             <button onClick={() => setEditReminder(reminder)} style={{ padding: "5px 12px", fontSize: 12, fontWeight: 600, background: "#EFF6FF", border: "none", borderRadius: 7, color: "#2563EB", cursor: "pointer" }}>Reprogramar</button>
@@ -169,7 +169,7 @@ export default function RemindersPage() {
                                     </td>
                                     <td style={tdStyle}><ChannelBadge channel={reminder.channel} /></td>
                                     <td style={tdStyle}><ReminderStatusPill status={reminder.status} /></td>
-                                    <td style={{ ...tdStyle, fontSize: 13, color: "#6B7280" }}>{fmtDateTime(reminder.sentAt)}</td>
+                                    <td style={{ ...tdStyle, fontSize: 13, color: "#6B7280" }}>{fmtDateAndTime(reminder.sendAt)}</td>
                                     <td style={{ ...tdStyle, fontSize: 12, color: "#9CA3AF", fontFamily: "monospace" }}>
                                         {reminder.messageId ? <span title={reminder.messageId}>{reminder.messageId}</span> : "—"}
                                     </td>
