@@ -5,11 +5,11 @@ import { CalendarView } from "@/src/components/Navigation/CalendarView";
 import { CancelAppointmentModal } from "@/src/components/Modals/CancelAppointmentModal";
 import { PayBadge } from "@/src/components/Info/PayBadge";
 import Sidebar from "@/src/components/Navigation/Sidebar";
-import { DataTable } from "@/src/components/DataTable";
+import { DataTable, TableFooter } from "@/src/components/DataTable";
 import { EmptyState } from "@/src/components/EmptyState";
 import { StatCard } from "@/src/components/Info/StatCard";
 import { DateTimePicker } from "@/src/components/DateTimePicker";
-import { btnPrimary, btnSecondary, inp, tdStyle } from "@/src/styles/theme";
+import { ErrorBanner } from "@/src/components/Info/ErrorBanner";
 import { Appointment, AppointmentStatus, FetchAppointmentsFilters, LOCATION_CFG } from "@/src/types/Appointment";
 import { ReminderStatus } from "@/src/types/Reminder";
 import { getAvatarColor, getInitials } from "@/src/utils/AvatarHelper";
@@ -70,57 +70,51 @@ export default function AppointmentsPage() {
 
   return (
     <>
-      <div style={{ display: "flex", minHeight: "100vh", background: "#F8F7F4", fontFamily: "'DM Sans', sans-serif" }}>
+      <div className="page-shell">
         <Sidebar />
-        <main style={{ marginLeft: 240, flex: 1, padding: "36px 40px", maxWidth: "calc(100% - 240px)" }}>
-          <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 36 }}>
+        <main className="page-main">
+          <div className="page-header">
             <div>
-              <h1 style={{ fontSize: 30, fontWeight: 700, color: "#111827", letterSpacing: "-0.02em", fontFamily: "'Playfair Display', Georgia, serif", marginBottom: 6 }}>Citas</h1>
-              <p style={{ fontSize: 14, color: "#9CA3AF" }}>
+              <h1 className="page-title">Citas</h1>
+              <p className="page-subtitle">
                 {new Date().toLocaleDateString("es-ES", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}
               </p>
             </div>
-            <div style={{ display: "flex", gap: 10 }}>
-              <div style={{ display: "flex", background: "#fff", borderRadius: 10, padding: 4, gap: 3, boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}>
+            <div className="page-header__actions">
+              <div className="view-toggle">
                 {([ "list", "calendar" ] as ViewMode[]).map(mode => (
-                  <button key={mode} onClick={() => setViewMode(mode)} style={{
-                    padding: "7px 14px", border: "none", borderRadius: 8, cursor: "pointer",
-                    background: viewMode === mode ? "#1E3A5F" : "transparent",
-                    color: viewMode === mode ? "#fff" : "#6B7280",
-                    fontSize: 13, fontWeight: 600, transition: "all 0.15s",
-                  }}>
+                  <button key={mode} onClick={() => setViewMode(mode)} className={`view-toggle__btn ${viewMode === mode ? "view-toggle__btn--active" : ""}`}>
                     {mode === "list" ? "☰ Lista" : "📅 Calendario"}
                   </button>
                 ))}
               </div>
-              <button onClick={() => { setShowCreate(true); }} style={{
-                ...btnPrimary, display: "flex", alignItems: "center", gap: 8,
-                boxShadow: "0 4px 14px rgba(30,58,95,0.3)", padding: "12px 24px",
-              }}>
-                <span style={{ fontSize: 18, lineHeight: 1 }}>+</span> Nueva Cita
+              <button onClick={() => { setShowCreate(true); }} className="btn-primary btn-hero">
+                <span className="btn-plus-icon">+</span> Nueva Cita
               </button>
             </div>
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 16, marginBottom: 32 }}>
-            <StatCard label="Total" value={stats?.total ?? 0} sub="todas las citas" accent="#1E3A5F" />
-            <StatCard label="Hoy" value={stats?.todayCount ?? 0} sub="citas de hoy" accent="#3B82F6" />
-            <StatCard label="Próximas" value={stats?.byStatus[ AppointmentStatus.SCHEDULED ] ?? 0} sub="sin confirmar" accent="#D97706" />
-            <StatCard label="Sin pagar" value={stats?.unpaidCount ?? 0} sub="requieren cobro" accent="#DC2626" />
-            <StatCard label="Ingresos" value={`$ ${stats?.paidRevenue.toLocaleString("es-ES") ?? 0}`} sub="total cobrado" accent="#16A34A" />
+          <div className="stats-grid stats-grid--5">
+            <StatCard label="Total" value={stats?.total ?? 0} sub="todas las citas" accent="var(--c-brand)" />
+            <StatCard label="Hoy" value={stats?.todayCount ?? 0} sub="citas de hoy" accent="var(--c-brand-accent)" />
+            <StatCard label="Próximas" value={stats?.byStatus[ AppointmentStatus.SCHEDULED ] ?? 0} sub="sin confirmar" accent="var(--c-warning)" />
+            <StatCard label="Sin pagar" value={stats?.unpaidCount ?? 0} sub="requieren cobro" accent="var(--c-error)" />
+            <StatCard label="Ingresos" value={`$ ${stats?.paidRevenue.toLocaleString("es-ES") ?? 0}`} sub="total cobrado" accent="var(--c-success)" />
           </div>
-          {error && (
-            <div style={{ background: "#FEF2F2", border: "1px solid #FCA5A5", borderRadius: 12, padding: "14px 20px", marginBottom: 20, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-              <span style={{ fontSize: 14, color: "#DC2626" }}>⚠️ {error}</span>
-              <button onClick={fetchAppointments} style={{ ...btnPrimary, background: "#DC2626", padding: "6px 14px", fontSize: 13 }}>Reintentar</button>
-            </div>
-          )}
+          {error && <ErrorBanner msg={error} onRetry={fetchAppointments} />}
           {viewMode === "list" && (
             <>
-              <div style={{ background: "#fff", borderRadius: 16, padding: "16px 20px", display: "flex", alignItems: "center", gap: 12, marginBottom: 16, boxShadow: "0 1px 3px rgba(0,0,0,0.06)", flexWrap: "wrap" }}>
-                <input placeholder="Buscar paciente, tipo, ubicación…" value={search} onChange={e => setSearch(e.target.value)} style={{ flex: "1 1 200px", padding: "9px 14px", border: "1.5px solid #E5E7EB", borderRadius: 10, fontSize: 14, outline: "none", fontFamily: "inherit", color: "#111827", background: "#FAFAFA" }} />
+              <div className="filter-bar filter-bar--wrap">
+                <div className="search-wrapper">
+                  <input placeholder="Buscar paciente, tipo, ubicación…" value={search} onChange={e => setSearch(e.target.value)} className="form-input" />
+                  <button
+                    onClick={() => { setSearch(""); setPage(1); }}
+                    className="search-clear-btn"
+                    aria-label="Limpiar búsqueda"
+                  >✕</button>
+                </div>
                 <DateTimePicker date={dateFilter} onChanged={iso => setDateFilter(iso.slice(0, 10))} isFuture />
-                {dateFilter && <button onClick={() => setDateFilter("")} style={{ ...btnSecondary, padding: "7px 12px", fontSize: 12 }}>✕ Fecha</button>}
-                <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                {dateFilter && <button onClick={() => setDateFilter("")} className="btn-secondary btn-secondary--sm">✕ Fecha</button>}
+                <div className="filter-chips filter-chips--wrap">
                   {([
                     { k: "ALL", l: "Todas" },
                     { k: AppointmentStatus.SCHEDULED, l: "Programadas" },
@@ -129,16 +123,10 @@ export default function AppointmentsPage() {
                     { k: AppointmentStatus.CANCELLED, l: "Canceladas" },
                     { k: AppointmentStatus.NO_SHOW, l: "No asistió" },
                   ] as const).map(({ k, l }) => (
-                    <button key={k} onClick={() => setFilterStatus(k)} style={{
-                      padding: "6px 13px", borderRadius: 8, border: "1.5px solid",
-                      borderColor: filterStatus === k ? "#1E3A5F" : "#E5E7EB",
-                      background: filterStatus === k ? "#1E3A5F" : "#fff",
-                      color: filterStatus === k ? "#fff" : "#6B7280",
-                      fontSize: 12, fontWeight: 500, cursor: "pointer", transition: "all 0.15s",
-                    }}>{l}</button>
+                    <button key={k} onClick={() => setFilterStatus(k)} className={`filter-chip ${filterStatus === k ? "filter-chip--active" : ""}`}>{l}</button>
                   ))}
                 </div>
-                <select value={filterpaid} onChange={e => setFilterpaid(e.target.value as "true" | "false" | "ALL")} style={{ ...inp, width: "auto", padding: "8px 12px", fontSize: 13 }}>
+                <select value={filterpaid} onChange={e => setFilterpaid(e.target.value as "true" | "false" | "ALL")} className="form-input form-input--auto">
                   <option value="ALL">💳 Todas</option>
                   <option value="true">💳 Pagadas</option>
                   <option value="false">⏳ Sin pagar</option>
@@ -149,81 +137,55 @@ export default function AppointmentsPage() {
                 rows={appointments}
                 loading={loading}
                 skeletonCount={6}
-                renderRow={(a, i) => (
-                  <tr key={a.id} style={{ borderBottom: i < appointments.length - 1 ? "1px solid #F3F4F6" : "none", cursor: "pointer" }}
-                    onClick={() => setViewAppt(a)}>
-                    <td style={tdStyle}>
-                      <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
-                        <div style={{ width: 34, height: 34, borderRadius: "50%", background: getAvatarColor(a.patient.id), display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 700, color: "#1E3A5F", flexShrink: 0 }}>
+                renderRow={(a) => (
+                  <tr key={a.id} className="table-row" onClick={() => setViewAppt(a)}>
+                    <td className="td">
+                      <div className="td-identity">
+                        <div className="avatar avatar--sm" style={{ background: getAvatarColor(a.patient.id) }}>
                           {getInitials(a.patient.name, a.patient.lastName)}
                         </div>
                         <div>
-                          <div style={{ fontSize: 13, fontWeight: 600, color: "#111827" }}>{a.patient.name} {a.patient.lastName}</div>
-                          <div style={{ fontSize: 11, color: "#9CA3AF" }}>{a.patient.email}</div>
+                          <div className="td-name__primary">{a.patient.name} {a.patient.lastName}</div>
+                          <div className="td-name__secondary">{a.patient.email}</div>
                         </div>
                       </div>
                     </td>
-                    <td style={{ ...tdStyle, fontSize: 13, color: "#374151", maxWidth: 140 }}>
-                      <div style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{a.type}</div>
+                    <td className="td td--date" style={{ maxWidth: 140 }}>
+                      <div className="text-ellipsis">{a.type}</div>
                     </td>
-                    <td style={{ ...tdStyle, fontSize: 13, color: "#111827", fontWeight: 500, whiteSpace: "nowrap" }}>{fmtDateAndTime(a.startAt)}</td>
-                    <td style={{ ...tdStyle, fontSize: 12, color: "#000000" }}>{a.reminderId ? <ReminderStatusPill status={reminders.find(r => r.id === a.reminderId)?.status || ReminderStatus.FAILED} /> : <EmptyStatusPill label="Sin Recordatorio" />}</td>
-                    <td style={{ ...tdStyle, fontSize: 12, color: "#6B7280", maxWidth: 130 }}>
-                      <div style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", backgroundColor: LOCATION_CFG[ a.location ]?.bg || "#F3F4F6", color: LOCATION_CFG[ a.location ]?.color || "#374151", padding: "4px 10px", borderRadius: 8, display: "inline-flex", alignItems: "center", gap: 6, fontWeight: 600, fontSize: 12 }}>
-                        {a.meetingUrl ? <a href={a.meetingUrl} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} style={{ color: "#2563EB", textDecoration: "none", display: "inline-flex", alignItems: "center" }}>🔗 Virtual</a> : a.location}
+                    <td className="td td--datetime">{fmtDateAndTime(a.startAt)}</td>
+                    <td className="td">{a.reminderId ? <ReminderStatusPill status={reminders.find(r => r.id === a.reminderId)?.status || ReminderStatus.FAILED} /> : <EmptyStatusPill label="Sin Recordatorio" />}</td>
+                    <td className="td td--muted" style={{ maxWidth: 130 }}>
+                      <div className="location-badge" style={{ background: LOCATION_CFG[ a.location ]?.bg || "var(--c-gray-100)", color: LOCATION_CFG[ a.location ]?.color || "var(--c-gray-700)" }}>
+                        {a.meetingUrl
+                          ? <a href={a.meetingUrl} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} className="location-badge__link">🔗 Virtual</a>
+                          : a.location}
                       </div>
                     </td>
-                    <td style={tdStyle} onClick={e => e.stopPropagation()}><AppointmentStatusPill status={a.status} /></td>
-                    <td style={tdStyle} onClick={e => e.stopPropagation()}>
-                      <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                    <td className="td" onClick={e => e.stopPropagation()}><AppointmentStatusPill status={a.status} /></td>
+                    <td className="td" onClick={e => e.stopPropagation()}>
+                      <div className="td-actions">
                         <PayBadge paid={a.paid} />
                         {!a.paid && a.status !== AppointmentStatus.CANCELLED && (
-                          <button onClick={() => handlePay(a.id)} style={{ padding: "3px 9px", fontSize: 11, fontWeight: 600, background: "#DCFCE7", border: "none", borderRadius: 6, color: "#16A34A", cursor: "pointer", opacity: 1 }}>
-                            Pagó
-                          </button>
+                          <button onClick={() => handlePay(a.id)} className="btn-pay">Pagó</button>
                         )}
                       </div>
                     </td>
-                    <td style={tdStyle} onClick={e => e.stopPropagation()}>
-                      <div style={{ display: "flex", gap: 5 }}>
-                        <button onClick={() => setEditAppt(a)} style={{ padding: "5px 10px", fontSize: 11, fontWeight: 600, background: "#EFF6FF", border: "none", borderRadius: 6, color: "#2563EB", cursor: "pointer" }}>Editar</button>
-                        <button onClick={() => setDeleteAppt(a)} style={{ padding: "5px 10px", fontSize: 11, fontWeight: 600, background: "#FEF2F2", border: "none", borderRadius: 6, color: "#DC2626", cursor: "pointer" }}>✕</button>
+                    <td className="td" onClick={e => e.stopPropagation()}>
+                      <div className="td-actions">
+                        <button onClick={() => setEditAppt(a)} className="btn-action-edit">Editar</button>
+                        <button onClick={() => setDeleteAppt(a)} className="btn-action-delete">✕</button>
                       </div>
                     </td>
                   </tr>
                 )}
                 emptyState={<EmptyState icon="🔍" title="Sin resultados" sub="Prueba ajustando los filtros o crea una nueva cita." />}
-                footer={
-                  <>
-                    <span style={{ fontSize: 13, color: "#9CA3AF" }}>
-                      Mostrando <strong style={{ color: "#374151" }}>{(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, total)}</strong> de <strong style={{ color: "#374151" }}>{total}</strong> pacientes
-                    </span>
-                    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                      {page !== 1 && <button onClick={() => setPage(p => Math.max(1, p - 1))} style={{ padding: "5px 12px", borderRadius: 7, border: "1.5px solid #E5E7EB", background: page === 1 ? "#F9FAFB" : "#fff", color: page === 1 ? "#D1D5DB" : "#374151", fontSize: 13, fontWeight: 500, cursor: page === 1 ? "default" : "pointer" }}>← Anterior</button>}
-                      {Array.from({ length: totalPages }, (_, i) => i + 1)
-                        .filter(n => n === 1 || n === totalPages || Math.abs(n - page) <= 1)
-                        .reduce<(number | "...")[]>((acc, n, idx, arr) => {
-                          if (idx > 0 && n - (arr[ idx - 1 ] as number) > 1) acc.push("...");
-                          acc.push(n);
-                          return acc;
-                        }, [])
-                        .map((item, idx) =>
-                          item === "..." ? (
-                            <span key={`ellipsis-${idx}`} style={{ fontSize: 13, color: "#9CA3AF", padding: "0 4px" }}>…</span>
-                          ) : (
-                            <button key={item} onClick={() => setPage(item as number)} style={{ width: 32, height: 32, borderRadius: 7, border: "1.5px solid", borderColor: page === item ? "#1E3A5F" : "#E5E7EB", background: page === item ? "#1E3A5F" : "#fff", color: page === item ? "#fff" : "#374151", fontSize: 13, fontWeight: 500, cursor: "pointer" }}>{item}</button>
-                          )
-                        )
-                      }
-                      <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages} style={{ padding: "5px 12px", borderRadius: 7, border: "1.5px solid #E5E7EB", background: page === totalPages ? "#F9FAFB" : "#fff", color: page === totalPages ? "#D1D5DB" : "#374151", fontSize: 13, fontWeight: 500, cursor: page === totalPages ? "default" : "pointer" }}>Siguiente →</button>
-                    </div>
-                  </>
-                }
+                footer={<TableFooter page={page} pageSize={PAGE_SIZE} total={total} totalPages={totalPages} label="citas" onPageChange={setPage} />}
               />
             </>
           )}
           {viewMode === "calendar" && (
-            <div style={{ animation: "fadeIn 0.25s ease" }}>
+            <div className="fade-in">
               <CalendarView
                 appointments={appointments}
                 onDayClick={date => { setPrefillDate(date); setShowCreate(true); }}

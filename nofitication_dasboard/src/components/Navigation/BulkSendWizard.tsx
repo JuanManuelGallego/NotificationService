@@ -1,4 +1,3 @@
-import { lbl, inp, btnPrimary, btnSecondary, thStyle, tdStyle } from "@/src/styles/theme";
 import { DateTimePicker } from "../DateTimePicker";
 import { API_BASE } from "@/src/types/API";
 import { Patient } from "@/src/types/Patient";
@@ -64,182 +63,160 @@ export function BulkSendWizard({ patients }: { patients: Patient[] }) {
 
     return (
         <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+            {/* Step indicator */}
             <div style={{ display: "flex", alignItems: "center", gap: 0 }}>
                 {[ "Canal", "Pacientes", "Mensaje", "Resultado" ].map((s, i) => (
                     <div key={s} style={{ display: "flex", alignItems: "center", flex: i < 3 ? 1 : 0 }}>
-                        <div style={{
-                            display: "flex", flexDirection: "column", alignItems: "center", gap: 5,
-                            minWidth: 70,
-                        }}>
+                        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 5, minWidth: 70 }}>
                             <div style={{
                                 width: 32, height: 32, borderRadius: "50%",
-                                background: step > i + 1 ? "#1E3A5F" : step === i + 1 ? "#3B82F6" : "#E5E7EB",
-                                color: step >= i + 1 ? "#fff" : "#9CA3AF",
+                                background: step > i + 1 ? "var(--c-brand)" : step === i + 1 ? "var(--c-brand-accent)" : "var(--c-gray-200)",
+                                color: step >= i + 1 ? "var(--c-white)" : "var(--c-gray-400)",
                                 display: "flex", alignItems: "center", justifyContent: "center",
                                 fontSize: 13, fontWeight: 700,
                             }}>
                                 {step > i + 1 ? "✓" : i + 1}
                             </div>
-                            <span style={{ fontSize: 11, color: step === i + 1 ? "#1E3A5F" : "#9CA3AF", fontWeight: step === i + 1 ? 600 : 400 }}>{s}</span>
+                            <span style={{ fontSize: 11, color: step === i + 1 ? "var(--c-brand)" : "var(--c-gray-400)", fontWeight: step === i + 1 ? 600 : 400 }}>{s}</span>
                         </div>
-                        {i < 3 && <div style={{ flex: 1, height: 2, background: step > i + 1 ? "#1E3A5F" : "#E5E7EB", marginBottom: 18, transition: "background 0.3s" }} />}
+                        {i < 3 && <div style={{ flex: 1, height: 2, background: step > i + 1 ? "var(--c-brand)" : "var(--c-gray-200)", marginBottom: 18, transition: "background 0.3s" }} />}
                     </div>
                 ))}
             </div>
+
             {step === 1 && (
-                <div style={{ background: "#fff", borderRadius: 16, padding: 28, boxShadow: "0 1px 3px rgba(0,0,0,0.06)", display: "flex", flexDirection: "column", gap: 20 }}>
+                <div className="table-card" style={{ padding: 28, display: "flex", flexDirection: "column", gap: 20 }}>
                     <div>
-                        <div style={{ fontSize: 15, fontWeight: 600, color: "#111827", marginBottom: 14 }}>Canal de notificación</div>
-                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                        <div className="wizard-section-title">Canal de notificación</div>
+                        <div className="form-grid-2">
                             {Object.values(Channel).map(c => (
-                                <button key={c} onClick={() => setChannel(c)} style={{
-                                    display: "flex", alignItems: "center", gap: 12,
-                                    padding: "16px 20px", border: `2px solid ${channel === c ? "#1E3A5F" : "#E5E7EB"}`,
-                                    borderRadius: 14, background: channel === c ? "#EFF6FF" : "#fff", cursor: "pointer",
-                                }}>
+                                <button key={c} onClick={() => setChannel(c)}
+                                    className={`selection-card${channel === c ? " selection-card--active" : ""}`}
+                                    style={{ padding: "16px 20px" }}
+                                >
                                     <span style={{ fontSize: 28 }}>{CHANNEL_ICON[ c ]}</span>
-                                    <div style={{ textAlign: "left" }}>
-                                        <div style={{ fontSize: 14, fontWeight: 600, color: "#111827" }}>{CHANNEL_LABEL[ c ]}</div>
-                                        <div style={{ fontSize: 12, color: "#9CA3AF" }}>
+                                    <div>
+                                        <div className="patient-preview__name">{CHANNEL_LABEL[ c ]}</div>
+                                        <div className="patient-preview__detail">
                                             {patients.filter(p => p.status === "ACTIVE" && (c === Channel.WHATSAPP ? !!p.whatsappNumber : !!p.smsNumber)).length} pacientes disponibles
                                         </div>
                                     </div>
-                                    {channel === c && <span style={{ marginLeft: "auto", color: "#1E3A5F", fontSize: 18 }}>✓</span>}
+                                    {channel === c && <span style={{ marginLeft: "auto", color: "var(--c-brand)", fontSize: 18 }}>&#10003;</span>}
                                 </button>
                             ))}
                         </div>
                     </div>
                     <div>
-                        <div style={{ fontSize: 15, fontWeight: 600, color: "#111827", marginBottom: 14 }}>Tipo de envío</div>
-                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                        <div className="wizard-section-title">Tipo de envío</div>
+                        <div className="form-grid-2">
                             {([
                                 { k: ReminderMode.IMMEDIATE, icon: "⚡", title: "Enviar ahora", sub: "Envío inmediato a todos" },
                                 { k: ReminderMode.SCHEDULED, icon: "🗓️", title: "Programar envío", sub: "Elegir fecha y hora" },
                             ] as const).map(opt => (
-                                <button key={opt.k} onClick={() => setMode(opt.k)} style={{
-                                    display: "flex", flexDirection: "column", gap: 4, padding: "14px 18px",
-                                    border: `2px solid ${sendMode === opt.k ? "#1E3A5F" : "#E5E7EB"}`,
-                                    borderRadius: 14, background: sendMode === opt.k ? "#EFF6FF" : "#fff", cursor: "pointer", textAlign: "left",
-                                }}>
+                                <button key={opt.k} onClick={() => setMode(opt.k)}
+                                    className={`selection-card selection-card--column${sendMode === opt.k ? " selection-card--active" : ""}`}
+                                    style={{ padding: "14px 18px" }}
+                                >
                                     <span style={{ fontSize: 22 }}>{opt.icon}</span>
-                                    <span style={{ fontSize: 13, fontWeight: 600, color: "#111827" }}>{opt.title}</span>
-                                    <span style={{ fontSize: 12, color: "#9CA3AF" }}>{opt.sub}</span>
+                                    <span className="patient-preview__name">{opt.title}</span>
+                                    <span className="patient-preview__detail">{opt.sub}</span>
                                 </button>
                             ))}
                         </div>
                     </div>
                     {sendMode === ReminderMode.SCHEDULED && (
-                        <label style={lbl}>
+                        <label className="form-label">
                             Fecha y hora de envío
                             <DateTimePicker date={sentAt} onChanged={setsentAt} showTime isFuture />
                         </label>
                     )}
                     <div style={{ display: "flex", justifyContent: "flex-end" }}>
-                        <button onClick={() => setStep(2)} style={btnPrimary}>Continuar →</button>
+                        <button onClick={() => setStep(2)} className="btn-primary">Continuar →</button>
                     </div>
                 </div>
             )}
+
             {step === 2 && (
-                <div style={{ background: "#fff", borderRadius: 16, padding: 28, boxShadow: "0 1px 3px rgba(0,0,0,0.06)", display: "flex", flexDirection: "column", gap: 16 }}>
+                <div className="table-card" style={{ padding: 28, display: "flex", flexDirection: "column", gap: 16 }}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                         <div>
-                            <div style={{ fontSize: 15, fontWeight: 600, color: "#111827" }}>Seleccionar pacientes</div>
-                            <div style={{ fontSize: 13, color: "#9CA3AF" }}>{selected.size} de {eligible.length} seleccionados</div>
+                            <div className="wizard-section-title" style={{ marginBottom: 2 }}>Seleccionar pacientes</div>
+                            <div className="patient-preview__detail">{selected.size} de {eligible.length} seleccionados</div>
                         </div>
-                        <button onClick={toggleAll} style={{ ...btnSecondary, padding: "7px 16px", fontSize: 13 }}>
+                        <button onClick={toggleAll} className="btn-secondary" style={{ padding: "7px 16px", fontSize: 13 }}>
                             {selected.size === eligible.length ? "Deseleccionar todos" : "Seleccionar todos"}
                         </button>
                     </div>
                     <div style={{ maxHeight: 320, overflowY: "auto", display: "flex", flexDirection: "column", gap: 8 }}>
                         {eligible.length === 0 && (
-                            <div style={{ textAlign: "center", padding: 32, color: "#9CA3AF", fontSize: 14 }}>
+                            <div style={{ textAlign: "center", padding: 32, color: "var(--c-gray-400)", fontSize: 14 }}>
                                 Ningún paciente activo tiene número de {CHANNEL_LABEL[ channel ]}.
                             </div>
                         )}
                         {eligible.map(p => (
-                            <div key={p.id} onClick={() => toggleOne(p.id)} style={{
-                                display: "flex", alignItems: "center", gap: 12,
-                                padding: "12px 16px", borderRadius: 12, cursor: "pointer",
-                                border: `1.5px solid ${selected.has(p.id) ? "#1E3A5F" : "#E5E7EB"}`,
-                                background: selected.has(p.id) ? "#EFF6FF" : "#FAFAFA",
-                                transition: "all 0.1s",
-                            }}>
-                                <div style={{
-                                    width: 18, height: 18, borderRadius: 4,
-                                    border: `2px solid ${selected.has(p.id) ? "#1E3A5F" : "#D1D5DB"}`,
-                                    background: selected.has(p.id) ? "#1E3A5F" : "#fff",
-                                    display: "flex", alignItems: "center", justifyContent: "center",
-                                    fontSize: 11, color: "#fff", flexShrink: 0,
-                                }}>
+                            <div key={p.id} onClick={() => toggleOne(p.id)}
+                                className={`patient-select-item${selected.has(p.id) ? " patient-select-item--selected" : ""}`}
+                            >
+                                <div className={`checkbox-box${selected.has(p.id) ? " checkbox-box--checked" : ""}`}>
                                     {selected.has(p.id) && "✓"}
                                 </div>
-                                <div style={{
-                                    width: 34, height: 34, borderRadius: "50%",
-                                    background: getAvatarColor(p.id),
-                                    display: "flex", alignItems: "center", justifyContent: "center",
-                                    fontSize: 12, fontWeight: 700, color: "#1E3A5F", flexShrink: 0,
-                                }}>
+                                <div className="avatar avatar--sm" style={{ background: getAvatarColor(p.id) }}>
                                     {getInitials(p.name, p.lastName)}
                                 </div>
                                 <div style={{ flex: 1 }}>
-                                    <div style={{ fontSize: 14, fontWeight: 600, color: "#111827" }}>{p.name}</div>
-                                    <div style={{ fontSize: 12, color: "#9CA3AF" }}>{channel === Channel.WHATSAPP ? p.whatsappNumber : p.smsNumber}</div>
+                                    <div className="patient-preview__name">{p.name}</div>
+                                    <div className="patient-preview__detail">{channel === Channel.WHATSAPP ? p.whatsappNumber : p.smsNumber}</div>
                                 </div>
                             </div>
                         ))}
                     </div>
                     <div style={{ display: "flex", justifyContent: "space-between" }}>
-                        <button onClick={() => setStep(1)} style={btnSecondary}>Atrás</button>
-                        <button onClick={() => setStep(3)} disabled={selected.size === 0} style={{ ...btnPrimary, opacity: selected.size === 0 ? 0.5 : 1 }}>
+                        <button onClick={() => setStep(1)} className="btn-secondary">Atrás</button>
+                        <button onClick={() => setStep(3)} disabled={selected.size === 0} className="btn-primary">
                             Continuar → ({selected.size})
                         </button>
                     </div>
                 </div>
             )}
+
             {step === 3 && (
-                <div style={{ background: "#fff", borderRadius: 16, padding: 28, boxShadow: "0 1px 3px rgba(0,0,0,0.06)", display: "flex", flexDirection: "column", gap: 20 }}>
-                    <div style={{ fontSize: 15, fontWeight: 600, color: "#111827" }}>Redactar mensaje</div>
-                    <label style={lbl}>
+                <div className="table-card" style={{ padding: 28, display: "flex", flexDirection: "column", gap: 20 }}>
+                    <div className="wizard-section-title">Redactar mensaje</div>
+                    <label className="form-label">
                         Mensaje
                         <textarea
-                            style={{ ...inp, minHeight: 120, resize: "vertical" }}
+                            className="form-input form-input--textarea"
+                            style={{ minHeight: 120 }}
                             value={message}
                             onChange={e => setMessage(e.target.value)}
                             placeholder="Estimado/a paciente, le recordamos su cita médica próxima. Por favor confirme su asistencia respondiendo a este mensaje."
                         />
-                        <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: "#9CA3AF" }}>
+                        <div style={{ display: "flex", justifyContent: "space-between" }} className="form-input-hint">
                             <span>{message.length} / 1600 caracteres</span>
                             <span>{selected.size} destinatarios</span>
                         </div>
                     </label>
                     {/* Quick templates */}
                     <div>
-                        <div style={{ fontSize: 13, fontWeight: 600, color: "#374151", marginBottom: 10 }}>Plantillas rápidas</div>
+                        <div className="channel-section-label">Plantillas rápidas</div>
                         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                             {[
                                 "Le recordamos su próxima cita médica. Por favor confirme su asistencia respondiendo este mensaje.",
                                 "Su cita está confirmada para mañana. Recuerde traer su tarjeta de seguro y llegar 10 minutos antes.",
                                 "Importante: No olvide su cita de mañana. Si necesita cancelar, contáctenos con 24 horas de anticipación.",
                             ].map((tmpl, i) => (
-                                <button key={i} onClick={() => setMessage(tmpl)} style={{
-                                    background: "#F8F7F4", border: "1.5px solid #E5E7EB", borderRadius: 10,
-                                    padding: "10px 14px", textAlign: "left", cursor: "pointer", fontSize: 13, color: "#374151",
-                                    lineHeight: 1.5,
-                                }}>
+                                <button key={i} onClick={() => setMessage(tmpl)} className="template-btn">
                                     {tmpl}
                                 </button>
                             ))}
                         </div>
                     </div>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                        <button onClick={() => setStep(2)} style={btnSecondary}>Atrás</button>
-                        <button onClick={handleSend} disabled={!message.trim() || sending} style={{
-                            ...btnPrimary, opacity: (!message.trim() || sending) ? 0.7 : 1,
-                            display: "flex", alignItems: "center", gap: 8,
-                        }}>
+                        <button onClick={() => setStep(2)} className="btn-secondary">Atrás</button>
+                        <button onClick={handleSend} disabled={!message.trim() || sending} className="btn-primary btn-hero">
                             {sending ? (
                                 <>
-                                    <span style={{ width: 14, height: 14, border: "2px solid rgba(255,255,255,0.3)", borderTopColor: "#fff", borderRadius: "50%", animation: "spin 0.7s linear infinite", display: "inline-block" }} />
+                                    <span style={{ width: 14, height: 14, border: "2px solid rgba(255,255,255,0.3)", borderTopColor: "var(--c-white)", borderRadius: "50%", animation: "spin 0.7s linear infinite", display: "inline-block" }} />
                                     Enviando {results.length}/{selected.size}…
                                 </>
                             ) : `${sendMode === ReminderMode.IMMEDIATE ? "⚡ Enviar" : "🗓️ Programar"} a ${selected.size} pacientes`}
@@ -247,53 +224,53 @@ export function BulkSendWizard({ patients }: { patients: Patient[] }) {
                     </div>
                 </div>
             )}
+
             {step === 4 && done && (
-                <div style={{ background: "#fff", borderRadius: 16, padding: 28, boxShadow: "0 1px 3px rgba(0,0,0,0.06)", display: "flex", flexDirection: "column", gap: 20 }}>
+                <div className="table-card" style={{ padding: 28, display: "flex", flexDirection: "column", gap: 20 }}>
                     {/* Summary */}
                     <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 14 }}>
                         {[
-                            { label: "Enviados", value: results.filter(r => r.status === "ok").length, color: "#16A34A", bg: "#F0FDF4" },
-                            { label: "Fallidos", value: results.filter(r => r.status === "error").length, color: "#DC2626", bg: "#FEF2F2" },
-                            { label: "Omitidos", value: results.filter(r => r.status === "skipped").length, color: "#D97706", bg: "#FFFBEB" },
+                            { label: "Enviados", value: results.filter(r => r.status === "ok").length, color: "var(--c-success)", bg: "var(--c-success-bg)" },
+                            { label: "Fallidos", value: results.filter(r => r.status === "error").length, color: "var(--c-error)", bg: "var(--c-error-bg)" },
+                            { label: "Omitidos", value: results.filter(r => r.status === "skipped").length, color: "var(--c-warning)", bg: "var(--c-warning-bg)" },
                         ].map(({ label, value, color, bg }) => (
-                            <div key={label} style={{ background: bg, borderRadius: 12, padding: "16px 20px", textAlign: "center" }}>
-                                <div style={{ fontSize: 28, fontWeight: 700, color, fontFamily: "'Playfair Display', Georgia, serif" }}>{value}</div>
+                            <div key={label} style={{ background: bg, borderRadius: "var(--r-xl)", padding: "16px 20px", textAlign: "center" }}>
+                                <div style={{ fontSize: 28, fontWeight: 700, color }}>{value}</div>
                                 <div style={{ fontSize: 12, color, fontWeight: 500 }}>{label}</div>
                             </div>
                         ))}
                     </div>
                     {/* Detail table */}
                     <div style={{ maxHeight: 300, overflowY: "auto" }}>
-                        <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                        <table className="table-full">
                             <thead>
-                                <tr style={{ background: "#F9FAFB" }}>
+                                <tr style={{ background: "var(--c-gray-50)" }}>
                                     {[ "Paciente", "Canal", "Resultado", "Detalle" ].map(h => (
-                                        <th key={h} style={{ ...thStyle, fontSize: 11 }}>{h}</th>
+                                        <th key={h} className="th" style={{ fontSize: 11 }}>{h}</th>
                                     ))}
                                 </tr>
                             </thead>
                             <tbody>
                                 {results.map((r, i) => (
-                                    <tr key={i} style={{ borderBottom: "1px solid #F3F4F6" }}>
-                                        <td style={tdStyle}><span style={{ fontSize: 13, fontWeight: 600, color: "#111827" }}>{r.name}</span></td>
-                                        <td style={tdStyle}><ChannelBadge channel={r.channel} /></td>
-                                        <td style={tdStyle}>
-                                            <span style={{
-                                                fontSize: 12, fontWeight: 600, padding: "3px 10px", borderRadius: 20,
-                                                background: r.status === "ok" ? "#F0FDF4" : r.status === "error" ? "#FEF2F2" : "#FFFBEB",
-                                                color: r.status === "ok" ? "#16A34A" : r.status === "error" ? "#DC2626" : "#D97706",
+                                    <tr key={i} style={{ borderBottom: "1px solid var(--c-gray-100)" }}>
+                                        <td className="td"><span style={{ fontSize: 13, fontWeight: 600, color: "var(--c-gray-900)" }}>{r.name}</span></td>
+                                        <td className="td"><ChannelBadge channel={r.channel} /></td>
+                                        <td className="td">
+                                            <span className="pill" style={{
+                                                background: r.status === "ok" ? "var(--c-success-bg)" : r.status === "error" ? "var(--c-error-bg)" : "var(--c-warning-bg)",
+                                                color: r.status === "ok" ? "var(--c-success)" : r.status === "error" ? "var(--c-error)" : "var(--c-warning)",
                                             }}>
                                                 {r.status === "ok" ? "✓ Enviado" : r.status === "error" ? "✗ Error" : "— Omitido"}
                                             </span>
                                         </td>
-                                        <td style={{ ...tdStyle, fontSize: 12, color: "#9CA3AF" }}>{r.reason ?? "—"}</td>
+                                        <td className="td td--subtle">{r.reason ?? "—"}</td>
                                     </tr>
                                 ))}
                             </tbody>
                         </table>
                     </div>
                     <div style={{ display: "flex", justifyContent: "flex-end" }}>
-                        <button onClick={reset} style={btnPrimary}>Nuevo envío masivo</button>
+                        <button onClick={reset} className="btn-primary">Nuevo envío masivo</button>
                     </div>
                 </div>
             )}

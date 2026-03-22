@@ -1,6 +1,8 @@
-import { DatePicker } from "antd";
+import { ConfigProvider, DatePicker } from "antd";
 import dayjs, { Dayjs } from "dayjs";
+import esEs from 'antd/locale/es_ES';
 import { useFetchAppointments } from "../api/useFetchAppointments";
+import { antThemeConfig } from "@/src/styles/theme";
 
 export function AppointmentDateTimePicker({
     date,
@@ -29,7 +31,7 @@ export function AppointmentDateTimePicker({
     };
 
     return (
-        <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 14 }}>
+        <ConfigProvider locale={esEs} theme={antThemeConfig}>
             <DatePicker
                 value={date ? dayjs(date) : null}
                 onChange={handleChange}
@@ -62,6 +64,6 @@ export function AppointmentDateTimePicker({
                 })}
                 style={{ width: "100%" }}
             />
-        </div>
+        </ConfigProvider>
     );
 }

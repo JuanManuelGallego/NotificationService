@@ -1,6 +1,5 @@
 import { useCreatePatient } from "@/src/api/useCreatePatient";
 import { useUpdatePatient } from "@/src/api/useUpdatePatient";
-import { labelStyle, inputStyle, btnSecondary, btnPrimary, btnDisabled } from "@/src/styles/theme";
 import { Patient, PatientStatus, PATIENT_STATUS_CONFIG } from "@/src/types/Patient";
 import { validateEmail, validatePhoneNumber } from "@/src/utils/DataValidator";
 import { useState } from "react";
@@ -62,7 +61,6 @@ export function PatientModal({
         setSaving(true);
         setError(null);
         try {
-
             if (isEdit) {
                 await updatePatient(patient!.id, form);
             } else {
@@ -77,48 +75,35 @@ export function PatientModal({
     }
 
     return (
-        <div style={{
-            position: "fixed", inset: 0, background: "rgba(17,24,39,0.55)", backdropFilter: "blur(4px)",
-            zIndex: 100, display: "flex", alignItems: "center", justifyContent: "center",
-        }} onClick={onClose}>
-            <div style={{
-                background: "#fff", borderRadius: 20, padding: 36,
-                width: 560, maxWidth: "calc(100vw - 40px)",
-                boxShadow: "0 25px 50px -12px rgba(0,0,0,0.25)",
-            }} onClick={e => e.stopPropagation()}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 28 }}>
+        <div className="modal-overlay" onClick={onClose}>
+            <div className="modal-panel modal-panel--md" onClick={e => e.stopPropagation()}>
+                <div className="modal-header">
                     <div>
-                        <h2 style={{ fontSize: 22, fontWeight: 700, color: "#111827", margin: 0, fontFamily: "'Playfair Display', Georgia, serif" }}>
+                        <h2 className="modal-title">
                             {isEdit ? "Editar Paciente" : "Nuevo Paciente"}
                         </h2>
-                        <p style={{ fontSize: 13, color: "#9CA3AF", margin: "4px 0 0" }}>
+                        <p className="modal-subtitle">
                             {isEdit ? `Modificando: ${patient!.name} ${patient!.lastName}` : "Registrar un nuevo paciente en el sistema"}
                         </p>
                     </div>
-                    <button onClick={onClose} style={{ background: "#F3F4F6", border: "none", borderRadius: 8, width: 32, height: 32, cursor: "pointer", fontSize: 16, color: "#6B7280" }}>✕</button>
+                    <button onClick={onClose} className="btn-close">✕</button>
                 </div>
                 {error && (
-                    <div style={{
-                        background: "#FEF2F2", border: "1px solid #FCA5A5", borderRadius: 10,
-                        padding: "10px 14px", marginBottom: 20, fontSize: 13, color: "#DC2626",
-                    }}>
-                        ⚠️ {error}
-                    </div>
+                    <div className="error-inline">⚠️ {error}</div>
                 )}
-                <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
-                        <label style={labelStyle}>
+                <div className="form-stack">
+                    <div className="form-grid-2">
+                        <label className="form-label">
                             <RequiredField label="Nombre" />
-                            <input style={inputStyle} value={form.name} onChange={set("name")} placeholder="ej. María" />
+                            <input className="form-input" value={form.name} onChange={set("name")} placeholder="ej. María" />
                         </label>
-                        <label style={labelStyle}>
+                        <label className="form-label">
                             <RequiredField label="Apellido" />
-                            <input autoComplete="family-name"
-                                style={inputStyle} value={form.lastName} onChange={set("lastName")} placeholder="ej. García" />
+                            <input autoComplete="family-name" className="form-input" value={form.lastName} onChange={set("lastName")} placeholder="ej. García" />
                         </label>
                     </div>
 
-                    <label style={labelStyle}>
+                    <label className="form-label">
                         📅 Fecha de Nacimiento
                         <DateTimePicker
                             date={form.dateOfBirth || undefined}
@@ -126,29 +111,29 @@ export function PatientModal({
                         />
                     </label>
 
-                    <label style={labelStyle}>
+                    <label className="form-label">
                         ✉️ Correo electrónico
-                        <input style={inputStyle} type="email" value={form.email || undefined} onChange={set("email")} placeholder="paciente@ejemplo.com" />
+                        <input className="form-input" type="email" value={form.email || undefined} onChange={set("email")} placeholder="paciente@ejemplo.com" />
                     </label>
 
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
-                        <label style={labelStyle}>
+                    <div className="form-grid-2">
+                        <label className="form-label">
                             💬 WhatsApp
-                            <input style={inputStyle} value={form.whatsappNumber || undefined} onChange={set("whatsappNumber")} placeholder="+15551234567" />
+                            <input className="form-input" value={form.whatsappNumber || undefined} onChange={set("whatsappNumber")} placeholder="+15551234567" />
                         </label>
-                        <label style={labelStyle}>
+                        <label className="form-label">
                             📱 SMS
-                            <input style={inputStyle} value={form.smsNumber || undefined} onChange={set("smsNumber")} placeholder="+15551234567" />
+                            <input className="form-input" value={form.smsNumber || undefined} onChange={set("smsNumber")} placeholder="+15551234567" />
                         </label>
                     </div>
-                    <label style={labelStyle}>
+                    <label className="form-label">
                         📝 Notas
-                        <textarea style={{ ...inputStyle, fontFamily: "inherit", resize: "vertical", minHeight: "80px" }} value={form.notes || undefined} onChange={(e) => setForm(f => ({ ...f, notes: e.target.value }))} placeholder="Notas adicionales sobre el paciente..." />
+                        <textarea className="form-input form-input--textarea" value={form.notes || undefined} onChange={(e) => setForm(f => ({ ...f, notes: e.target.value }))} placeholder="Notas adicionales sobre el paciente..." />
                     </label>
 
-                    {isEdit && <label style={labelStyle}>
+                    {isEdit && <label className="form-label">
                         Estado
-                        <select style={inputStyle} value={form.status} onChange={set("status")}>
+                        <select className="form-input" value={form.status} onChange={set("status")}>
                             {Object.values(PatientStatus).map(s => (
                                 <option key={s} value={s}>
                                     {PATIENT_STATUS_CONFIG[ s ].icon} {PATIENT_STATUS_CONFIG[ s ].label}
@@ -157,13 +142,9 @@ export function PatientModal({
                         </select>
                     </label>}
                 </div>
-                <div style={{ display: "flex", justifyContent: "flex-end", gap: 10, marginTop: 28 }}>
-                    <button onClick={onClose} style={btnSecondary} disabled={saving}>Cancelar</button>
-                    <button onClick={handleSubmit} disabled={saving || !isValid} style={{
-                        ...isValid ? btnPrimary : btnDisabled,
-                        opacity: saving || !isValid ? 0.7 : 1,
-                        display: "flex", alignItems: "center", gap: 8,
-                    }}>
+                <div className="modal-footer">
+                    <button onClick={onClose} className="btn-secondary" disabled={saving}>Cancelar</button>
+                    <button onClick={handleSubmit} disabled={saving || !isValid} className="btn-primary btn-hero">
                         {saving ? "Guardando…" : isEdit ? "Guardar Cambios" : "Crear Paciente"}
                     </button>
                 </div>

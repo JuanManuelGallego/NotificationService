@@ -2,7 +2,6 @@ import { useCreateAppointment } from "@/src/api/useCreateAppointment";
 import { useCreateReminder } from "@/src/api/useCreateReminder";
 import { useUpdateAppointment } from "@/src/api/useUpdateAppointment";
 import { useUpdateReminder } from "@/src/api/useUpdateReminder";
-import { lbl, inp, btnSecondary, btnPrimary, btnDisabled } from "@/src/styles/theme";
 import { Appointment, AppointmentForm, AppointmentStatus, APPOINTMENT_TYPES, AppointmentDuration, APPOINTMENT_LOCATIONS, LOCATION_CFG, STATUS_CFG } from "@/src/types/Appointment";
 import { Patient } from "@/src/types/Patient";
 import { ReminderType, Reminder, ReminderMode, ReminderStatus, CHANNEL_ICON, CHANNEL_LABEL, Channel } from "@/src/types/Reminder";
@@ -105,32 +104,32 @@ export function AppointmentModal({ appt, patients, prefillDate, onClose, onSaved
   }
 
   const steps = [ "Paciente & Tipo", "Lugar & Hora", "Pago & Estado" ];
-  console.log(form.startAt);
+
   return (
-    <div style={{ position: "fixed", inset: 0, background: "rgba(17,24,39,0.55)", backdropFilter: "blur(4px)", zIndex: 200, display: "flex", alignItems: "center", justifyContent: "center" }} onClick={onClose}>
-      <div style={{ background: "#fff", borderRadius: 20, padding: 36, width: 580, maxWidth: "calc(100vw - 40px)", boxShadow: "0 25px 50px -12px rgba(0,0,0,0.3)", animation: "slideUp 0.2s ease" }} onClick={e => e.stopPropagation()}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 24 }}>
+    <div className="modal-overlay modal-overlay--nested" onClick={onClose}>
+      <div className="modal-panel modal-panel--lg slide-up" onClick={e => e.stopPropagation()}>
+        <div className="modal-header modal-header--top">
           <div>
-            <h2 style={{ fontSize: 22, fontWeight: 700, color: "#111827", margin: 0, fontFamily: "'Playfair Display', Georgia, serif" }}>
+            <h2 className="modal-title">
               {isEdit ? "Editar Cita" : "Nueva Cita"}
             </h2>
-            <p style={{ fontSize: 13, color: "#9CA3AF", marginTop: 4 }}>{steps[ step - 1 ]} — Paso {step} de {steps.length}</p>
+            <p className="modal-subtitle">{steps[ step - 1 ]} — Paso {step} de {steps.length}</p>
           </div>
-          <button onClick={onClose} style={{ background: "#F3F4F6", border: "none", borderRadius: 8, width: 32, height: 32, cursor: "pointer", fontSize: 16, color: "#6B7280" }}>✕</button>
+          <button onClick={onClose} className="btn-close">✕</button>
         </div>
-        <div style={{ display: "flex", gap: 5, marginBottom: 28 }}>
+        <div className="step-bar">
           {steps.map((_, i) => (
-            <div key={i} style={{ flex: 1, height: 4, borderRadius: 2, background: i < step ? "#1E3A5F" : "#E5E7EB", transition: "background 0.3s" }} />
+            <div key={i} className={`step-bar__segment ${i < step ? "step-bar__segment--done" : ""}`} />
           ))}
         </div>
         {error && (
-          <div style={{ background: "#FEF2F2", border: "1px solid #FCA5A5", borderRadius: 10, padding: "10px 14px", marginBottom: 18, fontSize: 13, color: "#DC2626" }}>⚠️ {error}</div>
+          <div className="error-inline">⚠️ {error}</div>
         )}
         {step === 1 && (
-          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-            {!isEdit && <label style={lbl}>
+          <div className="form-stack">
+            {!isEdit && <label className="form-label">
               <RequiredField label="Paciente" />
-              <select style={inp} value={form.patientId} onChange={set("patientId")}>
+              <select className="form-input" value={form.patientId} onChange={set("patientId")}>
                 <option value="">Seleccionar paciente…</option>
                 {patients.filter(p => p.status === "ACTIVE").map(p => (
                   <option key={p.id} value={p.id}>{p.name} {p.lastName}</option>
@@ -139,23 +138,23 @@ export function AppointmentModal({ appt, patients, prefillDate, onClose, onSaved
             </label>}
 
             {selectedPatient && (
-              <div style={{ display: "flex", alignItems: "center", gap: 12, background: "#F8F7F4", borderRadius: 12, padding: "12px 16px" }}>
-                <div style={{ width: 36, height: 36, borderRadius: "50%", background: getAvatarColor(selectedPatient.id), display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 700, color: "#1E3A5F" }}>
+              <div className="patient-preview">
+                <div className="patient-preview__avatar" style={{ background: getAvatarColor(selectedPatient.id) }}>
                   {getInitials(selectedPatient.name, selectedPatient.lastName)}
                 </div>
                 <div>
-                  <div style={{ fontSize: 14, fontWeight: 600, color: "#111827" }}>{selectedPatient.name} {selectedPatient.lastName}</div>
-                  <div style={{ fontSize: 12, color: "#9CA3AF" }}>{selectedPatient.email}</div>
+                  <div className="patient-preview__name">{selectedPatient.name} {selectedPatient.lastName}</div>
+                  <div className="patient-preview__detail">{selectedPatient.email}</div>
                 </div>
               </div>
             )}
-            <label style={lbl}>
+            <label className="form-label">
               <RequiredField label="Fecha y Hora" />
               <AppointmentDateTimePicker date={form.startAt} onChanged={(date) => setForm(f => ({ ...f, startAt: date }))} />
             </label>
-            <label style={lbl}>
+            <label className="form-label">
               <RequiredField label="Tipo de cita" />
-              <select style={inp} value={form.type} onChange={(e) => {
+              <select className="form-input" value={form.type} onChange={(e) => {
                 setForm(f => ({ ...f, type: e.target.value, price: APPOINTMENT_TYPES.find(t => t.name === e.target.value)?.price ?? APPOINTMENT_TYPES[ 0 ].price, duration: APPOINTMENT_TYPES.find(t => t.name === e.target.value)?.duration ?? APPOINTMENT_TYPES[ 0 ].duration }))
               }}>
                 <option value="">Seleccionar tipo…</option>
@@ -166,75 +165,72 @@ export function AppointmentModal({ appt, patients, prefillDate, onClose, onSaved
           </div>
         )}
         {step === 2 && (
-          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-            <label style={lbl}>
+          <div className="form-stack">
+            <label className="form-label">
               <RequiredField label="Duración" />
-              <select style={inp} value={form.duration} onChange={set("duration")}>
+              <select className="form-input" value={form.duration} onChange={set("duration")}>
                 {Object.values(AppointmentDuration).map(d => <option key={d} value={d}>{d}</option>)}
               </select>
             </label>
 
-            <label style={lbl}>
+            <label className="form-label">
               <RequiredField label="Ubicación" />
-              <select style={inp} value={form.location} onChange={set("location")}>
+              <select className="form-input" value={form.location} onChange={set("location")}>
                 <option value="">Seleccionar ubicación…</option>
                 {APPOINTMENT_LOCATIONS.map(d => <option key={d} value={d}>{LOCATION_CFG[ d ]?.label || d}</option>)}
               </select>
             </label>
 
             {form.location === "Virtual" && (
-              <label style={lbl}>
+              <label className="form-label">
                 URL de videollamada
-                <input type="url" style={inp} value={form.meetingUrl} onChange={set("meetingUrl")} placeholder="https://meet.example.com/sala" />
+                <input type="url" className="form-input" value={form.meetingUrl} onChange={set("meetingUrl")} placeholder="https://meet.example.com/sala" />
               </label>
             )}
             {selectedPatient?.whatsappNumber || selectedPatient?.email || selectedPatient?.smsNumber ?
               <div>
-                <label style={lbl}>
+                <label className="form-label">
                   Recordatorio
-                  <select style={inp} value={form.reminderType} onChange={set("reminderType")}>
+                  <select className="form-input" value={form.reminderType} onChange={set("reminderType")}>
                     <option value={ReminderType.NONE}>Sin recordatorio</option>
                     <option value={ReminderType.ONE_HOUR_BEFORE} disabled={!isReminderTypeFeasible(form.startAt, ReminderType.ONE_HOUR_BEFORE)}>1 hora antes</option>
                     <option value={ReminderType.ONE_DAY_BEFORE} disabled={!isReminderTypeFeasible(form.startAt, ReminderType.ONE_DAY_BEFORE)}>1 día antes</option>
                     <option value={ReminderType.ONE_WEEK_BEFORE} disabled={!isReminderTypeFeasible(form.startAt, ReminderType.ONE_WEEK_BEFORE)}>1 semana antes</option>
                   </select>
                 </label>
-                {form.reminderType !== ReminderType.NONE && (<div>
-                  <div style={{ fontSize: 13, fontWeight: 600, color: "#374151", marginBottom: 10 }}>Canal de notificación</div>
-                  <div style={{ display: "flex", gap: 10 }}>
-                    {Object.values(Channel).map(c => {
-                      const available = (c === Channel.WHATSAPP && !!selectedPatient?.whatsappNumber) || (c === Channel.SMS && !!selectedPatient?.smsNumber);
-                      return (
-                        <button key={c} onClick={() => available && setReminderChannel(c)} style={{
-                          flex: 1, display: "flex", alignItems: "center", gap: 10,
-                          padding: "12px 16px", borderRadius: 12,
-                          border: `2px solid ${reminderChannel === c ? "#1E3A5F" : "#E5E7EB"}`,
-                          background: !available ? "#F9FAFB" : reminderChannel === c ? "#EFF6FF" : "#fff",
-                          cursor: available ? "pointer" : "not-allowed",
-                          opacity: available ? 1 : 0.5,
-                        }}>
-                          <span style={{ fontSize: 22 }}>{CHANNEL_ICON[ c ]}</span>
-                          <div style={{ textAlign: "left" }}>
-                            <div style={{ fontSize: 13, fontWeight: 600, color: "#111827" }}>{CHANNEL_LABEL[ c ]}</div>
-                            <div style={{ fontSize: 11, color: "#9CA3AF" }}>
-                              {available
-                                ? (c === Channel.WHATSAPP ? selectedPatient?.whatsappNumber : selectedPatient?.smsNumber)
-                                : "No disponible"}
+                {form.reminderType !== ReminderType.NONE && (
+                  <div>
+                    <div className="channel-section-label">Canal de notificación</div>
+                    <div style={{ display: "flex", gap: 10 }}>
+                      {Object.values(Channel).map(c => {
+                        const available = (c === Channel.WHATSAPP && !!selectedPatient?.whatsappNumber) || (c === Channel.SMS && !!selectedPatient?.smsNumber);
+                        return (
+                          <button
+                            key={c}
+                            onClick={() => available && setReminderChannel(c)}
+                            className={`selection-card${reminderChannel === c ? " selection-card--active" : ""}${!available ? " selection-card--disabled" : ""}`}
+                            style={{ flex: 1 }}
+                          >
+                            <span style={{ fontSize: 22 }}>{CHANNEL_ICON[ c ]}</span>
+                            <div style={{ textAlign: "left" }}>
+                              <div className="patient-preview__name">{CHANNEL_LABEL[ c ]}</div>
+                              <div className="patient-preview__detail">
+                                {available
+                                  ? (c === Channel.WHATSAPP ? selectedPatient?.whatsappNumber : selectedPatient?.smsNumber)
+                                  : "No disponible"}
+                              </div>
                             </div>
-                          </div>
-                          {reminderChannel === c && available && <span style={{ marginLeft: "auto", color: "#1E3A5F" }}>✓</span>}
-                        </button>
-                      );
-                    })}
+                            {reminderChannel === c && available && <span style={{ marginLeft: "auto", color: "var(--c-brand)" }}>✓</span>}
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
-                </div>
                 )}
               </div>
               : <div>
-                <label style={lbl}>
-                  Recordatorio
-                </label>
-                <div style={{ background: "#FEF2F2", border: "1px solid #FCA5A5", borderRadius: 10, padding: "10px 14px", fontSize: 13, color: "#DC2626" }}>
+                <label className="form-label">Recordatorio</label>
+                <div className="error-inline">
                   ⚠️ El paciente no tiene forma de contacto registrada, por lo que no se podrán enviar recordatorios automáticos.
                 </div>
               </div>
@@ -242,18 +238,18 @@ export function AppointmentModal({ appt, patients, prefillDate, onClose, onSaved
           </div>
         )}
         {step === 3 && (
-          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
-              <label style={lbl}>
+          <div className="form-stack">
+            <div className="form-grid-2">
+              <label className="form-label">
                 <RequiredField label="Precio" />
-                <div style={{ position: "relative" }}>
-                  <span style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", color: "#6B7280", fontSize: 14 }}>$</span>
-                  <input type="number" step="0.01" style={{ ...inp, paddingLeft: 28 }} value={form.price} onChange={set("price")} placeholder="150.00" />
+                <div className="input-prefix">
+                  <span className="input-prefix__symbol">$</span>
+                  <input type="number" step="0.01" className="form-input" value={form.price} onChange={set("price")} placeholder="150.00" />
                 </div>
               </label>
-              <label style={lbl}>
+              <label className="form-label">
                 Estado
-                <select style={inp} value={form.status} onChange={set("status")}>
+                <select className="form-input" value={form.status} onChange={set("status")}>
                   {(Object.keys(STATUS_CFG) as AppointmentStatus[]).map(s => (
                     <option key={s} value={s}>{STATUS_CFG[ s ].icon} {STATUS_CFG[ s ].label}</option>
                   ))}
@@ -261,29 +257,8 @@ export function AppointmentModal({ appt, patients, prefillDate, onClose, onSaved
               </label>
             </div>
 
-            {/* Payment toggle */}
-            {/* <div style={{ background: "#F8F7F4", borderRadius: 12, padding: "16px 20px" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <div>
-                  <div style={{ fontSize: 14, fontWeight: 600, color: "#111827" }}>Estado de pago</div>
-                  <div style={{ fontSize: 12, color: "#9CA3AF" }}>¿El paciente ya realizó el pago?</div>
-                </div>
-                <button onClick={() => setForm(f => ({ ...f, paid: !f.paid }))} style={{
-                  width: 48, height: 26, borderRadius: 13, border: "none", cursor: "pointer",
-                  background: form.paid ? "#16A34A" : "#D1D5DB",
-                  position: "relative", transition: "background 0.2s",
-                }}>
-                  <span style={{
-                    position: "absolute", top: 3, left: form.paid ? 26 : 3,
-                    width: 20, height: 20, borderRadius: "50%", background: "#fff",
-                    transition: "left 0.2s", boxShadow: "0 1px 3px rgba(0,0,0,0.2)",
-                  }} />
-                </button>
-              </div>
-              {form.paid && <div style={{ marginTop: 10, fontSize: 13, color: "#16A34A", fontWeight: 500 }}>✓ Marcado como pagado</div>}
-            </div> */}
-            <div style={{ background: "#F8F7F4", borderRadius: 12, padding: "16px 20px", display: "flex", flexDirection: "column", gap: 8 }}>
-              <div style={{ fontSize: 11, fontWeight: 700, color: "#9CA3AF", letterSpacing: "0.07em", textTransform: "uppercase", marginBottom: 4 }}>Resumen</div>
+            <div className="summary-card">
+              <div className="summary-card__label">Resumen</div>
               {[
                 [ "Paciente", selectedPatient ? `${selectedPatient.name} ${selectedPatient.lastName}` : "—" ],
                 [ "Tipo", form.type || "—" ],
@@ -293,25 +268,25 @@ export function AppointmentModal({ appt, patients, prefillDate, onClose, onSaved
                 [ "Precio", `$${form.price}` ],
                 [ "Recordatorio", form.reminderType !== ReminderType.NONE ? form.reminderType!.replaceAll("_", " ").toLowerCase() : "Sin recordatorio" ],
               ].map(([ k, v ]) => (
-                <div key={k} style={{ display: "flex", justifyContent: "space-between", fontSize: 13 }}>
-                  <span style={{ color: "#6B7280" }}>{k}</span>
-                  <span style={{ color: "#111827", fontWeight: 500 }}>{v}</span>
+                <div key={k} className="summary-row">
+                  <span className="summary-row__key">{k}</span>
+                  <span className="summary-row__value">{v}</span>
                 </div>
               ))}
             </div>
             <div>
-              <label style={lbl}>
+              <label className="form-label">
                 Notas
-                <input style={inp} onChange={set("notes")}></input>
+                <input className="form-input" onChange={set("notes")}></input>
               </label>
             </div>
           </div>
         )}
-        <div style={{ display: "flex", justifyContent: "flex-end", gap: 10, marginTop: 28 }}>
-          {step > 1 && <button onClick={() => setStep(s => s - 1)} style={btnSecondary} disabled={saving}>Atrás</button>}
+        <div className="modal-footer">
+          {step > 1 && <button onClick={() => setStep(s => s - 1)} className="btn-secondary" disabled={saving}>Atrás</button>}
           {step < steps.length
-            ? <button onClick={() => { setError(null); setStep(s => s + 1); }} disabled={!isValid} style={isValid ? btnPrimary : btnDisabled}>Continuar →</button>
-            : <button onClick={handleSubmit} disabled={saving || !isValid} style={{ ...(isValid ? btnPrimary : btnDisabled), opacity: saving || !isValid ? 0.7 : 1 }}>
+            ? <button onClick={() => { setError(null); setStep(s => s + 1); }} disabled={!isValid} className="btn-primary">Continuar →</button>
+            : <button onClick={handleSubmit} disabled={saving || !isValid} className="btn-primary">
               {saving ? "Guardando…" : isEdit ? "Guardar Cambios" : "✓ Crear Cita"}
             </button>
           }
@@ -320,4 +295,3 @@ export function AppointmentModal({ appt, patients, prefillDate, onClose, onSaved
     </div>
   );
 }
-

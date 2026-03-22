@@ -1,6 +1,43 @@
 import React from "react";
 import { SkeletonRow } from "./Info/Skeleton";
-import { thStyle } from "@/src/styles/theme";
+
+interface TableFooterProps {
+    page: number;
+    pageSize: number;
+    total: number;
+    totalPages: number;
+    label: string;
+    onPageChange: (page: number) => void;
+}
+
+export function TableFooter({ page, pageSize, total, totalPages, label, onPageChange }: TableFooterProps) {
+    const pages = Array.from({ length: totalPages }, (_, i) => i + 1)
+        .filter(n => n === 1 || n === totalPages || Math.abs(n - page) <= 1)
+        .reduce<(number | "...")[]>((acc, n, idx, arr) => {
+            if (idx > 0 && n - (arr[idx - 1] as number) > 1) acc.push("...");
+            acc.push(n);
+            return acc;
+        }, []);
+
+    return (
+        <>
+            <span style={{ fontSize: 13, color: "var(--c-gray-400)" }}>
+                Mostrando <strong style={{ color: "var(--c-gray-700)" }}>{(page - 1) * pageSize + 1}–{Math.min(page * pageSize, total)}</strong> de <strong style={{ color: "var(--c-gray-700)" }}>{total}</strong> {label}
+            </span>
+            <div className="pagination">
+                {page !== 1 && <button onClick={() => onPageChange(Math.max(1, page - 1))} className="pagination-btn">← Anterior</button>}
+                {pages.map((item, idx) =>
+                    item === "..." ? (
+                        <span key={`ellipsis-${idx}`} className="pagination-ellipsis">…</span>
+                    ) : (
+                        <button key={item} onClick={() => onPageChange(item as number)} className={`pagination-num ${page === item ? "pagination-num--active" : ""}`}>{item}</button>
+                    )
+                )}
+                <button onClick={() => onPageChange(Math.min(totalPages, page + 1))} disabled={page === totalPages} className="pagination-btn">Siguiente →</button>
+            </div>
+        </>
+    );
+}
 
 interface DataTableProps<T> {
     /** Header label strings — also drives colSpan for the empty state row. */
@@ -26,16 +63,12 @@ export function DataTable<T,>({
     footer,
 }: DataTableProps<T>) {
     return (
-        <div style={{
-            background: "#fff", borderRadius: 16,
-            boxShadow: "0 1px 3px rgba(0,0,0,0.06)", overflow: "hidden",
-            animation: "fadeIn 0.3s ease",
-        }}>
-            <table style={{ width: "100%", borderCollapse: "collapse" }}>
+        <div className="table-card">
+            <table className="table-full">
                 <thead>
-                    <tr style={{ background: "#F9FAFB" }}>
+                    <tr style={{ background: "var(--c-gray-50)" }}>
                         {columns.map(h => (
-                            <th key={h} style={thStyle}>{h}</th>
+                            <th key={h} className="th">{h}</th>
                         ))}
                     </tr>
                 </thead>
@@ -54,11 +87,7 @@ export function DataTable<T,>({
                 </tbody>
             </table>
             {!loading && rows.length > 0 && footer && (
-                <div style={{
-                    padding: "12px 20px", borderTop: "1px solid #F3F4F6",
-                    display: "flex", justifyContent: "space-between", alignItems: "center",
-                    background: "#FAFAFA",
-                }}>
+                <div className="table-footer">
                     {footer}
                 </div>
             )}

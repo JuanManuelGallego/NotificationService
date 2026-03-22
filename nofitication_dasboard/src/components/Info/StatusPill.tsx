@@ -5,10 +5,7 @@ import { ReminderStatus, REMINDER_STATUS_CONFIG } from "@/src/types/Reminder";
 export function PatientStatusPill({ status }: { status: PatientStatus }) {
     const c = PATIENT_STATUS_CONFIG[ status ];
     return (
-        <span style={{
-            display: "inline-block", padding: "3px 12px", borderRadius: 20,
-            background: c.bg, color: c.color, fontSize: 12, fontWeight: 600, letterSpacing: "0.02em",
-        }}>
+        <span className="pill" style={{ background: c.bg, color: c.color }}>
             {c.label}
         </span>
     );
@@ -18,12 +15,8 @@ export function PatientStatusPill({ status }: { status: PatientStatus }) {
 export function ReminderStatusPill({ status }: { status: ReminderStatus }) {
     const c = REMINDER_STATUS_CONFIG[ status ];
     return (
-        <span style={{
-            display: "inline-flex", alignItems: "center", gap: 5,
-            padding: "3px 12px", borderRadius: 20,
-            background: c.bg, color: c.color, fontSize: 12, fontWeight: 600,
-        }}>
-            <span style={{ width: 6, height: 6, borderRadius: "50%", background: c.dot, flexShrink: 0 }} />
+        <span className="pill" style={{ background: c.bg, color: c.color }}>
+            <span className="pill__dot" style={{ background: c.dot }} />
             {c.label}
         </span>
     );
@@ -32,12 +25,8 @@ export function ReminderStatusPill({ status }: { status: ReminderStatus }) {
 export function AppointmentStatusPill({ status }: { status: AppointmentStatus }) {
     const c = STATUS_CFG[ status ];
     return (
-        <span style={{
-            display: "inline-flex", alignItems: "center", gap: 5,
-            padding: "3px 12px", borderRadius: 20,
-            background: c.bg, color: c.color, fontSize: 12, fontWeight: 600,
-        }}>
-            <span style={{ width: 6, height: 6, borderRadius: "50%", background: c.dot, flexShrink: 0 }} />
+        <span className="pill" style={{ background: c.bg, color: c.color }}>
+            <span className="pill__dot" style={{ background: c.dot }} />
             {c.label}
         </span>
     );
@@ -46,12 +35,8 @@ export function AppointmentStatusPill({ status }: { status: AppointmentStatus })
 
 export function EmptyStatusPill({ label }: { label: string }) {
     return (
-        <span style={{
-            display: "inline-flex", alignItems: "center", gap: 5,
-            padding: "3px 12px", borderRadius: 20,
-            background: "#E5E7EB", color: "#6B7280", fontSize: 12, fontWeight: 600, letterSpacing: "0.02em",
-        }}>
-            <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#6b728096", flexShrink: 0 }} />
+        <span className="pill" style={{ background: "var(--c-gray-200)", color: "var(--c-gray-500)" }}>
+            <span className="pill__dot" style={{ background: "rgba(107, 114, 128, 0.6)" }} />
             {label}
         </span>
     );

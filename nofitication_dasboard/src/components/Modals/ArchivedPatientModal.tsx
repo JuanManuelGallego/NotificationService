@@ -1,5 +1,4 @@
 import { useUpdatePatient } from "@/src/api/useUpdatePatient";
-import { btnSecondary } from "@/src/styles/theme";
 import { Patient, PatientStatus } from "@/src/types/Patient";
 import { useState } from "react";
 
@@ -20,36 +19,22 @@ export function ArchivePatientModal({ patient, onClose, onDeleted }: {
     }
 
     return (
-        <div style={{
-            position: "fixed", inset: 0, background: "rgba(17,24,39,0.55)", backdropFilter: "blur(4px)",
-            zIndex: 100, display: "flex", alignItems: "center", justifyContent: "center",
-        }} onClick={onClose}>
-            <div style={{
-                background: "#fff", borderRadius: 20, padding: 36, width: 440, maxWidth: "calc(100vw - 40px)",
-                boxShadow: "0 25px 50px -12px rgba(0,0,0,0.25)",
-            }} onClick={e => e.stopPropagation()}>
-                <div style={{ textAlign: "center", marginBottom: 24 }}>
-                    <div style={{ fontSize: 44, marginBottom: 12 }}>🗑️</div>
-                    <h2 style={{ fontSize: 20, fontWeight: 700, color: "#111827", margin: "0 0 8px", fontFamily: "'Playfair Display', Georgia, serif" }}>
-                        Eliminar Paciente
-                    </h2>
-                    <p style={{ fontSize: 14, color: "#6B7280", margin: 0 }}>
-                        ¿Estás seguro que deseas eliminar a <strong>{patient.name} {patient.lastName}</strong>? 
+        <div className="modal-overlay" onClick={onClose}>
+            <div className="modal-panel modal-panel--sm" onClick={e => e.stopPropagation()}>
+                <div className="modal-confirm">
+                    <div className="modal-confirm__icon">🗑️</div>
+                    <h2 className="modal-title modal-title--sm">Eliminar Paciente</h2>
+                    <p className="modal-confirm__text">
+                        ¿Estás seguro que deseas eliminar a <strong>{patient.name} {patient.lastName}</strong>?
                     </p>
-                    <p style={{ fontSize: 14, color: "#6B7280", margin: 0 }}>Esta acción no se puede deshacer.</p>
+                    <p className="modal-confirm__text">Esta acción no se puede deshacer.</p>
                 </div>
                 {error && (
-                    <div style={{ background: "#FEF2F2", border: "1px solid #FCA5A5", borderRadius: 10, padding: "10px 14px", marginBottom: 16, fontSize: 13, color: "#DC2626" }}>
-                        ⚠️ {error}
-                    </div>
+                    <div className="error-inline">⚠️ {error}</div>
                 )}
-                <div style={{ display: "flex", gap: 10 }}>
-                    <button onClick={onClose} style={{ ...btnSecondary, flex: 1 }} disabled={deleting}>Cancelar</button>
-                    <button onClick={handleArchive} disabled={deleting} style={{
-                        flex: 1, padding: "10px 22px", background: "#DC2626", color: "#fff",
-                        border: "none", borderRadius: 10, fontSize: 14, fontWeight: 600,
-                        cursor: "pointer", opacity: deleting ? 0.7 : 1,
-                    }}>
+                <div className="modal-confirm__actions">
+                    <button onClick={onClose} className="btn-secondary btn-block" disabled={deleting}>Cancelar</button>
+                    <button onClick={handleArchive} disabled={deleting} className="btn-danger btn-block">
                         {deleting ? "Eliminando…" : "Sí, eliminar"}
                     </button>
                 </div>

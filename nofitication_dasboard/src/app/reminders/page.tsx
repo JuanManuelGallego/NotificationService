@@ -1,7 +1,6 @@
 "use client";;
 import { useMemo, useState } from "react";
 import { FetchRemindersFilters, Reminder, ReminderStatus } from '@/src/types/Reminder';
-import { btnPrimary, tdStyle } from '@/src/styles/theme';
 import { fmtDateAndTime, fmtRelative } from '@/src/utils/TimeUtils';
 import { StatCard } from '@/src/components/Info/StatCard';
 import { ChannelBadge } from '@/src/components/Info/ChannelIcon';
@@ -10,7 +9,7 @@ import { EditScheduledReminderModal } from '@/src/components/Modals/EditSchedule
 import { ReminderDrawer } from '@/src/components/Drawers/ReminderDrawer';
 import { BulkSendWizard } from '@/src/components/Navigation/BulkSendWizard';
 import { EmptyState } from '@/src/components/EmptyState';
-import { DataTable } from '@/src/components/DataTable';
+import { DataTable, TableFooter } from '@/src/components/DataTable';
 import { CancelReminderModal } from '@/src/components/Modals/CancelReminderModal';
 import { useFetchReminders } from '@/src/api/useFetchReminders';
 import { useFetchPatients } from '@/src/api/useFetchPatients';
@@ -50,69 +49,58 @@ export default function RemindersPage() {
 
     return (
         <>
-            <div style={{ display: "flex", minHeight: "100vh", background: "#F8F7F4", fontFamily: "'DM Sans', sans-serif" }}>
+            <div className="page-shell">
                 <Sidebar />
-                <main style={{ marginLeft: 240, flex: 1, padding: "36px 40px", maxWidth: "calc(100% - 240px)" }}>
-                    <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 36 }}>
+                <main className="page-main">
+                    <div className="page-header">
                         <div>
-                            <h1 style={{ fontSize: 30, fontWeight: 700, color: "#111827", letterSpacing: "-0.02em", fontFamily: "'Playfair Display', Georgia, serif", marginBottom: 6 }}>
-                                Recordatorios
-                            </h1>
-                            <p style={{ fontSize: 14, color: "#9CA3AF" }}>
+                            <h1 className="page-title">Recordatorios</h1>
+                            <p className="page-subtitle">
                                 {new Date().toLocaleDateString("es-ES", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}
                             </p>
                         </div>
-                        <div style={{ display: "flex", gap: 10 }}>
-                            <button onClick={() => setShowCreate(true)} style={{
-                                ...btnPrimary, display: "flex", alignItems: "center", gap: 8,
-                                boxShadow: "0 4px 14px rgba(30,58,95,0.3)", padding: "12px 24px",
-                            }}>
-                                <span style={{ fontSize: 18, lineHeight: 1 }}>+</span> Nuevo Recordatorio
+                        <div className="page-header__actions">
+                            <button onClick={() => setShowCreate(true)} className="btn-primary btn-hero">
+                                <span className="btn-plus-icon">+</span> Nuevo Recordatorio
                             </button>
                         </div>
                     </div>
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 20, marginBottom: 36 }}>
-                        <StatCard label="Activos" value={stats?.byStatus[ ReminderStatus.PENDING ] || 0} sub="en cola de envío" accent="#2563EB" />
-                        <StatCard label="Enviados" value={stats?.byStatus[ ReminderStatus.SENT ] || 0} sub="entregados" accent="#16A34A" />
-                        <StatCard label="Fallidos" value={stats?.byStatus[ ReminderStatus.FAILED ] || 0} sub="requieren atención" accent="#DC2626" />
-                        <StatCard label="Cancelados" value={stats?.byStatus[ ReminderStatus.CANCELLED ] || 0} sub="fuera de la cola" accent="#9CA3AF" />
+                    <div className="stats-grid">
+                        <StatCard label="Activos" value={stats?.byStatus[ ReminderStatus.PENDING ] || 0} sub="en cola de envío" accent="var(--c-link)" />
+                        <StatCard label="Enviados" value={stats?.byStatus[ ReminderStatus.SENT ] || 0} sub="entregados" accent="var(--c-success)" />
+                        <StatCard label="Fallidos" value={stats?.byStatus[ ReminderStatus.FAILED ] || 0} sub="requieren atención" accent="var(--c-error)" />
+                        <StatCard label="Cancelados" value={stats?.byStatus[ ReminderStatus.CANCELLED ] || 0} sub="fuera de la cola" accent="var(--c-gray-400)" />
                     </div>
-                    <div style={{ display: "flex", gap: 4, background: "#fff", borderRadius: 12, padding: 5, marginBottom: 20, boxShadow: "0 1px 3px rgba(0,0,0,0.06)", width: "fit-content" }}>
+                    <div className="tab-nav">
                         {([
                             { key: "Active", label: "Activos", badge: stats?.byStatus[ ReminderStatus.PENDING ] || 0 },
                             { key: "History", label: "Historial", badge: (stats?.byStatus[ ReminderStatus.SENT ] || 0) + (stats?.byStatus[ ReminderStatus.FAILED ] || 0) + (stats?.byStatus[ ReminderStatus.CANCELLED ] || 0) },
                             { key: "Bulk", label: "Envío Masivo", badge: null },
                         ] as const).map(tab => (
-                            <button key={tab.key} onClick={() => setActiveTab(tab.key)} style={{
-                                padding: "9px 20px", borderRadius: 9, border: "none", cursor: "pointer",
-                                background: activeTab === tab.key ? "#1E3A5F" : "transparent",
-                                color: activeTab === tab.key ? "#fff" : "#6B7280",
-                                fontSize: 14, fontWeight: 600, display: "flex", alignItems: "center", gap: 8,
-                                transition: "all 0.15s",
-                            }}>
+                            <button key={tab.key} onClick={() => setActiveTab(tab.key)} className={`filter-chip ${activeTab === tab.key ? "filter-chip--active" : ""}`}>
                                 {tab.label}
                                 {tab.badge !== null && (
-                                    <span style={{
-                                        background: activeTab === tab.key ? "rgba(255,255,255,0.2)" : "#F3F4F6",
-                                        color: activeTab === tab.key ? "#fff" : "#374151",
-                                        fontSize: 11, fontWeight: 700, padding: "1px 7px", borderRadius: 20,
-                                    }}>{tab.badge}</span>
+                                    <span className={`tab-badge ${activeTab === tab.key ? "tab-badge--active" : ""}`}>{tab.badge}</span>
                                 )}
                             </button>
                         ))}
                     </div>
                     {activeTab !== "Bulk" && (
-                        <div style={{
-                            background: "#fff", borderRadius: 16, padding: "18px 24px",
-                            display: "flex", alignItems: "center", gap: 16, marginBottom: 16,
-                            boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
-                        }}>
-                            <input
-                                placeholder="Buscar por nombre, número, canal…"
-                                value={search}
-                                onChange={e => setSearch(e.target.value)}
-                                style={{ flex: 1, padding: "9px 14px", border: "1.5px solid #E5E7EB", borderRadius: 10, fontSize: 14, outline: "none", fontFamily: "inherit", color: "#111827", background: "#FAFAFA" }}
-                            />
+                        <div className="filter-bar">
+                            <div className="search-wrapper">
+
+                                <input
+                                    placeholder="Buscar por nombre, número, canal…"
+                                    value={search}
+                                    onChange={e => setSearch(e.target.value)}
+                                    className="form-input"
+                                />
+                                <button
+                                    onClick={() => { setSearch(""); setPage(1); }}
+                                    className="search-clear-btn"
+                                    aria-label="Limpiar búsqueda"
+                                >✕</button>
+                            </div>
                         </div>
                     )}
                     {error && activeTab !== "Bulk" && <ErrorBanner msg={error} onRetry={fetchReminders} />}
@@ -122,57 +110,29 @@ export default function RemindersPage() {
                             rows={reminders}
                             loading={loading}
                             skeletonCount={4}
-                            renderRow={(reminder, i) => (
-                                <tr key={reminder.id} style={{ borderBottom: i < reminders.length - 1 ? "1px solid #F3F4F6" : "none", cursor: "pointer" }}
-                                    onClick={() => setViewReminder(reminder)}>
-                                    <td style={tdStyle}>
-                                        <div style={{ fontSize: 14, fontWeight: 600, color: "#111827" }}>{reminder.patient?.name ?? "—"} {reminder.patient?.lastName ?? "—"}</div>
-                                        <div style={{ fontSize: 11, color: "#9CA3AF", fontFamily: "monospace" }}>{reminder.to}</div>
+                            renderRow={(reminder) => (
+                                <tr key={reminder.id} className="table-row" onClick={() => setViewReminder(reminder)}>
+                                    <td className="td">
+                                        <div className="td-name__primary">{reminder.patient?.name ?? "—"} {reminder.patient?.lastName ?? "—"}</div>
+                                        <div className="td-name__secondary">{reminder.to}</div>
                                     </td>
-                                    <td style={tdStyle}><ChannelBadge channel={reminder.channel} /></td>
-                                    <td style={tdStyle}><ReminderStatusPill status={reminder.status} /></td>
-                                    <td style={{ ...tdStyle, fontSize: 13, color: "#374151" }}>{fmtDateAndTime(reminder.sendAt)}</td>
-                                    <td style={{ ...tdStyle, fontSize: 13, color: "#6B7280", whiteSpace: "nowrap" }}>
-                                        <span style={{ background: "#EFF6FF", color: "#2563EB", padding: "3px 9px", borderRadius: 20, fontSize: 12, fontWeight: 600 }}>
-                                            {fmtRelative(reminder.sendAt)}
-                                        </span>
+                                    <td className="td"><ChannelBadge channel={reminder.channel} /></td>
+                                    <td className="td"><ReminderStatusPill status={reminder.status} /></td>
+                                    <td className="td td--date">{fmtDateAndTime(reminder.sendAt)}</td>
+                                    <td className="td td--muted">
+                                        <span className="badge-time">{fmtRelative(reminder.sendAt)}</span>
                                     </td>
-                                    <td style={{ ...tdStyle, fontSize: 13, color: "#9CA3AF" }}>{fmtDateAndTime(reminder.sendAt)}</td>
-                                    <td style={tdStyle} onClick={e => e.stopPropagation()}>
-                                        <div style={{ display: "flex", gap: 6 }}>
-                                            <button onClick={() => setEditReminder(reminder)} style={{ padding: "5px 12px", fontSize: 12, fontWeight: 600, background: "#EFF6FF", border: "none", borderRadius: 7, color: "#2563EB", cursor: "pointer" }}>Reprogramar</button>
-                                            <button onClick={() => setCancelReminder(reminder)} style={{ padding: "5px 12px", fontSize: 12, fontWeight: 600, background: "#FEF2F2", border: "none", borderRadius: 7, color: "#DC2626", cursor: "pointer" }}>Cancelar</button>
+                                    <td className="td td--subtle">{fmtDateAndTime(reminder.sendAt)}</td>
+                                    <td className="td" onClick={e => e.stopPropagation()}>
+                                        <div className="td-actions">
+                                            <button onClick={() => setEditReminder(reminder)} className="btn-action-edit">Reprogramar</button>
+                                            <button onClick={() => setCancelReminder(reminder)} className="btn-action-delete">✕</button>
                                         </div>
                                     </td>
                                 </tr>
                             )}
                             emptyState={<EmptyState icon="🔔" title="Sin recordatorios activos" sub="Haz clic en Nuevo Recordatorio para programar el primero." />}
-                            footer={
-                                <>
-                                    <span style={{ fontSize: 13, color: "#9CA3AF" }}>
-                                        Mostrando <strong style={{ color: "#374151" }}>{(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, total)}</strong> de <strong style={{ color: "#374151" }}>{total}</strong> recordatorios
-                                    </span>
-                                    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                                        {page !== 1 && <button onClick={() => setPage(p => Math.max(1, p - 1))} style={{ padding: "5px 12px", borderRadius: 7, border: "1.5px solid #E5E7EB", background: page === 1 ? "#F9FAFB" : "#fff", color: page === 1 ? "#D1D5DB" : "#374151", fontSize: 13, fontWeight: 500, cursor: page === 1 ? "default" : "pointer" }}>← Anterior</button>}
-                                        {Array.from({ length: totalPages }, (_, i) => i + 1)
-                                            .filter(n => n === 1 || n === totalPages || Math.abs(n - page) <= 1)
-                                            .reduce<(number | "...")[]>((acc, n, idx, arr) => {
-                                                if (idx > 0 && n - (arr[ idx - 1 ] as number) > 1) acc.push("...");
-                                                acc.push(n);
-                                                return acc;
-                                            }, [])
-                                            .map((item, idx) =>
-                                                item === "..." ? (
-                                                    <span key={`ellipsis-${idx}`} style={{ fontSize: 13, color: "#9CA3AF", padding: "0 4px" }}>…</span>
-                                                ) : (
-                                                    <button key={item} onClick={() => setPage(item as number)} style={{ width: 32, height: 32, borderRadius: 7, border: "1.5px solid", borderColor: page === item ? "#1E3A5F" : "#E5E7EB", background: page === item ? "#1E3A5F" : "#fff", color: page === item ? "#fff" : "#374151", fontSize: 13, fontWeight: 500, cursor: "pointer" }}>{item}</button>
-                                                )
-                                            )
-                                        }
-                                        <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages} style={{ padding: "5px 12px", borderRadius: 7, border: "1.5px solid #E5E7EB", background: page === totalPages ? "#F9FAFB" : "#fff", color: page === totalPages ? "#D1D5DB" : "#374151", fontSize: 13, fontWeight: 500, cursor: page === totalPages ? "default" : "pointer" }}>Siguiente →</button>
-                                    </div>
-                                </>
-                            }
+                            footer={<TableFooter page={page} pageSize={PAGE_SIZE} total={total} totalPages={totalPages} label="recordatorios" onPageChange={setPage} />}
                         />
                     )}
                     {activeTab === "History" && (
@@ -181,63 +141,37 @@ export default function RemindersPage() {
                             rows={reminders}
                             loading={loading}
                             skeletonCount={5}
-                            renderRow={(reminder, i) => (
-                                <tr key={reminder.id} style={{ borderBottom: i < reminders.length - 1 ? "1px solid #F3F4F6" : "none", cursor: "pointer" }}
-                                    onClick={() => setViewReminder(reminder)}>
-                                    <td style={tdStyle}>
-                                        <div style={{ fontSize: 14, fontWeight: 600, color: "#111827" }}>{reminder.patient?.name ?? "—"} {reminder.patient?.lastName ?? "—"}</div>
-                                        <div style={{ fontSize: 11, color: "#9CA3AF", fontFamily: "monospace" }}>{reminder.to}</div>
+                            renderRow={(reminder) => (
+                                <tr key={reminder.id} className="table-row" onClick={() => setViewReminder(reminder)}>
+                                    <td className="td">
+                                        <div className="td-name__primary">{reminder.patient?.name ?? "—"} {reminder.patient?.lastName ?? "—"}</div>
+                                        <div className="td-name__secondary">{reminder.to}</div>
                                     </td>
-                                    <td style={tdStyle}><ChannelBadge channel={reminder.channel} /></td>
-                                    <td style={tdStyle}><ReminderStatusPill status={reminder.status} /></td>
-                                    <td style={{ ...tdStyle, fontSize: 13, color: "#6B7280" }}>{fmtDateAndTime(reminder.sendAt)}</td>
-                                    <td style={{ ...tdStyle, fontSize: 12, color: "#9CA3AF", fontFamily: "monospace" }}>
+                                    <td className="td"><ChannelBadge channel={reminder.channel} /></td>
+                                    <td className="td"><ReminderStatusPill status={reminder.status} /></td>
+                                    <td className="td td--muted">{fmtDateAndTime(reminder.sendAt)}</td>
+                                    <td className="td td--mono">
                                         {reminder.messageId ? <span title={reminder.messageId}>{reminder.messageId}</span> : "—"}
                                     </td>
-                                    <td style={{ ...tdStyle, fontSize: 12, color: "#DC2626", maxWidth: 200 }}>
+                                    <td className="td td--error-cell">
                                         {reminder.error
-                                            ? <span title={reminder.error} style={{ background: "#FEF2F2", padding: "3px 8px", borderRadius: 6 }}>{reminder.error.slice(0, 40)}{reminder.error.length > 40 ? "…" : ""}</span>
-                                            : <span style={{ color: "#D1D5DB" }}>—</span>
+                                            ? <span title={reminder.error} className="td-error__text">{reminder.error.slice(0, 40)}{reminder.error.length > 40 ? "…" : ""}</span>
+                                            : <span className="td-error__empty">—</span>
                                         }
                                     </td>
                                 </tr>
                             )}
                             emptyState={<EmptyState icon="📋" title="Sin historial aún" sub="Los recordatorios enviados, fallidos y cancelados aparecerán aquí." />}
-                            footer={
-                                <>
-                                    <span style={{ fontSize: 13, color: "#9CA3AF" }}>
-                                        Mostrando <strong style={{ color: "#374151" }}>{(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, total)}</strong> de <strong style={{ color: "#374151" }}>{total}</strong> recordatorios
-                                    </span>
-                                    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                                        {page !== 1 && <button onClick={() => setPage(p => Math.max(1, p - 1))} style={{ padding: "5px 12px", borderRadius: 7, border: "1.5px solid #E5E7EB", background: page === 1 ? "#F9FAFB" : "#fff", color: page === 1 ? "#D1D5DB" : "#374151", fontSize: 13, fontWeight: 500, cursor: page === 1 ? "default" : "pointer" }}>← Anterior</button>}
-                                        {Array.from({ length: totalPages }, (_, i) => i + 1)
-                                            .filter(n => n === 1 || n === totalPages || Math.abs(n - page) <= 1)
-                                            .reduce<(number | "...")[]>((acc, n, idx, arr) => {
-                                                if (idx > 0 && n - (arr[ idx - 1 ] as number) > 1) acc.push("...");
-                                                acc.push(n);
-                                                return acc;
-                                            }, [])
-                                            .map((item, idx) =>
-                                                item === "..." ? (
-                                                    <span key={`ellipsis-${idx}`} style={{ fontSize: 13, color: "#9CA3AF", padding: "0 4px" }}>…</span>
-                                                ) : (
-                                                    <button key={item} onClick={() => setPage(item as number)} style={{ width: 32, height: 32, borderRadius: 7, border: "1.5px solid", borderColor: page === item ? "#1E3A5F" : "#E5E7EB", background: page === item ? "#1E3A5F" : "#fff", color: page === item ? "#fff" : "#374151", fontSize: 13, fontWeight: 500, cursor: "pointer" }}>{item}</button>
-                                                )
-                                            )
-                                        }
-                                        <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages} style={{ padding: "5px 12px", borderRadius: 7, border: "1.5px solid #E5E7EB", background: page === totalPages ? "#F9FAFB" : "#fff", color: page === totalPages ? "#D1D5DB" : "#374151", fontSize: 13, fontWeight: 500, cursor: page === totalPages ? "default" : "pointer" }}>Siguiente →</button>
-                                    </div>
-                                </>
-                            }
+                            footer={<TableFooter page={page} pageSize={PAGE_SIZE} total={total} totalPages={totalPages} label="recordatorios" onPageChange={setPage} />}
                         />
                     )}
                     {activeTab === "Bulk" && (
-                        <div style={{ animation: "fadeIn 0.25s ease" }}>
-                            <div style={{ background: "#EFF6FF", border: "1px solid #BFDBFE", borderRadius: 12, padding: "14px 20px", marginBottom: 24, display: "flex", alignItems: "flex-start", gap: 12 }}>
-                                <span style={{ fontSize: 20 }}>📣</span>
+                        <div className="bulk-section fade-in">
+                            <div className="info-banner">
+                                <span className="bulk-info__icon">📣</span>
                                 <div>
-                                    <div style={{ fontSize: 14, fontWeight: 600, color: "#1E40AF", marginBottom: 3 }}>Envío Masivo</div>
-                                    <div style={{ fontSize: 13, color: "#3B82F6" }}>
+                                    <div className="bulk-info__title">Envío Masivo</div>
+                                    <div className="bulk-info__desc">
                                         Envía el mismo mensaje a múltiples pacientes a la vez. Solo se incluyen pacientes con estado <strong>Activo</strong> y número registrado para el canal seleccionado.
                                     </div>
                                 </div>

@@ -1,47 +1,35 @@
-export const inputStyle: React.CSSProperties = {
-    padding: "10px 14px", border: "1.5px solid #E5E7EB", borderRadius: 10,
-    fontSize: 14, color: "#111827", outline: "none", background: "#FAFAFA",
-    fontFamily: "inherit", width: "100%",
+/**
+ * Shared Ant Design ConfigProvider theme.
+ * Hex values here intentionally mirror the CSS variables in globals.css
+ * (Ant Design's token system requires raw JS values, not CSS variables).
+ *
+ * If you update a color in globals.css, update the matching value here:
+ *   colorPrimary         → --c-brand          #1E3A5F
+ *   colorBorder          → --c-gray-200        #E5E7EB
+ *   colorBgContainer     → --c-input-bg        #FAFAFA
+ *   colorText            → --c-gray-900        #111827
+ *   colorTextPlaceholder → --c-gray-400        #9CA3AF
+ *   cellActiveWithRangeBg / cellHoverBg → --c-brand-light #EFF6FF
+ *   borderRadius         → --r-lg              10px
+ */
+export const antThemeConfig = {
+    token: {
+        fontFamily: "'DM Sans', sans-serif",
+        fontSize: 14,
+        colorPrimary: "#1E3A5F",
+        colorBorder: "#E5E7EB",
+        colorBgContainer: "#FAFAFA",
+        borderRadius: 10,
+        controlHeight: 40,
+        colorText: "#111827",
+        colorTextPlaceholder: "#9CA3AF",
+    },
+    components: {
+        DatePicker: {
+            activeBorderColor: "#1E3A5F",
+            hoverBorderColor: "#1E3A5F",
+            cellActiveWithRangeBg: "#EFF6FF",
+            cellHoverBg: "#EFF6FF",
+        },
+    },
 };
-
-export const labelStyle: React.CSSProperties = {
-    display: "flex", flexDirection: "column", gap: 6,
-    fontSize: 13, fontWeight: 600, color: "#374151",
-};
-
-export const btnPrimary: React.CSSProperties = {
-    padding: "10px 22px", background: "#1E3A5F", color: "#fff",
-    border: "none", borderRadius: 10, fontSize: 14, fontWeight: 600,
-    cursor: "pointer", letterSpacing: "0.01em",
-};
-
-export const btnDisabled: React.CSSProperties = {
-    padding: "10px 22px", background: "#1E3A5F", color: "#fff",
-    border: "none", borderRadius: 10, fontSize: 14, fontWeight: 600,
-    cursor: "not-allowed", opacity: 0.7, letterSpacing: "0.01em",
-}
-
-export const btnSecondary: React.CSSProperties = {
-    padding: "10px 22px", background: "#F3F4F6", color: "#374151",
-    border: "none", borderRadius: 10, fontSize: 14, fontWeight: 600, cursor: "pointer",
-};
-
-
-export const inp: React.CSSProperties = {
-    padding: "10px 14px", border: "1.5px solid #E5E7EB", borderRadius: 10,
-    fontSize: 14, color: "#111827", outline: "none", background: "#FAFAFA",
-    fontFamily: "inherit", width: "100%",
-};
-
-export const lbl: React.CSSProperties = {
-    display: "flex", flexDirection: "column", gap: 6,
-    fontSize: 13, fontWeight: 600, color: "#374151",
-};
-
-export const thStyle: React.CSSProperties = {
-    padding: "13px 20px", textAlign: "left",
-    fontSize: 12, fontWeight: 600, color: "#6B7280",
-    letterSpacing: "0.05em", textTransform: "uppercase",
-    borderBottom: "1px solid #F3F4F6", whiteSpace: "nowrap",
-};
-export const tdStyle: React.CSSProperties = { padding: "14px 20px" };
