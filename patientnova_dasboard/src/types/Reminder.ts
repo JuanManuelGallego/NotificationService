@@ -33,6 +33,7 @@ export enum ReminderStatus {
     SENT = "SENT",
     FAILED = "FAILED",
     CANCELLED = "CANCELLED",
+    QUEUED = "QUEUED",
 }
 
 export enum Channel {
@@ -84,6 +85,7 @@ export const REMINDER_STATUS_CONFIG: Record<ReminderStatus, { label: string; col
     [ ReminderStatus.FAILED ]: { label: "Fallido", color: "#DC2626", bg: "#FEF2F2", dot: "#EF4444" },
     [ ReminderStatus.PENDING ]: { label: "Pendiente", color: "#D97706", bg: "#FFFBEB", dot: "#F59E0B" },
     [ ReminderStatus.SENT ]: { label: "Enviado", color: "#16A34A", bg: "#F0FDF4", dot: "#22C55E" },
+    [ ReminderStatus.QUEUED ]: { label: "En cola", color: "#2563EB", bg: "#EFF6FF", dot: "#3B82F6" },
 };
 
 export interface ScheduledReminderJob {

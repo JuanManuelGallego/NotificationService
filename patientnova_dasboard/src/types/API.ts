@@ -52,6 +52,7 @@ export interface ReminderStats {
         [ ReminderStatus.SENT ]: number;
         [ ReminderStatus.FAILED ]: number;
         [ ReminderStatus.CANCELLED ]: number;
+        [ ReminderStatus.QUEUED ]: number;
     };
     byChannel: {
         [ Channel.WHATSAPP ]: number;

@@ -1,7 +1,6 @@
-"use client";;
+"use client";
 import { AppointmentDrawer } from "@/src/components/Drawers/AppointmentDrawer";
 import { AppointmentModal } from "@/src/components/Modals/AppointmentModal";
-import { CalendarView } from "@/src/components/Navigation/CalendarView";
 import { CancelAppointmentModal } from "@/src/components/Modals/CancelAppointmentModal";
 import { PayBadge } from "@/src/components/Info/PayBadge";
 import Sidebar from "@/src/components/Navigation/Sidebar";
@@ -16,23 +15,17 @@ import { getAvatarColor, getInitials } from "@/src/utils/AvatarHelper";
 import { fmtDateAndTime } from "@/src/utils/TimeUtils";
 import { useState, useMemo } from "react";
 import { useFetchAppointments } from "@/src/api/useFetchAppointments";
-import { useFetchPatients } from "@/src/api/useFetchPatients";
-import { useFetchReminders } from "@/src/api/useFetchReminders";
 import { ReminderStatusPill, EmptyStatusPill, AppointmentStatusPill } from "@/src/components/Info/StatusPill";
 import { useFetchAppointmentsStats } from "@/src/api/useFetchAppointmentsStats";
 import { useUpdateAppointment } from "@/src/api/useUpdateAppointment";
 import { useDebounceState } from "@/src/utils/useDebounceState";
 
-type ViewMode = "list" | "calendar";
 const PAGE_SIZE = 10;
 
 export default function AppointmentsPage() {
-  const { patients } = useFetchPatients();
-  const { reminders, fetchReminders } = useFetchReminders();
   const { stats, fetchStats } = useFetchAppointmentsStats();
   const { updateAppointment } = useUpdateAppointment();
 
-  const [ viewMode, setViewMode ] = useState<ViewMode>("list");
   const [ filterStatus, setFilterStatus ] = useState<AppointmentStatus | "ALL">("ALL");
   const [ filterpaid, setFilterpaid ] = useState<"ALL" | "true" | "false">("ALL");
   const [ search, setSearch ] = useState("");
@@ -81,13 +74,6 @@ export default function AppointmentsPage() {
               </p>
             </div>
             <div className="page-header__actions">
-              <div className="view-toggle">
-                {([ "list", "calendar" ] as ViewMode[]).map(mode => (
-                  <button key={mode} onClick={() => setViewMode(mode)} className={`view-toggle__btn ${viewMode === mode ? "view-toggle__btn--active" : ""}`}>
-                    {mode === "list" ? "☰ Lista" : "📅 Calendario"}
-                  </button>
-                ))}
-              </div>
               <button onClick={() => { setShowCreate(true); }} className="btn-primary btn-hero">
                 <span className="btn-plus-icon">+</span> Nueva Cita
               </button>
@@ -101,115 +87,100 @@ export default function AppointmentsPage() {
             <StatCard label="Ingresos" value={`$ ${stats?.paidRevenue.toLocaleString("es-ES") ?? 0}`} sub="total cobrado" accent="var(--c-success)" />
           </div>
           {error && <ErrorBanner msg={error} onRetry={fetchAppointments} />}
-          {viewMode === "list" && (
-            <>
-              <div className="filter-bar filter-bar--wrap">
-                <div className="search-wrapper">
-                  <input placeholder="Buscar paciente, tipo, ubicación…" value={search} onChange={e => setSearch(e.target.value)} className="form-input" />
-                  <button
-                    onClick={() => { setSearch(""); setPage(1); }}
-                    className="search-clear-btn"
-                    aria-label="Limpiar búsqueda"
-                  >✕</button>
-                </div>
-                <DateTimePicker date={dateFilter} onChanged={iso => setDateFilter(iso.slice(0, 10))} isFuture />
-                {dateFilter && <button onClick={() => setDateFilter("")} className="btn-secondary btn-secondary--sm">✕ Fecha</button>}
-                <div className="filter-chips filter-chips--wrap">
-                  {([
-                    { k: "ALL", l: "Todas" },
-                    { k: AppointmentStatus.SCHEDULED, l: "Programadas" },
-                    { k: AppointmentStatus.CONFIRMED, l: "Confirmadas" },
-                    { k: AppointmentStatus.COMPLETED, l: "Completadas" },
-                    { k: AppointmentStatus.CANCELLED, l: "Canceladas" },
-                    { k: AppointmentStatus.NO_SHOW, l: "No asistió" },
-                  ] as const).map(({ k, l }) => (
-                    <button key={k} onClick={() => setFilterStatus(k)} className={`filter-chip ${filterStatus === k ? "filter-chip--active" : ""}`}>{l}</button>
-                  ))}
-                </div>
-                <select value={filterpaid} onChange={e => setFilterpaid(e.target.value as "true" | "false" | "ALL")} className="form-input form-input--auto">
-                  <option value="ALL">💳 Todas</option>
-                  <option value="true">💳 Pagadas</option>
-                  <option value="false">⏳ Sin pagar</option>
-                </select>
-              </div>
-              <DataTable
-                columns={[ "Paciente", "Tipo", "Fecha", "Recordatorio", "Ubicación", "Estado", "Pago", "" ]}
-                rows={appointments}
-                loading={loading}
-                skeletonCount={6}
-                renderRow={(a) => (
-                  <tr key={a.id} className="table-row" onClick={() => setViewAppt(a)}>
-                    <td className="td">
-                      <div className="td-identity">
-                        <div className="avatar avatar--sm" style={{ background: getAvatarColor(a.patient.id) }}>
-                          {getInitials(a.patient.name, a.patient.lastName)}
-                        </div>
-                        <div>
-                          <div className="td-name__primary">{a.patient.name} {a.patient.lastName}</div>
-                          <div className="td-name__secondary">{a.patient.email}</div>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="td td--date" style={{ maxWidth: 140 }}>
-                      <div className="text-ellipsis">{a.type}</div>
-                    </td>
-                    <td className="td td--datetime">{fmtDateAndTime(a.startAt)}</td>
-                    <td className="td">{a.reminderId ? <ReminderStatusPill status={reminders.find(r => r.id === a.reminderId)?.status || ReminderStatus.FAILED} /> : <EmptyStatusPill label="Sin Recordatorio" />}</td>
-                    <td className="td td--muted" style={{ maxWidth: 130 }}>
-                      <div className="location-badge" style={{ background: LOCATION_CFG[ a.location ]?.bg || "var(--c-gray-100)", color: LOCATION_CFG[ a.location ]?.color || "var(--c-gray-700)" }}>
-                        {a.meetingUrl
-                          ? <a href={a.meetingUrl} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} className="location-badge__link">🔗 Virtual</a>
-                          : a.location}
-                      </div>
-                    </td>
-                    <td className="td" onClick={e => e.stopPropagation()}><AppointmentStatusPill status={a.status} /></td>
-                    <td className="td" onClick={e => e.stopPropagation()}>
-                      <div className="td-actions">
-                        <PayBadge paid={a.paid} />
-                        {!a.paid && a.status !== AppointmentStatus.CANCELLED && (
-                          <button onClick={() => handlePay(a.id)} className="btn-pay">Pagó</button>
-                        )}
-                      </div>
-                    </td>
-                    <td className="td" onClick={e => e.stopPropagation()}>
-                      <div className="td-actions">
-                        <button onClick={() => setEditAppt(a)} className="btn-action-edit">Editar</button>
-                        <button onClick={() => setDeleteAppt(a)} className="btn-action-delete">✕</button>
-                      </div>
-                    </td>
-                  </tr>
-                )}
-                emptyState={<EmptyState icon="🔍" title="Sin resultados" sub="Prueba ajustando los filtros o crea una nueva cita." />}
-                footer={<TableFooter page={page} pageSize={PAGE_SIZE} total={total} totalPages={totalPages} label="citas" onPageChange={setPage} />}
-              />
-            </>
-          )}
-          {viewMode === "calendar" && (
-            <div className="fade-in">
-              <CalendarView
-                appointments={appointments}
-                onDayClick={date => { setPrefillDate(date); setShowCreate(true); }}
-                onApptClick={a => setViewAppt(a)}
-              />
+          <div className="filter-bar filter-bar--wrap">
+            <div className="search-wrapper">
+              <input placeholder="Buscar paciente, tipo, ubicación…" value={search} onChange={e => setSearch(e.target.value)} className="form-input" />
+              <button
+                onClick={() => { setSearch(""); setPage(1); }}
+                className="search-clear-btn"
+                aria-label="Limpiar búsqueda"
+              >✕</button>
             </div>
-          )}
+            <DateTimePicker date={dateFilter} onChanged={iso => setDateFilter(iso.slice(0, 10))} isFuture />
+            {dateFilter && <button onClick={() => setDateFilter("")} className="btn-secondary btn-secondary--sm">✕ Fecha</button>}
+            <div className="filter-chips filter-chips--wrap">
+              {([
+                { k: "ALL", l: "Todas" },
+                { k: AppointmentStatus.SCHEDULED, l: "Programadas" },
+                { k: AppointmentStatus.CONFIRMED, l: "Confirmadas" },
+                { k: AppointmentStatus.COMPLETED, l: "Completadas" },
+                { k: AppointmentStatus.CANCELLED, l: "Canceladas" },
+                { k: AppointmentStatus.NO_SHOW, l: "No asistió" },
+              ] as const).map(({ k, l }) => (
+                <button key={k} onClick={() => setFilterStatus(k)} className={`filter-chip ${filterStatus === k ? "filter-chip--active" : ""}`}>{l}</button>
+              ))}
+            </div>
+            <select value={filterpaid} onChange={e => setFilterpaid(e.target.value as "true" | "false" | "ALL")} className="form-input form-input--auto">
+              <option value="ALL">💳 Todas</option>
+              <option value="true">💳 Pagadas</option>
+              <option value="false">⏳ Sin pagar</option>
+            </select>
+          </div>
+          <DataTable
+            columns={[ "Paciente", "Tipo", "Fecha", "Recordatorio", "Ubicación", "Estado", "Pago", "" ]}
+            rows={appointments}
+            loading={loading}
+            skeletonCount={6}
+            renderRow={(a) => (
+              <tr key={a.id} className="table-row" onClick={() => setViewAppt(a)}>
+                <td className="td">
+                  <div className="td-identity">
+                    <div className="avatar avatar--sm" style={{ background: getAvatarColor(a.patient.id) }}>
+                      {getInitials(a.patient.name, a.patient.lastName)}
+                    </div>
+                    <div>
+                      <div className="td-name__primary">{a.patient.name} {a.patient.lastName}</div>
+                      <div className="td-name__secondary">{a.patient.email}</div>
+                    </div>
+                  </div>
+                </td>
+                <td className="td td--date" style={{ maxWidth: 140 }}>
+                  <div className="text-ellipsis">{a.type}</div>
+                </td>
+                <td className="td td--datetime">{fmtDateAndTime(a.startAt)}</td>
+                <td className="td">{a.reminder ? <ReminderStatusPill status={a.reminder?.status || ReminderStatus.FAILED} /> : <EmptyStatusPill label="Sin Recordatorio" />}</td>
+                <td className="td td--muted" style={{ maxWidth: 130 }}>
+                  <div className="location-badge" style={{ background: LOCATION_CFG[ a.location ]?.bg || "var(--c-gray-100)", color: LOCATION_CFG[ a.location ]?.color || "var(--c-gray-700)" }}>
+                    {a.meetingUrl
+                      ? <a href={a.meetingUrl} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} className="location-badge__link">🔗 Virtual</a>
+                      : a.location}
+                  </div>
+                </td>
+                <td className="td" onClick={e => e.stopPropagation()}><AppointmentStatusPill status={a.status} /></td>
+                <td className="td" onClick={e => e.stopPropagation()}>
+                  <div className="td-actions">
+                    <PayBadge paid={a.paid} />
+                    {!a.paid && a.status !== AppointmentStatus.CANCELLED && (
+                      <button onClick={() => handlePay(a.id)} className="btn-pay">Pagó</button>
+                    )}
+                  </div>
+                </td>
+                <td className="td" onClick={e => e.stopPropagation()}>
+                  <div className="td-actions">
+                    <button onClick={() => setEditAppt(a)} className="btn-action-edit">Editar</button>
+                    <button onClick={() => setDeleteAppt(a)} className="btn-action-delete">✕</button>
+                  </div>
+                </td>
+              </tr>
+            )}
+            emptyState={<EmptyState icon="🔍" title="Sin resultados" sub="Prueba ajustando los filtros o crea una nueva cita." />}
+            footer={<TableFooter page={page} pageSize={PAGE_SIZE} total={total} totalPages={totalPages} label="citas" onPageChange={setPage} />}
+          />
         </main>
       </div>
       {showCreate && (
         <AppointmentModal
           appt={undefined}
-          patients={patients}
           prefillDate={prefillDate}
           onClose={() => { setShowCreate(false); setPrefillDate(null); }}
-          onSaved={() => { fetchAppointments(); fetchReminders(); fetchStats(); }}
+          onSaved={() => { fetchAppointments(); fetchStats(); }}
         />
       )}
       {editAppt && (
         <AppointmentModal
           appt={editAppt}
-          patients={patients}
           onClose={() => setEditAppt(null)}
-          onSaved={() => { fetchAppointments(); fetchReminders(); fetchStats(); }}
+          onSaved={() => { fetchAppointments(); fetchStats(); }}
         />
       )}
       {viewAppt && !editAppt && !deleteAppt && (
@@ -225,7 +196,7 @@ export default function AppointmentsPage() {
         <CancelAppointmentModal
           appt={deleteAppt}
           onClose={() => setDeleteAppt(null)}
-          onCanceled={() => { fetchAppointments(); fetchReminders(); fetchStats() }}
+          onCanceled={() => { fetchAppointments(); fetchStats() }}
         />
       )}
     </>

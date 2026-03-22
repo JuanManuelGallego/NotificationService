@@ -11,7 +11,6 @@ import { appointmentInclude, type AppointmentWithRelations, type PaginatedAppoin
 
 export const appointmentRepository = {
   async create(dto: CreateAppointmentDto): Promise<AppointmentWithRelations> {
-
     const patient = await prisma.patient.findUnique({ where: { id: dto.patientId } });
     if (!patient) throw new AppointmentPatientNotFoundError(dto.patientId);
 
@@ -34,7 +33,7 @@ export const appointmentRepository = {
         type: dto.type,
         status: dto.status,
         patientId: dto.patientId,
-        reminderId: dto.reminderId || null,
+        ...(dto.reminderId && { reminder: { connect: { id: dto.reminderId } }, reminderId: dto.reminderId }),
       },
       include: appointmentInclude,
     });
@@ -125,7 +124,11 @@ export const appointmentRepository = {
         ...(dto.status === AppointmentStatus.CONFIRMED && { confirmedAt: new Date() }),
         ...(dto.status === AppointmentStatus.CANCELLED && { cancelledAt: new Date() }),
         ...(dto.status === AppointmentStatus.COMPLETED && { completedAt: new Date() }),
-        ...(dto.reminderId !== undefined && { reminderId: dto.reminderId }),
+        ...(dto.reminderId !== undefined && {
+          reminder: dto.reminderId
+            ? { connect: { id: dto.reminderId } }
+            : { disconnect: true },
+        }),
       },
       include: appointmentInclude,
     });

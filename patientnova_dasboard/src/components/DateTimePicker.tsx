@@ -1,6 +1,9 @@
 import { ConfigProvider, DatePicker } from "antd";
 import dayjs, { Dayjs } from "dayjs";
+import 'dayjs/locale/es';
 import esEs from 'antd/locale/es_ES';
+
+dayjs.locale('es');
 import { antThemeConfig } from "@/src/styles/theme";
 
 export function DateTimePicker({

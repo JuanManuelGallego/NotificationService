@@ -14,7 +14,7 @@ export function CancelAppointmentModal({ appt, onClose, onCanceled }: { appt: Ap
         setError(null);
         try {
             await updateAppointment(appt.id, { status: AppointmentStatus.CANCELLED });
-            if (appt.reminderId) await updateReminder(appt.reminderId, { status: ReminderStatus.CANCELLED });
+            if (appt.reminder && appt.reminder.id) await updateReminder(appt.reminder.id, { status: ReminderStatus.CANCELLED });
             onCanceled(); onClose();
         } catch (err) { setError(err instanceof Error ? err.message : "Error"); }
     }

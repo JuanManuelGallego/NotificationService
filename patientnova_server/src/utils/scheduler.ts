@@ -2,7 +2,7 @@ import cron from "node-cron";
 import { ReminderStatus, Channel, type Reminder, AppointmentStatus } from "@prisma/client";
 import { prisma } from "../prisma/prismaClient.js";
 import { logger } from "./logger.js";
-import { sendWhatsApp } from "../twillo/twilioClient.js";
+import { getMessageStatus, sendWhatsApp } from "../twillo/twilioClient.js";
 import { reminderRepository } from "../reminders/reminder.repository.js";
 import { appointmentRepository } from "../appointments/appointment.repository.js";
 
@@ -42,7 +42,26 @@ function validateReminder(reminder: Reminder): { isValid: boolean; error?: strin
   return { isValid: true };
 }
 
-export async function reminderWorker(): Promise<void> {
+type TrackedReminder = { dbId: string; messageSid: string };
+
+export async function reminderWorker(sentReminders: TrackedReminder[]): Promise<TrackedReminder[]> {
+  let activeReminders: TrackedReminder[] = [];
+  for (const sent of sentReminders) {
+    try {
+      const message = await getMessageStatus(sent.messageSid);
+      const mappedStatus = twilioToPrismaStatus[ message.status ] ?? ReminderStatus.QUEUED;
+      logger.info({ dbId: sent.dbId, messageSid: sent.messageSid, status: message.status, mappedStatus }, "Updating reminder status based on Twilio message status");
+
+      if (mappedStatus !== ReminderStatus.QUEUED) {
+        await reminderRepository.update(sent.dbId, { status: mappedStatus, error: mappedStatus === ReminderStatus.FAILED ? "Error desconocido en la entrega del mensaje" : undefined });
+      } else {
+        activeReminders.push(sent);
+      }
+    } catch (error) {
+      logger.error({ sent, error }, "Failed to update reminder status");
+    }
+  }
+
   try {
     logger.info("Running reminder scheduler worker...");
     const now = new Date();
@@ -54,14 +73,11 @@ export async function reminderWorker(): Promise<void> {
           lte: oneMinuteFromNow,
         },
       },
-      include: {
-        patient: true,
-      },
     });
 
     if (remindersToSend.length === 0) {
       logger.info("No reminders to send at this time");
-      return;
+      return activeReminders;
     }
 
     logger.info(`Found ${remindersToSend.length} reminder(s) to send`);
@@ -118,8 +134,9 @@ export async function reminderWorker(): Promise<void> {
 
         if (result.success) {
           logger.info({ reminderId: reminder.id, messageSid: result.messageSid }, "Reminder sent successfully");
+          if (result.messageSid) activeReminders.push({ dbId: reminder.id, messageSid: result.messageSid });
           await reminderRepository.update(reminder.id, {
-            status: ReminderStatus.SENT,
+            status: ReminderStatus.QUEUED,
             messageId: result.messageSid ?? "",
           });
         } else {
@@ -131,18 +148,17 @@ export async function reminderWorker(): Promise<void> {
         }
       } catch (error) {
         logger.error({ reminderId: reminder.id, error }, "Error processing reminder");
-        try {
-          await reminderRepository.update(reminder.id, {
-            status: ReminderStatus.FAILED,
-            error: error instanceof Error ? error.message : "Unknown error",
-          });
-        } catch (updateError) {
-          logger.error({ reminderId: reminder.id, updateError }, "Failed to update reminder status");
-        }
+        await reminderRepository.update(reminder.id, {
+          status: ReminderStatus.FAILED,
+          error: error instanceof Error ? error.message : "Unknown error",
+        });
       }
     }
   } catch (error) {
     logger.error({ error }, "Error in reminder scheduler worker");
+  }
+  finally {
+    return activeReminders;
   }
 }
 
@@ -180,9 +196,9 @@ export async function appointmentWorker(): Promise<void> {
 
 export function initializeSchedulers(): void {
   logger.info("Initializing reminder scheduler...");
-
+  let sentReminders: TrackedReminder[] = [];
   schedulerTask = cron.schedule("* * * * *", async () => { // */5 * * * *
-    await reminderWorker();
+    sentReminders = await reminderWorker(sentReminders);
     await appointmentWorker();
   });
 
@@ -197,3 +213,11 @@ export function stopScheduler(): void {
     logger.info("Reminder scheduler stopped");
   }
 }
+
+const twilioToPrismaStatus: Partial<Record<string, ReminderStatus>> = {
+  queued: ReminderStatus.QUEUED,
+  sent: ReminderStatus.SENT,
+  delivered: ReminderStatus.SENT,
+  failed: ReminderStatus.FAILED,
+  undelivered: ReminderStatus.FAILED,
+};

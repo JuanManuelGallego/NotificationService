@@ -1,6 +1,9 @@
 import { ConfigProvider, DatePicker } from "antd";
 import dayjs, { Dayjs } from "dayjs";
+import 'dayjs/locale/es';
 import esEs from 'antd/locale/es_ES';
+
+dayjs.locale('es');
 import { useFetchAppointments } from "../api/useFetchAppointments";
 import { antThemeConfig } from "@/src/styles/theme";
 
@@ -39,8 +42,8 @@ export function AppointmentDateTimePicker({
                     format: "HH:mm",
                     minuteStep: 5,
                 }}
+                needConfirm
                 showNow={false}
-                needConfirm={false}
                 format="DD/MM/YYYY HH:mm"
                 placeholder="Selecciona fecha y hora"
                 disabledDate={(current) => current && current.isBefore(dayjs(), "day")}

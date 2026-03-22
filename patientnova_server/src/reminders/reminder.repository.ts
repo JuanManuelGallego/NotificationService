@@ -74,7 +74,7 @@ export const reminderRepository = {
   },
 
   async update(id: string, dto: UpdateReminderDto): Promise<Reminder> {
-    await reminderRepository.findById(id); // throws if not found
+    await reminderRepository.findById(id);
     return prisma.reminder.update({
       where: { id },
       data: {

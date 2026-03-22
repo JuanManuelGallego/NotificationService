@@ -3,22 +3,22 @@ import { useCreateReminder } from "@/src/api/useCreateReminder";
 import { useUpdateAppointment } from "@/src/api/useUpdateAppointment";
 import { useUpdateReminder } from "@/src/api/useUpdateReminder";
 import { Appointment, AppointmentForm, AppointmentStatus, APPOINTMENT_TYPES, AppointmentDuration, APPOINTMENT_LOCATIONS, LOCATION_CFG, STATUS_CFG } from "@/src/types/Appointment";
-import { Patient } from "@/src/types/Patient";
 import { ReminderType, Reminder, ReminderMode, ReminderStatus, CHANNEL_ICON, CHANNEL_LABEL, Channel } from "@/src/types/Reminder";
 import { getAvatarColor, getInitials } from "@/src/utils/AvatarHelper";
 import { isReminderTypeFeasible, formatDate, formatTime, getDuration, getRemindersendAt, getAppointmentEndTime, getTommorrowSixAm } from "@/src/utils/TimeUtils";
 import { useState } from "react";
 import { AppointmentDateTimePicker } from "../AppointmentDateTimePicker";
 import { RequiredField } from "../Info/Requiered";
+import { useFetchPatients } from "@/src/api/useFetchPatients";
 
-export function AppointmentModal({ appt, patients, prefillDate, onClose, onSaved }: {
+export function AppointmentModal({ appt, prefillDate, onClose, onSaved }: {
   appt?: Appointment;
-  patients: Patient[];
   prefillDate?: string | null;
   onClose: () => void;
   onSaved: () => void;
 }) {
   const isEdit = !!appt;
+  const { patients } = useFetchPatients();
   const { createAppointment } = useCreateAppointment();
   const { updateAppointment } = useUpdateAppointment();
   const { createReminder } = useCreateReminder();
@@ -38,7 +38,7 @@ export function AppointmentModal({ appt, patients, prefillDate, onClose, onSaved
     price: appt?.price ?? APPOINTMENT_TYPES[ 1 ].price,
     paid: appt?.paid ?? false,
     duration: getDuration(appt?.startAt, appt?.endAt) ?? APPOINTMENT_TYPES[ 1 ].duration,
-    reminderType: appt?.reminderId ? ReminderType.ONE_DAY_BEFORE : ReminderType.NONE,
+    reminderType: appt?.reminder ? ReminderType.ONE_DAY_BEFORE : ReminderType.NONE,
     notes: appt?.notes ?? undefined,
   });
 
@@ -81,8 +81,8 @@ export function AppointmentModal({ appt, patients, prefillDate, onClose, onSaved
     setSaving(true); setError(null);
     try {
       if (isEdit) {
-        if (appt!.reminderId) {
-          await updateReminder(appt!.reminderId, buildReminderPayload());
+        if (appt!.reminder) {
+          await updateReminder(appt!.reminder.id, buildReminderPayload());
         } else if (form.reminderType !== ReminderType.NONE) {
           const reminder = await createReminder(buildReminderPayload())
           form.reminderId = reminder.id;

@@ -39,7 +39,7 @@ export const useFetchAppointments = (filters?: FetchAppointmentsFilters) => {
 
     useEffect(() => {
         fetchAppointments();
-        const interval = setInterval(fetchAppointments, 60000); // Poll every 1 minute
+        const interval = setInterval(fetchAppointments, 300000); // Poll every 5 minutes
         return () => clearInterval(interval);
     }, [ fetchAppointments ]);
 

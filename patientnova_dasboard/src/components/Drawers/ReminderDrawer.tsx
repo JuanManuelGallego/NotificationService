@@ -12,7 +12,7 @@ export function ReminderDrawer({ reminder, onClose, onEdit, onCancel }: {
     const s = REMINDER_STATUS_CONFIG[ reminder.status ];
     const channelLabel = getChannelLabel(reminder.channel);
     const channelIcon = getChannelIcon(reminder.channel);
-    const isPending = reminder.status === ReminderStatus.PENDING;
+    const isActive = reminder.status === ReminderStatus.PENDING || reminder.status === ReminderStatus.QUEUED;
 
     return (
         <div className="drawer-overlay" onClick={onClose}>
@@ -35,7 +35,7 @@ export function ReminderDrawer({ reminder, onClose, onEdit, onCancel }: {
                         <Row icon="📢" label="Modo" value={reminder.sendMode === ReminderMode.IMMEDIATE ? "Inmediato" : "Programado"} />
                     </Section>
                     <Section title="Programación">
-                        <Row icon="⏰" label={isPending ? "Se envia el" : "Enviado el"} value={fmtDateAndTime(reminder.sendAt)} />
+                        <Row icon="⏰" label={isActive ? "Se envia el" : "Enviado el"} value={fmtDateAndTime(reminder.sendAt)} />
                         {reminder.sendAt && <Row icon="🗓️" label="Programado" value={fmtDateAndTime(reminder.sendAt)} />}
                     </Section>
                     <Section title="Mensaje">
@@ -53,7 +53,7 @@ export function ReminderDrawer({ reminder, onClose, onEdit, onCancel }: {
                         <Row icon="🆔" label="Twillo ID" value={<span className="mono">{reminder.messageId ?? '-'}</span>} />
                     </Section>
                 </div>
-                {isPending && <div className="drawer-footer">
+                {isActive && <div className="drawer-footer">
                     <button onClick={onEdit} className="btn-primary btn-primary--block">✏️ Reprogramar</button>
                     <button onClick={onCancel} className="btn-drawer-delete">🗑️ Cancelar</button>
                 </div>}

@@ -24,7 +24,7 @@ const PAGE_SIZE = 10;
 
 export default function RemindersPage() {
     const { patients } = useFetchPatients();
-    const { stats } = useFetchRemindersStats();
+    const { stats, fetchStats } = useFetchRemindersStats();
     const [ activeTab, setActiveTab ] = useState<ActiveTab>("Active");
     const [ page, setPage ] = useState(1);
 
@@ -37,7 +37,7 @@ export default function RemindersPage() {
     const [ cancelReminder, setCancelReminder ] = useState<Reminder | null>(null);
 
     const filters = useMemo<FetchRemindersFilters>(() => ({
-        status: activeTab === "Active" ? [ ReminderStatus.PENDING ] : activeTab === "History" ? [ ReminderStatus.SENT, ReminderStatus.FAILED, ReminderStatus.CANCELLED ] : undefined,
+        status: activeTab === "Active" ? [ ReminderStatus.PENDING, ReminderStatus.QUEUED ] : activeTab === "History" ? [ ReminderStatus.SENT, ReminderStatus.FAILED, ReminderStatus.CANCELLED ] : undefined,
         page,
         pageSize: PAGE_SIZE,
         search: debouncedSearch.trim() || undefined,
@@ -66,14 +66,14 @@ export default function RemindersPage() {
                         </div>
                     </div>
                     <div className="stats-grid">
-                        <StatCard label="Activos" value={stats?.byStatus[ ReminderStatus.PENDING ] || 0} sub="en cola de envío" accent="var(--c-link)" />
+                        <StatCard label="Activos" value={(stats?.byStatus[ ReminderStatus.PENDING ] || 0) + (stats?.byStatus[ ReminderStatus.QUEUED ] || 0)} sub="por enviar" accent="var(--c-link)" />
                         <StatCard label="Enviados" value={stats?.byStatus[ ReminderStatus.SENT ] || 0} sub="entregados" accent="var(--c-success)" />
                         <StatCard label="Fallidos" value={stats?.byStatus[ ReminderStatus.FAILED ] || 0} sub="requieren atención" accent="var(--c-error)" />
                         <StatCard label="Cancelados" value={stats?.byStatus[ ReminderStatus.CANCELLED ] || 0} sub="fuera de la cola" accent="var(--c-gray-400)" />
                     </div>
                     <div className="tab-nav">
                         {([
-                            { key: "Active", label: "Activos", badge: stats?.byStatus[ ReminderStatus.PENDING ] || 0 },
+                            { key: "Active", label: "Activos", badge: (stats?.byStatus[ ReminderStatus.PENDING ] || 0) + (stats?.byStatus[ ReminderStatus.QUEUED ] || 0) },
                             { key: "History", label: "Historial", badge: (stats?.byStatus[ ReminderStatus.SENT ] || 0) + (stats?.byStatus[ ReminderStatus.FAILED ] || 0) + (stats?.byStatus[ ReminderStatus.CANCELLED ] || 0) },
                             { key: "Bulk", label: "Envío Masivo", badge: null },
                         ] as const).map(tab => (
@@ -103,7 +103,7 @@ export default function RemindersPage() {
                             </div>
                         </div>
                     )}
-                    {error && activeTab !== "Bulk" && <ErrorBanner msg={error} onRetry={fetchReminders} />}
+                    {error && activeTab !== "Bulk" && <ErrorBanner msg={error} onRetry={() => { fetchReminders(); fetchStats(); }} />}
                     {activeTab === "Active" && (
                         <DataTable
                             columns={[ "Destinatario", "Canal", "Estado", "Programado para", "En", "Creado el", "" ]}
@@ -137,7 +137,7 @@ export default function RemindersPage() {
                     )}
                     {activeTab === "History" && (
                         <DataTable
-                            columns={[ "Destinatario", "Canal", "Estado", "Enviado", "ID Mensaje", "Error" ]}
+                            columns={[ "Destinatario", "Canal", "Estado", "Programado para", "ID Mensaje", "Error" ]}
                             rows={reminders}
                             loading={loading}
                             skeletonCount={5}
@@ -182,10 +182,10 @@ export default function RemindersPage() {
                 </main>
             </div>
             {showCreate && (
-                <ReminderModal patients={patients} onClose={() => { setShowCreate(false); fetchReminders() }} onSaved={fetchReminders} />
+                <ReminderModal patients={patients} onClose={() => { setShowCreate(false); fetchReminders(); fetchStats(); }} onSaved={() => { fetchReminders(); fetchStats(); }} />
             )}
             {editReminder && (
-                <EditScheduledReminderModal reminder={editReminder} onClose={() => setEditReminder(null)} onSaved={fetchReminders} />
+                <EditScheduledReminderModal reminder={editReminder} onClose={() => setEditReminder(null)} onSaved={() => { fetchReminders(); fetchStats(); }} />
             )}
             {viewReminder && (
                 <ReminderDrawer
@@ -199,7 +199,7 @@ export default function RemindersPage() {
                 <CancelReminderModal
                     reminder={cancelReminder}
                     onClose={() => setCancelReminder(null)}
-                    onCanceled={() => { setCancelReminder(null); fetchReminders(); }}
+                    onCanceled={() => { setCancelReminder(null); fetchReminders(); fetchStats(); }}
                 />
             )}
         </>
