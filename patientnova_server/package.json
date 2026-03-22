@@ -1,5 +1,5 @@
 {
-  "name": "notification_server",
+  "name": "patientnova_server",
   "version": "1.0.0",
   "type": "module",
   "main": "server.js",

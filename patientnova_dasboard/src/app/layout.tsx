@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Recordatorios",
-  description: "Dashboard para gestionar recordatorios de citas médicas",
+  title: "Patient Nova",
+  description: "Dashboard para gestionar pacientes, citas y más.",
 };
 
 export default function RootLayout({

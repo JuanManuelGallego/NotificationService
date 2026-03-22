@@ -26,8 +26,8 @@ export default function Sidebar() {
                         fontSize: 18,
                     }}>🔔</div>
                     <div>
-                        <div style={{ fontSize: 15, fontWeight: 700, color: "var(--c-white)", letterSpacing: "-0.01em" }}>Notification Service</div>
-                        <div style={{ fontSize: 11, color: "var(--c-brand-sub)", fontWeight: 500 }}>Alertas de Pacientes</div>
+                        <div style={{ fontSize: 15, fontWeight: 700, color: "var(--c-white)", letterSpacing: "-0.01em" }}>Patient Nova</div>
+                        <div style={{ fontSize: 11, color: "var(--c-brand-sub)", fontWeight: 500 }}>Gestion de pacientes</div>
                     </div>
                 </div>
             </div>
