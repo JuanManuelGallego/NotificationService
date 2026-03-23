@@ -7,8 +7,7 @@ export const useNotify = () => {
     const [ error, setError ] = useState<string | null>(null);
 
     const notify = useCallback(async (channel: Channel, payload: Partial<Reminder>) => {
-        setLoading(true);
-        setError(null);
+        setLoading(true); setError(null);
 
         try {
             const res = await fetch(`${API_BASE}/notify/${channel.toLowerCase()}`, {
@@ -29,7 +28,7 @@ export const useNotify = () => {
                 throw new Error("API returned an error");
             }
 
-            return json.data;
+            return json.data as Reminder;
         } catch (err) {
             const errorMessage = err instanceof Error ? err.message : "Failed to send notification";
             setError(errorMessage);

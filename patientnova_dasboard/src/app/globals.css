@@ -454,6 +454,54 @@ body {
   background: var(--c-brand);
 }
 
+.phone-input-group {
+  display: flex;
+  align-items: center;
+  border: 1.5px solid var(--c-gray-200);
+  border-radius: var(--r-lg);
+  background: var(--c-input-bg);
+  overflow: hidden;
+}
+
+.phone-input-group:focus-within {
+  border-color: var(--c-brand);
+}
+
+.phone-input-code {
+  appearance: none;
+  border: none;
+  background: transparent;
+  font-size: 13px;
+  font-family: inherit;
+  color: var(--c-gray-700);
+  padding: 10px 4px 10px 12px;
+  outline: none;
+  cursor: pointer;
+  width: 50px;
+  flex-shrink: 0;
+}
+
+.phone-input-flag {
+  flex-shrink: 0;
+  pointer-events: none;
+  margin-left: 12px;
+  border-radius: 2px;
+  object-fit: cover;
+}
+
+.phone-input-number {
+  border: none;
+  background: transparent;
+  font-size: 14px;
+  font-family: inherit;
+  color: var(--c-gray-900);
+  padding: 10px 14px 10px 8px;
+  outline: none;
+  flex: 1;
+  min-width: 0;
+  max-width: 100px;
+}
+
 .form-grid-2 {
   display: grid;
   grid-template-columns: 1fr 1fr;

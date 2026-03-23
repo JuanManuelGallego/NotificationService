@@ -1,5 +1,5 @@
 import { Appointment, APPT_STATUS_CFG } from "@/src/types/Appointment";
-import { CHANNEL_LABEL, getChannelIcon, REMINDER_STATUS_CONFIG } from "@/src/types/Reminder";
+import { REMINDER_STATUS_CONFIG } from "@/src/types/Reminder";
 import { getAvatarColor, getInitials } from "@/src/utils/AvatarHelper";
 import { fmtDate, fmtDateTime, fmtTime, getDuration } from "@/src/utils/TimeUtils";
 import { PayBadge } from "../Info/PayBadge";

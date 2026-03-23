@@ -5,6 +5,7 @@ import { validateEmail, validatePhoneNumber } from "@/src/utils/DataValidator";
 import { useState } from "react";
 import { RequiredField } from "../Info/Requiered";
 import { DateTimePicker } from "../DateTimePicker";
+import { CountryCodeInput } from "../CountryCodeInput";
 
 export function PatientModal({
   onClose,
@@ -116,11 +117,17 @@ export function PatientModal({
           <div className="form-grid-2">
             <label className="form-label">
               💬 WhatsApp
-              <input className="form-input" value={form.whatsappNumber || undefined} onChange={set("whatsappNumber")} placeholder="+15551234567" />
+              <CountryCodeInput
+                value={form.whatsappNumber || undefined}
+                onChange={(v) => setForm(f => ({ ...f, whatsappNumber: v }))}
+              />
             </label>
             <label className="form-label">
               📱 SMS
-              <input className="form-input" value={form.smsNumber || undefined} onChange={set("smsNumber")} placeholder="+15551234567" />
+              <CountryCodeInput
+                value={form.smsNumber || undefined}
+                onChange={(v) => setForm(f => ({ ...f, smsNumber: v }))}
+              />
             </label>
           </div>
           <label className="form-label">
