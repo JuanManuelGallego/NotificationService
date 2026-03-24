@@ -4,8 +4,8 @@
   "type": "module",
   "main": "server.js",
   "scripts": {
-    "start": "tsc && node dist/server.js",
-    "build": "tsc",
+    "build": "prisma generate && tsc",
+    "start": "prisma migrate deploy && node dist/server.js",
     "dev": "tsx watch src/server.ts",
     "lint": "eslint src/**/*.ts",
     "db:migrate": "prisma migrate dev",
