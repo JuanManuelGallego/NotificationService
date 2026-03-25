@@ -2,6 +2,7 @@ import { useCreateReminder } from "@/src/api/useCreateReminder";
 import { useNotify } from "@/src/api/useNotify";
 import { DateTimePicker } from "@/src/components/DateTimePicker";
 import { ChannelBadge } from "@/src/components/Info/ChannelIcon";
+import { REMINDER_TEMPLATE } from "@/src/types/Appointment";
 import { Patient } from "@/src/types/Patient";
 import { ReminderMode, BulkRemindersResult, CHANNEL_ICON, CHANNEL_LABEL, Channel, StepChannelProps, StepMessageProps, StepPatientsProps, StepResultsProps } from "@/src/types/Reminder";
 import { getAvatarColor, getInitials } from "@/src/utils/AvatarHelper";
@@ -58,24 +59,27 @@ export function BulkSendWizard({ patients }: { patients: Patient[] }) {
                     await notify(channel, {
                         to,
                         patientId: pid,
-                        contentSid: "HXb5b62575e6e4ff6129ad7c8efe1f983e",
+                        contentSid: "HX37ade446b4d27706eefce63ee11d1528",
                         contentVariables: {
-                            "1": "12/1",
-                            "2": "3pm"
+                            "1": "12 de Abril",
+                            "2": "3:00 PM"
                         },
+                        body: message || REMINDER_TEMPLATE.replace("{{1}}", "12 de Abril").replace("{{2}}", "3:00 PM"),
                     });
                 } else {
                     await createReminder({
                         patientId: pid,
-                        contentSid: "HXb5b62575e6e4ff6129ad7c8efe1f983e",
+                        contentSid: "HX37ade446b4d27706eefce63ee11d1528",
                         contentVariables: {
-                            "1": "12/1",
-                            "2": "3pm"
+                            "1": "12 de Abril",
+                            "2": "3:00 PM"
                         },
                         sendMode,
                         channel,
                         to,
-                        sendAt
+                        sendAt,
+                        body: message || REMINDER_TEMPLATE.replace("{{1}}", "12 de Abril").replace("{{2}}", "3:00 PM"),
+
                     });
                 }
                 return { patientId: pid, name: fullName, channel, status: "ok", reason: "" };
@@ -85,7 +89,7 @@ export function BulkSendWizard({ patients }: { patients: Patient[] }) {
         });
         const res = await Promise.all(tasks);
         setResults(res); setSending(false); setDone(true); setStep(4);
-    }, [ eligible, selected, channel, sendMode, sendAt, notify, createReminder ]);
+    }, [ eligible, selected, channel, sendMode, sendAt, notify, createReminder, message ]);
 
     const reset = useCallback(() => { setStep(1); setSelected(new Set()); setMessage(""); setResults([]); setDone(false); }, []);
 

@@ -2,10 +2,10 @@ import { useCreateAppointment } from "@/src/api/useCreateAppointment";
 import { useCreateReminder } from "@/src/api/useCreateReminder";
 import { useUpdateAppointment } from "@/src/api/useUpdateAppointment";
 import { useUpdateReminder } from "@/src/api/useUpdateReminder";
-import { Appointment, AppointmentForm, AppointmentStatus, APPT_TYPE_CFG, AppointmentDuration, APPOINTMENT_LOCATIONS, APT_LOCATION_CFG, APPT_STATUS_CFG, AppointmentType, APPT_PAID_STATUS_CFG, AppointmentPaidStatus } from "@/src/types/Appointment";
+import { Appointment, AppointmentForm, AppointmentStatus, APPT_TYPE_CFG, AppointmentDuration, APPOINTMENT_LOCATIONS, APT_LOCATION_CFG, APPT_STATUS_CFG, AppointmentType, APPT_PAID_STATUS_CFG, AppointmentPaidStatus, REMINDER_TEMPLATE } from "@/src/types/Appointment";
 import { ReminderType, Reminder, ReminderMode, ReminderStatus, CHANNEL_ICON, CHANNEL_LABEL, Channel, REMINDER_TYPE_CONFIG } from "@/src/types/Reminder";
 import { getAvatarColor, getInitials } from "@/src/utils/AvatarHelper";
-import { isReminderTypeFeasible, formatDate, formatTime, getDuration, getRemindersendAt, getAppointmentEndTime, getTommorrowSixAm, getReminderType } from "@/src/utils/TimeUtils";
+import { isReminderTypeFeasible, formatDate, formatTime, getDuration, getRemindersendAt, getAppointmentEndTime, getTommorrowSixAm, getReminderType, getDate } from "@/src/utils/TimeUtils";
 import { useState } from "react";
 import { AppointmentDateTimePicker } from "../AppointmentDateTimePicker";
 import { CustomSelect } from "../CustomSelect";
@@ -70,11 +70,12 @@ export function AppointmentModal({ appt, prefillDate, onClose, onSaved }: {
 
     return {
       to,
-      contentSid: "HXb5b62575e6e4ff6129ad7c8efe1f983e",
+      contentSid: "HX37ade446b4d27706eefce63ee11d1528",
       contentVariables: {
-        "1": "12/1",
-        "2": "3pm"
+        "1": getDate(form.startAt),
+        "2": formatTime(form.startAt)
       },
+      body: REMINDER_TEMPLATE.replace("{{1}}", formatDate(form.startAt)).replace("{{2}}", formatTime(form.startAt)),
       patientId: form.patientId,
       channel: reminderChannel,
       sendMode: ReminderMode.SCHEDULED,
@@ -251,7 +252,7 @@ function LocationAndTimeStep({ form, set, setForm, selectedPatient, reminderChan
               <div className="channel-section-label">Canal de notificación</div>
               <div style={{ display: "flex", gap: 10 }}>
                 {Object.values(Channel).map(c => {
-                  const available = (c === Channel.WHATSAPP && !!selectedPatient?.whatsappNumber) //|| (c === Channel.SMS && !!selectedPatient?.smsNumber) || (c === Channel.EMAIL && !!selectedPatient?.email);
+                  const available = (c === Channel.WHATSAPP && !!selectedPatient?.whatsappNumber) || (c === Channel.SMS && !!selectedPatient?.smsNumber)// || (c === Channel.EMAIL && !!selectedPatient?.email);
                   return (
                     <button
                       key={c}

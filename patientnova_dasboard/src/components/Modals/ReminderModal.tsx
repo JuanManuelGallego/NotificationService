@@ -1,6 +1,6 @@
 import { useCreateReminder } from "@/src/api/useCreateReminder";
 import { useNotify } from "@/src/api/useNotify";
-import { AppointmentType, APPT_TYPE_CFG } from "@/src/types/Appointment";
+import { AppointmentType, APPT_TYPE_CFG, REMINDER_TEMPLATE } from "@/src/types/Appointment";
 import { Patient } from "@/src/types/Patient";
 import { Reminder, ReminderMode, CHANNEL_ICON, CHANNEL_LABEL, Channel, ReminderForm } from "@/src/types/Reminder";
 import { getAvatarColor, getInitials } from "@/src/utils/AvatarHelper";
@@ -68,8 +68,9 @@ export function ReminderModal({
 
         return {
             to,
-            contentSid: "HXb5b62575e6e4ff6129ad7c8efe1f983e",
-            contentVariables: { "1": "12/1", "2": "3pm" },
+            contentSid: "HX37ade446b4d27706eefce63ee11d1528",
+            contentVariables: { "1": "12 de Abril", "2": "3:00 PM" },
+            body: form.message,
             patientId: form.patientId,
         };
     }
@@ -216,7 +217,7 @@ function ChannelAndMessageStep({ form, setForm, selectedPatient, sendMode, set }
                 <div className="channel-section-label"><RequiredField label="Canal de notificación" /></div>
                 <div style={{ display: "flex", gap: 10 }}>
                     {Object.values(Channel).map(c => {
-                        const available = (c === Channel.WHATSAPP && !!selectedPatient?.whatsappNumber) //|| (c === Channel.SMS && !!selectedPatient?.smsNumber) || (c === Channel.EMAIL && !!selectedPatient?.email);
+                        const available = (c === Channel.WHATSAPP && !!selectedPatient?.whatsappNumber) || (c === Channel.SMS && !!selectedPatient?.smsNumber) //|| (c === Channel.EMAIL && !!selectedPatient?.email);
                         return (
                             <button
                                 key={c}
@@ -255,6 +256,18 @@ function ChannelAndMessageStep({ form, setForm, selectedPatient, sendMode, set }
                     placeholder={`Hola ${selectedPatient?.name ?? "{nombre}"}, le recordamos su cita${form.appointmentType ? ` de ${form.appointmentType}` : ""} próximamente. Por favor confirme su asistencia.`}
                 />
                 <span className="form-input-hint">{form.message.length} / 1600 caracteres</span>
+                <div className="channel-section-label">Plantillas rápidas</div>
+                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                    {[
+                        "Le recordamos su próxima cita médica. Por favor confirme su asistencia respondiendo este mensaje.",
+                        "Su cita está confirmada para mañana. Recuerde traer su tarjeta de seguro y llegar 10 minutos antes.",
+                        "Importante: No olvide su cita de mañana. Si necesita cancelar, contáctenos con 24 horas de anticipación.",
+                    ].map((tmpl) => (
+                        <button key={tmpl} onClick={() => setForm(f => ({ ...f, message: tmpl }))} className="template-btn">
+                            {tmpl}
+                        </button>
+                    ))}
+                </div>
             </label>
         </div>
     );

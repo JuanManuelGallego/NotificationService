@@ -1,8 +1,8 @@
 import { Router, type Request, type Response } from 'express';
 
 import { handleError, ok } from '../utils/apiUtils.js';
-import { scheduleWhatsApp, sendSms, sendWhatsApp } from '../twillo/twilioClient.js';
-import { scheduleSchema, sendSmsSchema, sendWhatsAppSchema, validate } from '../utils/validation.js';
+import { sendSms, sendWhatsApp } from '../twillo/twilioClient.js';
+import { sendSmsSchema, sendWhatsAppSchema, validate } from '../utils/validation.js';
 import { reminderRepository } from '../reminders/reminder.repository.js';
 import { Channel } from '../utils/types.js';
 import { ReminderMode, ReminderStatus } from '@prisma/client';

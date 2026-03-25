@@ -2,7 +2,7 @@ import cron from "node-cron";
 import { ReminderStatus, Channel, type Reminder, AppointmentStatus } from "@prisma/client";
 import { prisma } from "../prisma/prismaClient.js";
 import { logger } from "./logger.js";
-import { getMessageStatus, sendWhatsApp } from "../twillo/twilioClient.js";
+import { getMessageStatus, sendSms, sendWhatsApp } from "../twillo/twilioClient.js";
 import { reminderRepository } from "../reminders/reminder.repository.js";
 import { appointmentRepository } from "../appointments/appointment.repository.js";
 
@@ -36,6 +36,15 @@ function validateReminder(reminder: Reminder): { isValid: boolean; error?: strin
         reminder.contentVariables === null)
     ) {
       return { isValid: false, error: "Invalid contentVariables format" };
+    }
+  }
+
+  if (reminder.channel === Channel.SMS || reminder.channel === Channel.EMAIL) {
+    if (!reminder.body) {
+      return {
+        isValid: false,
+        error: `Missing body for ${reminder.channel} message`,
+      };
     }
   }
 
@@ -109,11 +118,10 @@ export async function reminderWorker(sentReminders: TrackedReminder[]): Promise<
             break;
 
           case Channel.SMS:
-            result = {
-              success: false,
-              error: "SMS channel not yet implemented",
-              messageSid: null,
-            };
+            result = await sendSms({
+              to: reminder.to!,
+              body: reminder.body!,
+            });
             break;
 
           case Channel.EMAIL:

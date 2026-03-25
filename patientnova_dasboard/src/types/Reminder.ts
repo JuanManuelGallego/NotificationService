@@ -12,6 +12,7 @@ export interface Reminder {
 
     contentSid?: string | null;
     contentVariables?: Record<string, string> | null;
+    body?: string | null;
 
     status: ReminderStatus;
     error?: string | null;

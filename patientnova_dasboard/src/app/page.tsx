@@ -9,10 +9,10 @@ import { useFetchAppointmentsStats } from "../api/useFetchAppointmentsStats";
 import { useFetchRemindersStats } from "../api/useFetchRemindersStats";
 import { useFetchAppointments } from "../api/useFetchAppointments";
 import { useFetchReminders } from "../api/useFetchReminders";
-import { APT_LOCATION_CFG } from "../types/Appointment";
+import { APT_LOCATION_CFG as APPT_LOCATION_CFG, APPT_TYPE_CFG } from '../types/Appointment';
 import { ReminderStatus, CHANNEL_ICON } from "../types/Reminder";
 import { PatientStatus } from "../types/Patient";
-import { fmtDateAndTime, fmtRelative, today } from "../utils/TimeUtils";
+import { fmtDateAndTime, fmtRelative } from "../utils/TimeUtils";
 import { getAvatarColor, getInitials } from "../utils/AvatarHelper";
 import { useMemo } from "react";
 
@@ -21,15 +21,20 @@ export default function DashboardPage() {
   const { stats: apptStats } = useFetchAppointmentsStats();
   const { stats: reminderStats } = useFetchRemindersStats();
 
-  const todayStr = today();
-  const todayFilters = useMemo(() => ({
-    dateFrom: `${todayStr}T00:00:00.000Z`,
-    dateTo: `${todayStr}T23:59:59.999Z`,
-    page: 1,
-    pageSize: 5,
-    orderBy: "startAt" as const,
-    order: "asc" as const,
-  }), [ todayStr ]);
+  const todayFilters = useMemo(() => {
+    const start = new Date();
+    start.setHours(0, 0, 0, 0);
+    const end = new Date();
+    end.setHours(23, 59, 59, 999);
+    return {
+      dateFrom: start.toISOString(),
+      dateTo: end.toISOString(),
+      page: 1,
+      pageSize: 5,
+      orderBy: "startAt" as const,
+      order: "asc" as const,
+    };
+  }, []);
   const { appointments: todayAppts, loading: loadingAppts } = useFetchAppointments(todayFilters);
 
   const reminderFilters = useMemo(() => ({
@@ -118,11 +123,11 @@ export default function DashboardPage() {
                         </div>
                         <div>
                           <div className="dash-list-item__name">{a.patient.name} {a.patient.lastName}</div>
-                          <div className="dash-list-item__meta">{a.type} · {fmtDateAndTime(a.startAt)}</div>
+                          <div className="dash-list-item__meta">{APPT_TYPE_CFG[a.type].label} · {fmtDateAndTime(a.startAt)}</div>
                         </div>
                       </div>
                       <div className="dash-list-item__right">
-                        <div className="location-badge" style={{ background: APT_LOCATION_CFG[ a.location ]?.bg || "var(--c-gray-100)", color: APT_LOCATION_CFG[ a.location ]?.color || "var(--c-gray-700)", fontSize: 11 }}>
+                        <div className="location-badge" style={{ background: APPT_LOCATION_CFG[ a.location ]?.bg || "var(--c-gray-100)", color: APPT_LOCATION_CFG[ a.location ]?.color || "var(--c-gray-700)", fontSize: 11 }}>
                           {a.location}
                         </div>
                         <AppointmentStatusPill status={a.status} />

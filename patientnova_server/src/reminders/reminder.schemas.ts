@@ -27,6 +27,7 @@ export const createReminderSchema = z
     messageId: z.string().optional(),
     patientId: z.string().uuid(),
     appointmentId: z.string().uuid().optional(),
+    body: z.string().max(500).optional(),
   })
   .refine(
     (d) => d.sendMode === ReminderMode.IMMEDIATE || !!d.sendAt,
@@ -43,6 +44,7 @@ export const updateReminderSchema = z
     sendMode: z.nativeEnum(ReminderMode).optional(),
     sendAt: futureDate.optional(),
     messageId: z.string().optional(),
+    body: z.string().max(500).optional(),
   })
   .refine(
     (d) => Object.keys(d).length > 0,

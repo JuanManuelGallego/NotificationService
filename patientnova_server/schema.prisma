@@ -55,6 +55,7 @@ model Reminder {
 
   contentSid        String?        @db.VarChar(100)
   contentVariables  Json?
+  body              String?         @db.VarChar(500)
   
   status            ReminderStatus @default(PENDING)
   error             String?

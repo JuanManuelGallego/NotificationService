@@ -18,6 +18,7 @@ export const reminderRepository = {
         sendAt: new Date(dto.sendAt),
         status: dto.status,
         to: dto.to,
+        body: dto.body || null,
       },
       include: reminderInclude,
     });
@@ -86,7 +87,8 @@ export const reminderRepository = {
         ...(dto.sendMode !== undefined && { sendMode: dto.sendMode }),
         ...(dto.sendAt !== undefined && { sendAt: dto.sendAt }),
         ...(dto.status !== undefined && { status: dto.status }),
-        ...(dto.status === ReminderStatus.SENT && { sentAt: new Date() })
+        ...(dto.status === ReminderStatus.SENT && { sentAt: new Date() }),
+        ...(dto.body !== undefined && { body: dto.body })
       },
       include: reminderInclude,
     });

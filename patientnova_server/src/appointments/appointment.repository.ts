@@ -51,6 +51,11 @@ export const appointmentRepository = {
   async findMany(query: ListAppointmentsQuery): Promise<PaginatedAppointments> {
     const { patientId, status, startAt, dateFrom, dateTo, paid, search, page, pageSize, orderBy, order } = query;
     const skip = (page - 1) * pageSize;
+    const todayStart = new Date(startAt || new Date());
+    todayStart.setUTCHours(0, 0, 0, 0);
+    const todayEnd = new Date(startAt || new Date());
+    todayEnd.setUTCHours(23, 59, 59, 999);
+
 
     const where: Prisma.AppointmentWhereInput = {
       ...(patientId && { patientId }),
@@ -58,10 +63,10 @@ export const appointmentRepository = {
       ...(paid !== undefined && { paid }),
       ...(startAt && {
         startAt: {
-          gte: new Date(`${startAt}T00:00:00.000Z`),
-          lte: new Date(`${startAt}T23:59:59.999Z`),
+          gte: todayStart,
+          lte: todayEnd,
         },
-      }), // Only works in UTC...
+      }),
       ...(search && {
         OR: [
           { location: { contains: search, mode: 'insensitive' } },

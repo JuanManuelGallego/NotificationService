@@ -40,6 +40,7 @@ CREATE TABLE "reminders" (
     "to" VARCHAR(30) NOT NULL,
     "contentSid" VARCHAR(100),
     "contentVariables" JSONB,
+    "body" VARCHAR(500),
     "status" "ReminderStatus" NOT NULL DEFAULT 'PENDING',
     "error" TEXT,
     "sendMode" "ReminderMode" NOT NULL,
