@@ -10,6 +10,8 @@ import { patientRouter } from './patients/patient.routes.js';
 import { appointmentRouter } from './appointments/appointment.routes.js';
 import { reminderRouter } from './reminders/reminder.routes.js';
 import { notifyRouter } from './notify/notify.routes.js';
+import { authRouter } from './auth/auth.routes.js';
+import { authenticate } from './middlewares/authenticate.js';
 import { apiError } from './utils/apiUtils.js';
 
 const app: Application = express();
@@ -43,10 +45,11 @@ app.use(
     }));
 
 app.use('/', router);
-app.use('/notify', notifyRouter);
-app.use('/patients', patientRouter);
-app.use('/reminders', reminderRouter);
-app.use('/appointments', appointmentRouter);
+app.use('/auth', authRouter);
+app.use('/notify', authenticate, notifyRouter);
+app.use('/patients', authenticate, patientRouter);
+app.use('/reminders', authenticate, reminderRouter);
+app.use('/appointments', authenticate, appointmentRouter);
 
 app.use((_req: Request, res: Response) => {
     apiError(res, 'Route not found', 404);

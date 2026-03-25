@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { DM_Sans } from "next/font/google";
 import { NuqsAdapter } from 'nuqs/adapters/next/app'
+import { SessionProvider } from 'next-auth/react';
 import "./globals.css";
 
 const dmSans = DM_Sans({
@@ -22,9 +23,11 @@ export default function RootLayout({
   return (
     <html lang="en" className={dmSans.className}>
       <body>
-        <NuqsAdapter>
-          {children}
-        </NuqsAdapter>
+        <SessionProvider>
+          <NuqsAdapter>
+            {children}
+          </NuqsAdapter>
+        </SessionProvider>
       </body>
     </html>
   );

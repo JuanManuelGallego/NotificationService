@@ -21,4 +21,9 @@ export const config = {
     windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS ?? '60000', 10),  // 1 min
     maxRequests: parseInt(process.env.RATE_LIMIT_MAX ?? '30', 10),
   },
+
+  auth: {
+    jwtSecret: requireEnv('AUTH_SECRET'),
+    bcryptRounds: parseInt(process.env.BCRYPT_ROUNDS ?? '12', 10),
+  },
 } as const;

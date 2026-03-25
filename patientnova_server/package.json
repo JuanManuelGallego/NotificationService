@@ -12,6 +12,7 @@
     "db:generate": "prisma generate",
     "db:studio": "prisma studio",
     "db:seed": "tsx src/prisma/seed.ts",
+    "db:seed-admin": "tsx src/prisma/seedAdmin.ts",
     "db:format": "npx prisma db push --accept-data-loss",
     "db:wipe": "npx prisma migrate reset --force --skip-seed"
   },
@@ -19,8 +20,10 @@
   "license": "ISC",
   "description": "",
   "devDependencies": {
+    "@types/bcrypt": "^6.0.0",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
+    "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^25.5.0",
     "@types/node-cron": "^3.0.11",
     "nodemon": "^3.1.14",
@@ -32,11 +35,13 @@
   },
   "dependencies": {
     "@prisma/client": "^5.16.0",
+    "bcrypt": "^6.0.0",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
     "express-rate-limit": "^7.3.1",
     "helmet": "^7.1.0",
+    "jsonwebtoken": "^9.0.3",
     "node-cron": "^4.2.1",
     "pg": "^8.20.0",
     "pino": "^9.14.0",
