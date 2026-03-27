@@ -10,8 +10,8 @@ import { AppointmentPatientNotFoundError, AppointmentReminderNotFoundError, Appo
 import { appointmentInclude, type AppointmentWithRelations, type PaginatedAppointments, type AppointmentStats } from '../utils/types.js';
 
 export const appointmentRepository = {
-  async create(dto: CreateAppointmentDto): Promise<AppointmentWithRelations> {
-    const patient = await prisma.patient.findUnique({ where: { id: dto.patientId } });
+  async create(dto: CreateAppointmentDto, userId: string): Promise<AppointmentWithRelations> {
+    const patient = await prisma.patient.findFirst({ where: { id: dto.patientId, userId } });
     if (!patient) throw new AppointmentPatientNotFoundError(dto.patientId);
 
     if (dto.reminderId) {
@@ -25,7 +25,7 @@ export const appointmentRepository = {
         endAt: dto.endAt,
         timezone: dto.timezone || 'CST',
         price: dto.price,
-        currency: dto.currency || "COP",
+        currency: dto.currency || 'COP',
         paid: dto.paid,
         location: dto.location,
         meetingUrl: dto.meetingUrl || null,
@@ -39,16 +39,16 @@ export const appointmentRepository = {
     });
   },
 
-  async findById(id: string): Promise<AppointmentWithRelations> {
-    const appt = await prisma.appointment.findUnique({
-      where: { id },
+  async findById(id: string, userId: string): Promise<AppointmentWithRelations> {
+    const appt = await prisma.appointment.findFirst({
+      where: { id, patient: { userId } },
       include: appointmentInclude,
     });
     if (!appt) throw new AppointmentNotFoundError(id);
     return appt;
   },
 
-  async findMany(query: ListAppointmentsQuery): Promise<PaginatedAppointments> {
+  async findMany(query: ListAppointmentsQuery, userId: string): Promise<PaginatedAppointments> {
     const { patientId, status, startAt, dateFrom, dateTo, paid, search, page, pageSize, orderBy, order } = query;
     const skip = (page - 1) * pageSize;
     const todayStart = new Date(startAt || new Date());
@@ -58,6 +58,7 @@ export const appointmentRepository = {
 
 
     const where: Prisma.AppointmentWhereInput = {
+      patient: { userId },
       ...(patientId && { patientId }),
       ...(status && { status }),
       ...(paid !== undefined && { paid }),
@@ -104,8 +105,8 @@ export const appointmentRepository = {
     return { data, total, page, pageSize, totalPages: Math.ceil(total / pageSize) };
   },
 
-  async update(id: string, dto: UpdateAppointmentDto): Promise<AppointmentWithRelations> {
-    await appointmentRepository.findById(id);
+  async update(id: string, dto: UpdateAppointmentDto, userId: string): Promise<AppointmentWithRelations> {
+    await appointmentRepository.findById(id, userId);
 
     if (dto.reminderId) {
       const reminder = await prisma.reminder.findUnique({ where: { id: dto.reminderId } });
@@ -139,13 +140,13 @@ export const appointmentRepository = {
     });
   },
 
-  async delete(id: string): Promise<Appointment> {
-    await appointmentRepository.findById(id);
+  async delete(id: string, userId: string): Promise<Appointment> {
+    await appointmentRepository.findById(id, userId);
     return prisma.appointment.delete({ where: { id } });
   },
 
-  async markPaid(id: string): Promise<AppointmentWithRelations> {
-    await appointmentRepository.findById(id);
+  async markPaid(id: string, userId: string): Promise<AppointmentWithRelations> {
+    await appointmentRepository.findById(id, userId);
     return prisma.appointment.update({
       where: { id },
       data: { paid: true },
@@ -153,9 +154,10 @@ export const appointmentRepository = {
     });
   },
 
-  async getStats(query: AppointmentStatsQuery): Promise<AppointmentStats> {
+  async getStats(query: AppointmentStatsQuery, userId: string): Promise<AppointmentStats> {
     const { patientId, dateFrom, dateTo } = query;
     const where: Prisma.AppointmentWhereInput = {
+      patient: { userId },
       ...(patientId && { patientId }),
       ...(dateFrom || dateTo
         ? {

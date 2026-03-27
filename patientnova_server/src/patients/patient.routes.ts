@@ -25,7 +25,7 @@ patientRouter.get<{}, any, any, ListPatientsQuery>(
   validateQuery(listPatientsSchema),
   async (req: Request<{}, any, any, ListPatientsQuery>, res: Response) => {
     try {
-      const result = await patientRepository.findMany(req.query);
+      const result = await patientRepository.findMany(req.query, req.user!.id);
       ok(res, result);
     } catch (err) {
       handleError(res, err);
@@ -40,9 +40,9 @@ patientRouter.get<{}, any, any, ListPatientsQuery>(
  */
 patientRouter.get(
   '/stats',
-  async (_req: Request, res: Response) => {
+  async (req: Request, res: Response) => {
     try {
-      const stats = await patientRepository.getStats();
+      const stats = await patientRepository.getStats(req.user!.id);
       ok(res, stats);
     } catch (err) {
       handleError(res, err);
@@ -59,7 +59,7 @@ patientRouter.get(
   validateParams(uuidParamSchema),
   async (req: Request, res: Response) => {
     try {
-      const patient = await patientRepository.findById(req.params.id as string);
+      const patient = await patientRepository.findById(req.params.id as string, req.user!.id);
       ok(res, patient);
     } catch (err) {
       handleError(res, err);
@@ -76,7 +76,7 @@ patientRouter.post(
   validateBody(createPatientSchema),
   async (req: Request, res: Response) => {
     try {
-      const patient = await patientRepository.create(req.body);
+      const patient = await patientRepository.create(req.body, req.user!.id);
       logger.info({ patientId: patient.id }, 'Patient created');
       ok(res, patient, 201);
     } catch (err) {
@@ -95,7 +95,7 @@ patientRouter.patch(
   validateBody(updatePatientSchema),
   async (req: Request, res: Response) => {
     try {
-      const patient = await patientRepository.update(req.params.id as string, req.body);
+      const patient = await patientRepository.update(req.params.id as string, req.body, req.user!.id);
       logger.info({ patientId: patient.id }, 'Patient updated');
       ok(res, patient);
     } catch (err) {
@@ -114,7 +114,7 @@ patientRouter.delete(
   validateParams(uuidParamSchema),
   async (req: Request, res: Response) => {
     try {
-      const patient = await patientRepository.delete(req.params.id as string);
+      const patient = await patientRepository.delete(req.params.id as string, req.user!.id);
       logger.info({ patientId: patient.id }, 'Patient deleted');
       ok(res, { deleted: true, id: patient.id });
     } catch (err) {

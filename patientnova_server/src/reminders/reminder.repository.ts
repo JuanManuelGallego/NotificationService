@@ -5,7 +5,9 @@ import { ReminderNotFoundError, ReminderNotCancellableError } from '../utils/err
 import { reminderInclude, type PaginatedReminders, type ReminderStats } from '../utils/types.js';
 
 export const reminderRepository = {
-  async create(dto: CreateReminderDto): Promise<Reminder> {
+  async create(dto: CreateReminderDto, userId: string): Promise<Reminder> {
+    const patient = await prisma.patient.findFirst({ where: { id: dto.patientId, userId } });
+    if (!patient) throw new Error(`Patient ${dto.patientId} not found`);
     return prisma.reminder.create({
       data: {
         channel: dto.channel,
@@ -24,20 +26,21 @@ export const reminderRepository = {
     });
   },
 
-  async findById(id: string): Promise<Reminder> {
-    const reminder = await prisma.reminder.findUnique({
-      where: { id },
+  async findById(id: string, userId: string): Promise<Reminder> {
+    const reminder = await prisma.reminder.findFirst({
+      where: { id, patient: { userId } },
       include: reminderInclude,
     });
     if (!reminder) throw new ReminderNotFoundError(id);
     return reminder;
   },
 
-  async findMany(query: ListRemindersQuery): Promise<PaginatedReminders> {
+  async findMany(query: ListRemindersQuery, userId: string): Promise<PaginatedReminders> {
     const { status, search, patientId, dateTo, dateFrom, page, pageSize, orderBy, order } = query;
     const skip = (page - 1) * pageSize;
 
     const where: Prisma.ReminderWhereInput = {
+      patient: { userId },
       ...(status && {
         status: Array.isArray(status) ? { in: status } : status
       }),
@@ -74,8 +77,8 @@ export const reminderRepository = {
     return { data, total, page, pageSize, totalPages: Math.ceil(total / pageSize) };
   },
 
-  async update(id: string, dto: UpdateReminderDto): Promise<Reminder> {
-    await reminderRepository.findById(id);
+  async update(id: string, dto: UpdateReminderDto, userId: string): Promise<Reminder> {
+    await reminderRepository.findById(id, userId);
     return prisma.reminder.update({
       where: { id },
       data: {
@@ -94,22 +97,23 @@ export const reminderRepository = {
     });
   },
 
-  async cancel(id: string): Promise<Reminder> {
-    const reminder = await reminderRepository.findById(id);
+  async cancel(id: string, userId: string): Promise<Reminder> {
+    const reminder = await reminderRepository.findById(id, userId);
     if (reminder.status !== 'PENDING') {
       throw new ReminderNotCancellableError(reminder.status);
     }
     return prisma.reminder.update({ where: { id }, data: { status: 'CANCELLED' }, include: reminderInclude });
   },
 
-  async delete(id: string): Promise<Reminder> {
-    await reminderRepository.findById(id);
+  async delete(id: string, userId: string): Promise<Reminder> {
+    await reminderRepository.findById(id, userId);
     return prisma.reminder.delete({ where: { id }, include: reminderInclude });
   },
 
-  async getStats(query: ReminderStatsQuery): Promise<ReminderStats> {
+  async getStats(query: ReminderStatsQuery, userId: string): Promise<ReminderStats> {
     const { patientId, dateFrom, dateTo } = query;
     const where: Prisma.ReminderWhereInput = {
+      patient: { userId },
       ...(patientId && { patientId }),
       ...(dateFrom || dateTo
         ? {

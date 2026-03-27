@@ -3,8 +3,6 @@ import { ReminderStatus, Channel, type Reminder, AppointmentStatus } from "@pris
 import { prisma } from "../prisma/prismaClient.js";
 import { logger } from "./logger.js";
 import { getMessageStatus, sendSms, sendWhatsApp } from "../twillo/twilioClient.js";
-import { reminderRepository } from "../reminders/reminder.repository.js";
-import { appointmentRepository } from "../appointments/appointment.repository.js";
 
 let schedulerTask: cron.ScheduledTask | null = null;
 
@@ -62,7 +60,7 @@ export async function reminderWorker(sentReminders: TrackedReminder[]): Promise<
       logger.info({ dbId: sent.dbId, messageSid: sent.messageSid, status: message.status, mappedStatus }, "Updating reminder status based on Twilio message status");
 
       if (mappedStatus !== ReminderStatus.QUEUED) {
-        await reminderRepository.update(sent.dbId, { status: mappedStatus, error: mappedStatus === ReminderStatus.FAILED ? "Error desconocido en la entrega del mensaje" : undefined });
+        await prisma.reminder.update({ where: { id: sent.dbId }, data: { status: mappedStatus, error: mappedStatus === ReminderStatus.FAILED ? "Error desconocido en la entrega del mensaje" : null } });
       } else {
         activeReminders.push(sent);
       }
@@ -98,9 +96,9 @@ export async function reminderWorker(sentReminders: TrackedReminder[]): Promise<
           logger.warn({ reminderId: reminder.id, channel: reminder.channel, error: validation.error, },
             `Reminder validation failed: ${validation.error}`
           );
-          await reminderRepository.update(reminder.id, {
-            status: ReminderStatus.FAILED,
-            error: validation.error,
+          await prisma.reminder.update({
+            where: { id: reminder.id },
+            data: { status: ReminderStatus.FAILED, error: validation.error ?? null },
           });
           continue;
         }
@@ -143,22 +141,22 @@ export async function reminderWorker(sentReminders: TrackedReminder[]): Promise<
         if (result.success) {
           logger.info({ reminderId: reminder.id, messageSid: result.messageSid }, "Reminder sent successfully");
           if (result.messageSid) activeReminders.push({ dbId: reminder.id, messageSid: result.messageSid });
-          await reminderRepository.update(reminder.id, {
-            status: ReminderStatus.QUEUED,
-            messageId: result.messageSid ?? "",
+          await prisma.reminder.update({
+            where: { id: reminder.id },
+            data: { status: ReminderStatus.QUEUED, messageId: result.messageSid ?? "" },
           });
         } else {
           logger.error({ reminderId: reminder.id, error: result.error }, "Failed to send reminder");
-          await reminderRepository.update(reminder.id, {
-            status: ReminderStatus.FAILED,
-            error: result.error,
+          await prisma.reminder.update({
+            where: { id: reminder.id },
+            data: { status: ReminderStatus.FAILED, error: result.error ?? null },
           });
         }
       } catch (error) {
         logger.error({ reminderId: reminder.id, error }, "Error processing reminder");
-        await reminderRepository.update(reminder.id, {
-          status: ReminderStatus.FAILED,
-          error: error instanceof Error ? error.message : "Unknown error",
+        await prisma.reminder.update({
+          where: { id: reminder.id },
+          data: { status: ReminderStatus.FAILED, error: error instanceof Error ? error.message : "Unknown error" },
         });
       }
     }
@@ -194,7 +192,7 @@ export async function appointmentWorker(): Promise<void> {
 
   for (const appointment of appointmentsToComplete) {
     try {
-      appointmentRepository.update(appointment.id, { status: AppointmentStatus.COMPLETED })
+      prisma.appointment.update({ where: { id: appointment.id }, data: { status: AppointmentStatus.COMPLETED, completedAt: new Date() } })
       logger.info({ appointmentId: appointment.id }, "Appointment completed successfully")
     } catch (error) {
       logger.error({ appointmentId: appointment.id }, "Failed to update appointment status");

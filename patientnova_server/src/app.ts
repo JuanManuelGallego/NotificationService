@@ -10,7 +10,10 @@ import { patientRouter } from './patients/patient.routes.js';
 import { appointmentRouter } from './appointments/appointment.routes.js';
 import { reminderRouter } from './reminders/reminder.routes.js';
 import { notifyRouter } from './notify/notify.routes.js';
+import { authRouter } from './auth/auth.routes.js';
+import { authenticate, requireAdmin, requireAdminForWrites } from './middlewares/authenticate.js';
 import { apiError } from './utils/apiUtils.js';
+import cookieParser from 'cookie-parser';
 
 const app: Application = express();
 
@@ -18,8 +21,18 @@ app.disable('x-powered-by');
 app.set('trust proxy', 1);
 
 app.use(helmet());
-app.use(cors());
+app.use(cors({
+    origin: (origin, callback) => {
+        if (!origin || config.allowedOrigins.includes(origin)) {
+            callback(null, true);
+        } else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
+    credentials: true,
+}));
 app.use(express.json({ limit: '64kb' }));
+app.use(cookieParser())
 
 app.use((req: Request, res: Response, next: NextFunction) => {
     const start = Date.now();
@@ -43,10 +56,11 @@ app.use(
     }));
 
 app.use('/', router);
-app.use('/notify', notifyRouter);
-app.use('/patients', patientRouter);
-app.use('/reminders', reminderRouter);
-app.use('/appointments', appointmentRouter);
+app.use('/auth', rateLimit({ windowMs: 15 * 60 * 1000, max: 5 }), authRouter); // Extra strict rate limit on auth routes
+app.use('/notify', authenticate, requireAdmin, notifyRouter);
+app.use('/patients', authenticate, requireAdminForWrites, patientRouter);
+app.use('/reminders', authenticate, requireAdminForWrites, reminderRouter);
+app.use('/appointments', authenticate, requireAdminForWrites, appointmentRouter);
 
 app.use((_req: Request, res: Response) => {
     apiError(res, 'Route not found', 404);

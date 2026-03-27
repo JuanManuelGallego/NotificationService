@@ -17,7 +17,12 @@ export const sendWhatsAppSchema = z
   .object({
     to: e164,
     contentSid: z.string().startsWith('HX'),
-    contentVariables: z.record(z.string()).optional(),
+    contentVariables: z.record(z.string())
+      .refine(
+        (obj) => Object.keys(obj).length <= 10 && JSON.stringify(obj).length <= 1000,
+        'Content variables too large (max 10 keys, 1000 characters total)'
+      )
+      .optional(),
     patientId: z.string().uuid().optional(),
   });
 

@@ -27,7 +27,7 @@ appointmentRouter.get<{}, any, any, ListAppointmentsQuery>(
   validateQuery(listAppointmentsSchema),
   async (req: Request<{}, any, any, ListAppointmentsQuery>, res: Response) => {
     try {
-      const result = await appointmentRepository.findMany(req.query);
+      const result = await appointmentRepository.findMany(req.query, req.user!.id);
       ok(res, result);
     } catch (err) { handleError(res, err); }
   }
@@ -43,7 +43,7 @@ appointmentRouter.get<{}, any, any, AppointmentStatsQuery>(
   validateQuery(appointmentStatsSchema),
   async (req: Request<{}, any, any, AppointmentStatsQuery>, res: Response) => {
     try {
-      ok(res, await appointmentRepository.getStats(req.query));
+      ok(res, await appointmentRepository.getStats(req.query, req.user!.id));
     } catch (err) { handleError(res, err); }
   }
 );
@@ -57,7 +57,7 @@ appointmentRouter.get(
   validateParams(uuidParamSchema),
   async (req: Request, res: Response) => {
     try {
-      ok(res, await appointmentRepository.findById(req.params.id as string));
+      ok(res, await appointmentRepository.findById(req.params.id as string, req.user!.id));
     } catch (err) { handleError(res, err); }
   }
 );
@@ -71,7 +71,7 @@ appointmentRouter.post(
   validateBody(createAppointmentSchema),
   async (req: Request, res: Response) => {
     try {
-      const appt = await appointmentRepository.create(req.body);
+      const appt = await appointmentRepository.create(req.body, req.user!.id);
       logger.info({ appointmentId: appt.id, patientId: appt.patientId }, 'Appointment created');
       ok(res, appt, 201);
     } catch (err) { handleError(res, err); }
@@ -88,7 +88,7 @@ appointmentRouter.patch(
   validateBody(updateAppointmentSchema),
   async (req: Request, res: Response) => {
     try {
-      const appt = await appointmentRepository.update(req.params.id as string, req.body);
+      const appt = await appointmentRepository.update(req.params.id as string, req.body, req.user!.id);
       logger.info({ appointmentId: appt.id }, 'Appointment updated');
       ok(res, appt);
     } catch (err) { handleError(res, err); }
@@ -104,7 +104,7 @@ appointmentRouter.post(
   validateParams(uuidParamSchema),
   async (req: Request, res: Response) => {
     try {
-      const appt = await appointmentRepository.markPaid(req.params.id as string);
+      const appt = await appointmentRepository.markPaid(req.params.id as string, req.user!.id);
       logger.info({ appointmentId: appt.id }, 'Appointment marked as paid');
       ok(res, appt);
     } catch (err) { handleError(res, err); }
@@ -121,7 +121,7 @@ appointmentRouter.delete(
   validateParams(uuidParamSchema),
   async (req: Request, res: Response) => {
     try {
-      const appt = await appointmentRepository.delete(req.params.id as string);
+      const appt = await appointmentRepository.delete(req.params.id as string, req.user!.id);
       logger.info({ appointmentId: appt.id }, 'Appointment deleted');
       ok(res, { deleted: true, id: appt.id });
     } catch (err) { handleError(res, err); }

@@ -5,7 +5,7 @@ import type { PaginatedPatients } from '../utils/types.js';
 import type { CreatePatientDto, UpdatePatientDto, ListPatientsQuery } from './patient.schemas.js';
 
 export const patientRepository = {
-  async create(dto: CreatePatientDto): Promise<Patient> {
+  async create(dto: CreatePatientDto, userId: string): Promise<Patient> {
     try {
       return await prisma.patient.create({
         data: {
@@ -17,6 +17,7 @@ export const patientRepository = {
           dateOfBirth: dto.dateOfBirth ?? null,
           notes: dto.notes ?? null,
           status: dto.status,
+          userId,
         },
       });
     } catch (err) {
@@ -27,16 +28,17 @@ export const patientRepository = {
     }
   },
 
-  async getStats(): Promise<{ total: number; byStatus: Record<string, number> }> {
+  async getStats(userId: string): Promise<{ total: number; byStatus: Record<string, number> }> {
     const counts = await prisma.patient.groupBy({
       by: [ 'status' ],
       _count: { _all: true },
+      where: { userId },
     });
 
     const byStatus: Record<string, number> = {};
     let total = 0;
     for (const row of counts) {
-      if(!row.status || row.status === PatientStatus.ARCHIVED) continue;
+      if (!row.status || row.status === PatientStatus.ARCHIVED) continue;
       byStatus[ row.status ] = row._count._all;
       total += row._count._all;
     }
@@ -44,9 +46,9 @@ export const patientRepository = {
     return { total, byStatus };
   },
 
-  async findById(id: string): Promise<Patient> {
-    const patient = await prisma.patient.findUnique({
-      where: { id },
+  async findById(id: string, userId: string): Promise<Patient> {
+    const patient = await prisma.patient.findFirst({
+      where: { id, userId },
       include: {
         appointments: true,
         reminders: true,
@@ -56,11 +58,12 @@ export const patientRepository = {
     return patient;
   },
 
-  async findMany(query: ListPatientsQuery): Promise<PaginatedPatients> {
+  async findMany(query: ListPatientsQuery, userId: string): Promise<PaginatedPatients> {
     const { status, search, page, pageSize, orderBy, order } = query;
     const skip = (page - 1) * pageSize;
 
     const where: any = {
+      userId,
       ...(status && {
         status: Array.isArray(status) ? { in: status } : status
       }),
@@ -98,8 +101,8 @@ export const patientRepository = {
     };
   },
 
-  async update(id: string, dto: UpdatePatientDto): Promise<Patient> {
-    await patientRepository.findById(id);
+  async update(id: string, dto: UpdatePatientDto, userId: string): Promise<Patient> {
+    await patientRepository.findById(id, userId);
 
     try {
       return await prisma.patient.update({
@@ -124,8 +127,8 @@ export const patientRepository = {
     }
   },
 
-  async delete(id: string): Promise<Patient> {
-    await patientRepository.findById(id);
+  async delete(id: string, userId: string): Promise<Patient> {
+    await patientRepository.findById(id, userId);
     return prisma.patient.delete({ where: { id } });
   },
 };

@@ -24,7 +24,7 @@ reminderRouter.get<{}, any, any, ListRemindersQuery>(
   validateQuery(listRemindersSchema),
   async (req: Request<{}, any, any, ListRemindersQuery>, res: Response) => {
     try {
-      const result = await reminderRepository.findMany(req.query);
+      const result = await reminderRepository.findMany(req.query, req.user!.id);
       ok(res, result);
     } catch (err) { handleError(res, err); }
   }
@@ -40,7 +40,7 @@ reminderRouter.get<{}, any, any, ReminderStatsQuery>(
   validateQuery(reminderStatsSchema),
   async (req: Request<{}, any, any, ReminderStatsQuery>, res: Response) => {
     try {
-      ok(res, await reminderRepository.getStats(req.query));
+      ok(res, await reminderRepository.getStats(req.query, req.user!.id));
     } catch (err) { handleError(res, err); }
   }
 );
@@ -54,7 +54,7 @@ reminderRouter.get(
   validateParams(uuidParamSchema),
   async (req: Request, res: Response) => {
     try {
-      ok(res, await reminderRepository.findById(req.params.id as string));
+      ok(res, await reminderRepository.findById(req.params.id as string, req.user!.id));
     } catch (err) { handleError(res, err); }
   }
 );
@@ -68,7 +68,7 @@ reminderRouter.post(
   validateBody(createReminderSchema),
   async (req: Request, res: Response) => {
     try {
-      const reminder = await reminderRepository.create(req.body);
+      const reminder = await reminderRepository.create(req.body, req.user!.id);
       logger.info({ reminderId: reminder.id }, 'Reminder created');
       ok(res, reminder, 201);
     } catch (err) { handleError(res, err); }
@@ -85,7 +85,7 @@ reminderRouter.patch(
   validateBody(updateReminderSchema),
   async (req: Request, res: Response) => {
     try {
-      const reminder = await reminderRepository.update(req.params.id as string, req.body);
+      const reminder = await reminderRepository.update(req.params.id as string, req.body, req.user!.id);
       logger.info({ reminderId: reminder.id }, 'Reminder updated');
       ok(res, reminder);
     } catch (err) { handleError(res, err); }
@@ -102,7 +102,7 @@ reminderRouter.post(
   validateParams(uuidParamSchema),
   async (req: Request, res: Response) => {
     try {
-      const reminder = await reminderRepository.cancel(req.params.id as string);
+      const reminder = await reminderRepository.cancel(req.params.id as string, req.user!.id);
       logger.info({ reminderId: reminder.id }, 'Reminder cancelled');
       ok(res, reminder);
     } catch (err) { handleError(res, err); }
@@ -119,7 +119,7 @@ reminderRouter.delete(
   validateParams(uuidParamSchema),
   async (req: Request, res: Response) => {
     try {
-      const reminder = await reminderRepository.delete(req.params.id as string);
+      const reminder = await reminderRepository.delete(req.params.id as string, req.user!.id);
       logger.info({ reminderId: reminder.id }, 'Reminder deleted');
       ok(res, { deleted: true, id: reminder.id });
     } catch (err) { handleError(res, err); }

@@ -13,7 +13,7 @@ router.get('/health', async (_req: Request, res: Response) => {
   try {
     await prisma.$queryRaw`SELECT 1`; // Verify DB connectivity
     ok(res, {
-      service: 'notification-service-server',
+      service: 'patient-nova-server',
       uptime: process.uptime(),
       database: 'connected',
       timestamp: new Date().toISOString()
