@@ -1,4 +1,4 @@
-import { Reminder, REMINDER_STATUS_CONFIG, getChannelLabel, getChannelIcon, ReminderStatus, ReminderMode, Channel } from "@/src/types/Reminder";
+import { Reminder, REMINDER_STATUS_CONFIG, ReminderStatus, ReminderMode, Channel, CHANNEL_CFG } from "@/src/types/Reminder";
 import { fmtDateAndTime, fmtDateTime } from "@/src/utils/TimeUtils";
 import { AppointmentStatusPill, ReminderStatusPill } from "../Info/StatusPill";
 import { Section, Row } from "./DrawerUtils";
@@ -12,8 +12,6 @@ export function ReminderDrawer({ reminder, onClose, onEdit, onCancel }: {
     onCancel: () => void;
 }) {
     const s = REMINDER_STATUS_CONFIG[ reminder.status ];
-    const channelLabel = getChannelLabel(reminder.channel);
-    const channelIcon = getChannelIcon(reminder.channel);
     const isActive = reminder.status === ReminderStatus.PENDING || reminder.status === ReminderStatus.QUEUED;
 
     return (
@@ -23,8 +21,8 @@ export function ReminderDrawer({ reminder, onClose, onEdit, onCancel }: {
                 <div className="drawer-header" style={{ background: s.bg, borderBottom: `3px solid ${s.dot}` }}>
                     <div className="drawer-header__top">
                         <div>
-                            <div className="drawer-header__icon">{channelIcon}</div>
-                            <h2 className="drawer-header__title">{channelLabel}</h2>
+                            <div className="drawer-header__icon">{CHANNEL_CFG[reminder.channel].icon}</div>
+                            <h2 className="drawer-header__title">{CHANNEL_CFG[reminder.channel].label}</h2>
                             <div className="drawer-header__status"><ReminderStatusPill status={reminder.status} /></div>
                         </div>
                         <button onClick={onClose} className="btn-close--transparent">✕</button>

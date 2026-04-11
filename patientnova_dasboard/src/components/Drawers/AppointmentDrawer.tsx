@@ -1,11 +1,10 @@
 import { Appointment, APPT_STATUS_CFG } from "@/src/types/Appointment";
-import { REMINDER_STATUS_CONFIG } from "@/src/types/Reminder";
+import { CHANNEL_CFG, REMINDER_STATUS_CONFIG } from "@/src/types/Reminder";
 import { getAvatarColor, getInitials } from "@/src/utils/AvatarHelper";
 import { fmtDate, fmtDateTime, fmtTime, getDuration } from "@/src/utils/TimeUtils";
 import { PayBadge } from "../Info/PayBadge";
 import { AppointmentStatusPill, ReminderStatusPill } from "../Info/StatusPill";
 import { Section, Row } from "./DrawerUtils";
-import { getChannelIconAndLabel } from '../../types/Reminder';
 
 export function AppointmentDrawer({ appt, onClose, onEdit, onPay, onDelete }: {
     appt: Appointment;
@@ -75,7 +74,7 @@ export function AppointmentDrawer({ appt, onClose, onEdit, onPay, onDelete }: {
                                 <div key={appt.reminder.id} className="linked-card" style={{ borderLeft: `3px solid ${REMINDER_STATUS_CONFIG[ appt.reminder.status ].dot}` }}>
                                     <div className="linked-card__header">
                                         <div>
-                                            <div className="linked-card__title">{getChannelIconAndLabel(appt.reminder.channel)}</div>
+                                            <div className="linked-card__title">{CHANNEL_CFG[ appt.reminder.channel ].iconAndLabel}</div>
                                             <div className="linked-card__meta">📅 {fmtDateTime(appt.reminder.sendAt.toString())}</div>
                                         </div>
                                         <ReminderStatusPill status={appt.reminder.status} />

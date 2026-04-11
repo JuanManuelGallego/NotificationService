@@ -29,6 +29,8 @@ export const config = {
 
   env: process.env.NODE_ENV ?? 'development',
 
+  cookieDomain: process.env.COOKIE_DOMAIN ?? undefined,
+
   allowedOrigins: JSON.parse(requireEnv('ALLOWED_ORIGINS')),
 
   admin: {

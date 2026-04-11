@@ -56,38 +56,11 @@ export enum ReminderMode {
     SCHEDULED = "SCHEDULED",
 }
 
-export const CHANNEL_ICON: Record<Channel, string> = { [ Channel.WHATSAPP ]: "💬", [ Channel.SMS ]: "📱", [ Channel.EMAIL ]: "✉️" };
-export const CHANNEL_LABEL: Record<Channel, string> = { [ Channel.WHATSAPP ]: "WhatsApp", [ Channel.SMS ]: "SMS", [ Channel.EMAIL ]: "Email" };
-
-export function getChannelIcon(channel: Channel) {
-    switch (channel) {
-        case Channel.WHATSAPP:
-            return "💬";
-        case Channel.SMS:
-            return "📱";
-        case Channel.EMAIL:
-            return "✉️";
-        default:
-            return "❓";
-    }
-}
-
-export function getChannelLabel(channel: Channel) {
-    switch (channel) {
-        case Channel.WHATSAPP:
-            return "WhatsApp";
-        case Channel.SMS:
-            return "SMS";
-        case Channel.EMAIL:
-            return "Email";
-        default:
-            return "Desconocido";
-    }
-}
-
-export function getChannelIconAndLabel(channel: Channel) {
-    return `${getChannelIcon(channel)} ${getChannelLabel(channel)}`;
-}
+export const CHANNEL_CFG: Record<Channel, { label: string; icon: string, iconAndLabel: string }> = {
+    [ Channel.WHATSAPP ]: { label: "WhatsApp", icon: "💬", iconAndLabel: "💬 WhatsApp" },
+    [ Channel.SMS ]: { label: "SMS", icon: "📱", iconAndLabel: "📱 SMS" },
+    [ Channel.EMAIL ]: { label: "Email", icon: "✉️", iconAndLabel: "✉️ Email" },
+};
 
 export const REMINDER_STATUS_CONFIG: Record<ReminderStatus, { label: string; color: string; bg: string; dot: string }> = {
     [ ReminderStatus.CANCELLED ]: { label: "Cancelado", color: "#6B7280", bg: "#F3F4F6", dot: "#9CA3AF" },

@@ -10,6 +10,24 @@ import { AdminRole, type User } from '@prisma/client';
 
 export const authRouter = Router();
 
+// Precomputed dummy hash used to ensure constant-time response on login
+// regardless of whether the email exists, preventing user enumeration via timing.
+let _dummyHash: string | undefined;
+async function getDummyHash(): Promise<string> {
+  if (!_dummyHash) _dummyHash = await bcrypt.hash('__dummy_timing_sink__', config.auth.bcryptRounds);
+  return _dummyHash;
+}
+
+function getCookieDefaults() {
+  const isProduction = config.env === 'production';
+  return {
+    httpOnly: true,
+    secure: isProduction,
+    sameSite: (isProduction ? 'lax' : 'strict') as 'lax' | 'strict',
+    ...(config.cookieDomain ? { domain: config.cookieDomain } : {}),
+  };
+}
+
 function validatePasswordStrength(password: string): string[] {
   const errors = [];
 
@@ -33,7 +51,10 @@ authRouter.post('/login', async (req: Request, res: Response) => {
     if (!email || !password) return apiError(res, 'Email and password required', 400);
 
     const user = await prisma.user.findUnique({ where: { email } });
-    if (!user || user.status !== 'ACTIVE') return apiError(res, 'Invalid credential', 401);
+    if (!user || user.status !== 'ACTIVE') {
+      await bcrypt.compare(password, await getDummyHash()); // constant-time sink to prevent email enumeration
+      return apiError(res, 'Invalid credentials', 401);
+    }
 
     // Check account lockout
     if (user.lockedUntil && user.lockedUntil > new Date()) {
@@ -75,19 +96,15 @@ authRouter.post('/login', async (req: Request, res: Response) => {
       { expiresIn: '7d' }
     );
 
-    const isProduction = config.env === 'production';
+    const cookieDefaults = getCookieDefaults();
 
     res.cookie('token', accessToken, {
-      httpOnly: true,
-      secure: isProduction,
-      sameSite: 'strict',
+      ...cookieDefaults,
       maxAge: 15 * 60 * 1000, // 15 minutes
     });
 
     res.cookie('refreshToken', refreshToken, {
-      httpOnly: true,
-      secure: isProduction,
-      sameSite: 'strict',
+      ...cookieDefaults,
       path: '/auth/refresh',
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
@@ -158,9 +175,7 @@ authRouter.post('/refresh', async (req: Request, res: Response) => {
     );
 
     res.cookie('token', accessToken, {
-      httpOnly: true,
-      secure: config.env === 'production',
-      sameSite: 'strict',
+      ...getCookieDefaults(),
       maxAge: 15 * 60 * 1000,
     });
 
@@ -287,9 +302,15 @@ authRouter.patch('/me', authenticate, async (req: Request, res: Response) => {
     const parsed = profileSchema.safeParse(req.body);
     if (!parsed.success) return apiError(res, 'Validation failed', 400);
 
+    // Strip undefined keys so Prisma's exactOptionalPropertyTypes is satisfied —
+    // absent fields are left unchanged, not set to undefined.
+    const updateData = Object.fromEntries(
+      Object.entries(parsed.data).filter(([, v]) => v !== undefined)
+    );
+
     const user = await prisma.user.update({
       where: { id: req.user!.id },
-      data: parsed.data as User,
+      data: updateData,
       select: {
         id: true, email: true, firstName: true, lastName: true,
         displayName: true, avatarUrl: true, jobTitle: true, role: true, status: true, timezone: true,

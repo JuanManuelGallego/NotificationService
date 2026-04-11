@@ -1,9 +1,8 @@
 "use client";;
 import { useMemo, useState, Suspense } from "react";
-import { FetchRemindersFilters, Reminder, ReminderStatus } from '@/src/types/Reminder';
+import { CHANNEL_CFG, FetchRemindersFilters, Reminder, ReminderStatus } from '@/src/types/Reminder';
 import { fmtDateAndTime, fmtRelative } from '@/src/utils/TimeUtils';
 import { StatCard } from '@/src/components/Info/StatCard';
-import { ChannelBadge } from '@/src/components/Info/ChannelIcon';
 import { ReminderModal } from '@/src/components/Modals/ReminderModal';
 import { EditScheduledReminderModal } from '@/src/components/Modals/EditScheduledReminderModal';
 import { ReminderDrawer } from '@/src/components/Drawers/ReminderDrawer';
@@ -96,7 +95,7 @@ function RemindersPageContent() {
                     {activeTab === "Bulk" && <BulkTab patients={patients} />}
             </PageLayout>
             {showCreate && (
-                <ReminderModal patients={patients} onClose={() => { setShowCreate(false); fetchReminders(); fetchStats(); }} onSaved={() => { fetchReminders(); fetchStats(); }} />
+                <ReminderModal onClose={() => { setShowCreate(false); fetchReminders(); fetchStats(); }} onSaved={() => { fetchReminders(); fetchStats(); }} />
             )}
             {editReminder && (
                 <EditScheduledReminderModal reminder={editReminder} onClose={() => setEditReminder(null)} onSaved={() => { fetchReminders(); fetchStats(); }} />
@@ -143,7 +142,7 @@ function ActiveRemindersTab({ reminders, loading, page, total, totalPages, setPa
                         <div className="td-name__primary">{reminder.patient?.name ?? "—"} {reminder.patient?.lastName ?? "—"}</div>
                         <div className="td-name__secondary">{reminder.to}</div>
                     </td>
-                    <td className="td"><ChannelBadge channel={reminder.channel} /></td>
+                    <td className="td">{CHANNEL_CFG[reminder.channel].icon}</td>
                     <td className="td"><ReminderStatusPill status={reminder.status} /></td>
                     <td className="td td--date">{fmtDateAndTime(reminder.sendAt)}</td>
                     <td className="td td--muted">
@@ -185,7 +184,7 @@ function HistoryRemindersTab({ reminders, loading, page, total, totalPages, setP
                         <div className="td-name__primary">{reminder.patient?.name ?? "—"} {reminder.patient?.lastName ?? "—"}</div>
                         <div className="td-name__secondary">{reminder.to}</div>
                     </td>
-                    <td className="td"><ChannelBadge channel={reminder.channel} /></td>
+                    <td className="td">{CHANNEL_CFG[reminder.channel].icon}</td>
                     <td className="td"><ReminderStatusPill status={reminder.status} /></td>
                     <td className="td td--muted">{fmtDateAndTime(reminder.sendAt)}</td>
                     <td className="td td--muted">{fmtDateAndTime(reminder.updatedAt)}</td>

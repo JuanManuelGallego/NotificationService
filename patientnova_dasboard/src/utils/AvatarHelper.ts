@@ -9,4 +9,26 @@ function getAvatarColor(id: string) {
     return `hsl(${hues[ idx ]}, 55%, 82%)`;
 }
 
-export { getInitials, getAvatarColor };
+/** Resize an image File to a JPEG base64 data-URL at most maxSide×maxSide px. */
+async function resizeToBase64(file: File, maxSide = 256): Promise<string> {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onerror = reject;
+        reader.onload = (ev) => {
+            const img = new window.Image();
+            img.onerror = reject;
+            img.onload = () => {
+                const scale = Math.min(maxSide / img.width, maxSide / img.height, 1);
+                const canvas = document.createElement("canvas");
+                canvas.width = Math.round(img.width * scale);
+                canvas.height = Math.round(img.height * scale);
+                canvas.getContext("2d")!.drawImage(img, 0, 0, canvas.width, canvas.height);
+                resolve(canvas.toDataURL("image/jpeg", 0.85));
+            };
+            img.src = ev.target!.result as string;
+        };
+        reader.readAsDataURL(file);
+    });
+}
+
+export { getInitials, getAvatarColor, resizeToBase64 };

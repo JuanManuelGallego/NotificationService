@@ -9,7 +9,7 @@ import { FetchPatientsFilters, Patient, PatientStatus } from "@/src/types/Patien
 import { getAvatarColor, getInitials } from "@/src/utils/AvatarHelper";
 import { StatCard } from "@/src/components/Info/StatCard";
 import { ErrorBanner } from "@/src/components/Info/ErrorBanner";
-import { ChannelIcon } from "@/src/components/Info/ChannelIcon";
+import { ChannelPill } from "@/src/components/Info/ChannelPill";
 import { DataTable, TableFooter } from "@/src/components/DataTable";
 import { PatientModal } from "@/src/components/Modals/PatientModal";
 import { ArchivePatientModal } from "@/src/components/Modals/ArchivedPatientModal";
@@ -80,52 +80,52 @@ function PatientsPageContent() {
             ))}
           </div>
         </FilterBar>
-          {error && <ErrorBanner msg={error} onRetry={fetchPatients} />}
-          <DataTable
-            columns={[ "Paciente", "Correo", "WhatsApp", "SMS", "Estado", "Registrado", "" ]}
-            rows={patients}
-            loading={loading}
-            skeletonCount={5}
-            renderRow={(p) => (
-              <tr onClick={() => setViewPatient(p)} key={p.id} className="table-row">
-                <td className="td">
-                  <div className="td-identity">
-                    <div className="avatar avatar--md" style={{ background: getAvatarColor(p.id) }}>
-                      {getInitials(p.name, p.lastName)}
-                    </div>
-                    <div className="td-name__primary">{p.name} {p.lastName}</div>
+        {error && <ErrorBanner msg={error} onRetry={fetchPatients} />}
+        <DataTable
+          columns={[ "Paciente", "Correo", "WhatsApp", "SMS", "Estado", "Registrado", "" ]}
+          rows={patients}
+          loading={loading}
+          skeletonCount={5}
+          renderRow={(p) => (
+            <tr onClick={() => setViewPatient(p)} key={p.id} className="table-row">
+              <td className="td">
+                <div className="td-identity">
+                  <div className="avatar avatar--md" style={{ background: getAvatarColor(p.id) }}>
+                    {getInitials(p.name, p.lastName)}
                   </div>
-                </td>
-                <td className="td td--date">
-                  {p.email
-                    ? <a href={`mailto:${p.email}`} className="td-email-link">{p.email}</a>
-                    : <span className="td-email-empty"><span className="td-email-empty__dash">—</span></span>}
-                </td>
-                <td className="td"><ChannelIcon type={Channel.WHATSAPP} value={p.whatsappNumber} /></td>
-                <td className="td"><ChannelIcon type={Channel.SMS} value={p.smsNumber} /></td>
-                <td className="td"><PatientStatusPill status={p.status} /></td>
-                <td className="td td--muted td--nowrap">
-                  {new Date(p.createdAt).toLocaleDateString("es-ES", { day: "numeric", month: "short", year: "numeric" })}
-                </td>
-                <td className="td" onClick={e => e.stopPropagation()}>
-                  <div className="td-actions">
-                    <button onClick={e => { e.stopPropagation(); setEditPatient(p); }} className="btn-action-edit">Editar</button>
-                    <button onClick={e => { e.stopPropagation(); setDeletePatient(p); }} className="btn-action-delete">✕</button>
-                  </div>
-                </td>
-              </tr>
-            )}
-            emptyState={
-              <EmptyState
-                icon="🔍"
-                title={search || filterStatus !== "ALL" ? "Sin resultados" : "No hay pacientes aún"}
-                sub={search || filterStatus !== "ALL"
-                  ? "Prueba ajustando los filtros de búsqueda."
-                  : "Haz clic en \"Nuevo Paciente\" para agregar el primero."}
-              />
-            }
-            footer={<TableFooter page={page} pageSize={PAGE_SIZE} total={total} totalPages={totalPages} label="pacientes" onPageChange={setPage} />}
-          />
+                  <div className="td-name__primary">{p.name} {p.lastName}</div>
+                </div>
+              </td>
+              <td className="td td--date">
+                {p.email
+                  ? <a href={`mailto:${p.email}`} className="td-email-link">{p.email}</a>
+                  : <span className="td-email-empty"><span className="td-email-empty__dash">—</span></span>}
+              </td>
+              <td className="td"><ChannelPill type={Channel.WHATSAPP} value={p.whatsappNumber} /></td>
+              <td className="td"><ChannelPill type={Channel.SMS} value={p.smsNumber} /></td>
+              <td className="td"><PatientStatusPill status={p.status} /></td>
+              <td className="td td--muted td--nowrap">
+                {new Date(p.createdAt).toLocaleDateString("es-ES", { day: "numeric", month: "short", year: "numeric" })}
+              </td>
+              <td className="td" onClick={e => e.stopPropagation()}>
+                <div className="td-actions">
+                  <button onClick={e => { e.stopPropagation(); setEditPatient(p); }} className="btn-action-edit">Editar</button>
+                  <button onClick={e => { e.stopPropagation(); setDeletePatient(p); }} className="btn-action-delete">✕</button>
+                </div>
+              </td>
+            </tr>
+          )}
+          emptyState={
+            <EmptyState
+              icon="🔍"
+              title={search || filterStatus !== "ALL" ? "Sin resultados" : "No hay pacientes aún"}
+              sub={search || filterStatus !== "ALL"
+                ? "Prueba ajustando los filtros de búsqueda."
+                : "Haz clic en \"Nuevo Paciente\" para agregar el primero."}
+            />
+          }
+          footer={<TableFooter page={page} pageSize={PAGE_SIZE} total={total} totalPages={totalPages} label="pacientes" onPageChange={setPage} />}
+        />
       </PageLayout>
       {showCreate && (
         <PatientModal

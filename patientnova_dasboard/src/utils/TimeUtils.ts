@@ -219,6 +219,25 @@ function getColombianHolidays(year: number): ColombianHoliday[] {
     return holidays;
 }
 
+const COMMON_TIMEZONES: { value: string; label: string }[] = [
+    { value: "America/Bogota", label: "Colombia (UTC-5) — Bogotá" },
+    { value: "America/Lima", label: "Perú (UTC-5) — Lima" },
+    { value: "America/Guayaquil", label: "Ecuador (UTC-5) — Quito" },
+    { value: "America/Caracas", label: "Venezuela (UTC-4) — Caracas" },
+    { value: "America/La_Paz", label: "Bolivia (UTC-4) — La Paz" },
+    { value: "America/Santiago", label: "Chile (UTC-4/-3) — Santiago" },
+    { value: "America/Sao_Paulo", label: "Brasil (UTC-3) — São Paulo" },
+    { value: "America/Argentina/Buenos_Aires", label: "Argentina (UTC-3) — Buenos Aires" },
+    { value: "America/Mexico_City", label: "México (UTC-6/-5) — Ciudad de México" },
+    { value: "America/New_York", label: "Eastern Time (UTC-5/-4) — Nueva York" },
+    { value: "America/Chicago", label: "Central Time (UTC-6/-5) — Chicago" },
+    { value: "America/Denver", label: "Mountain Time (UTC-7/-6) — Denver" },
+    { value: "America/Los_Angeles", label: "Pacific Time (UTC-8/-7) — Los Ángeles" },
+    { value: "Europe/Madrid", label: "España (UTC+1/+2) — Madrid" },
+    { value: "Europe/London", label: "Reino Unido (UTC+0/+1) — Londres" },
+    { value: "UTC", label: "UTC (UTC+0)" },
+];
+
 export {
     fmtDate,
     fmtTime,
@@ -240,6 +259,7 @@ export {
     getColombianHolidays,
     MONTH_NAMES_ES,
     DAY_NAMES_ES,
+    COMMON_TIMEZONES,
 };
 
 export type { ColombianHoliday };

@@ -1,10 +1,9 @@
 import { useCreateReminder } from "@/src/api/useCreateReminder";
 import { useNotify } from "@/src/api/useNotify";
 import { DateTimePicker } from "@/src/components/DateTimePicker";
-import { ChannelBadge } from "@/src/components/Info/ChannelIcon";
 import { REMINDER_TEMPLATE } from "@/src/types/Appointment";
 import { Patient } from "@/src/types/Patient";
-import { ReminderMode, BulkRemindersResult, CHANNEL_ICON, CHANNEL_LABEL, Channel, StepChannelProps, StepMessageProps, StepPatientsProps, StepResultsProps } from "@/src/types/Reminder";
+import { ReminderMode, BulkRemindersResult, Channel, StepChannelProps, StepMessageProps, StepPatientsProps, StepResultsProps, CHANNEL_CFG } from "@/src/types/Reminder";
 import { getAvatarColor, getInitials } from "@/src/utils/AvatarHelper";
 import { useState, useMemo, useCallback, memo } from "react";
 
@@ -160,9 +159,9 @@ const StepChannel = memo(function StepChannel({ patients, channel, setChannel, s
                             className={`selection-card${channel === c ? " selection-card--active" : ""}`}
                             style={{ padding: "16px 20px" }}
                         >
-                            <span style={{ fontSize: 28 }}>{CHANNEL_ICON[ c ]}</span>
+                            <span style={{ fontSize: 28 }}>{CHANNEL_CFG[ c ].icon}</span>
                             <div>
-                                <div className="patient-preview__name">{CHANNEL_LABEL[ c ]}</div>
+                                <div className="patient-preview__name">{CHANNEL_CFG[ c ].label}</div>
                                 <div className="patient-preview__detail">
                                     {channelCounts[ c ]} pacientes disponibles
                                 </div>
@@ -220,7 +219,7 @@ const StepPatients = memo(function StepPatients({ eligible, channel, selected, t
             <div style={{ maxHeight: 320, overflowY: "auto", display: "flex", flexDirection: "column", gap: 8 }}>
                 {eligible.length === 0 && (
                     <div style={{ textAlign: "center", padding: 32, color: "var(--c-gray-400)", fontSize: 14 }}>
-                        Ningún paciente activo tiene número de {CHANNEL_LABEL[ channel ]}.
+                        Ningún paciente activo tiene número de {CHANNEL_CFG[ channel ].label}.
                     </div>
                 )}
                 {eligible.map(p => (
@@ -337,7 +336,7 @@ const StepResults = memo(function StepResults({ results, onReset }: StepResultsP
                         {results.map((r) => (
                             <tr key={r.patientId} style={{ borderBottom: "1px solid var(--c-gray-100)" }}>
                                 <td className="td"><span style={{ fontSize: 13, fontWeight: 600, color: "var(--c-gray-900)" }}>{r.name}</span></td>
-                                <td className="td"><ChannelBadge channel={r.channel} /></td>
+                                <td className="td">{CHANNEL_CFG[ r.channel ].icon}</td>
                                 <td className="td">
                                     <span className="pill" style={{
                                         background: r.status === "ok" ? "var(--c-success-bg)" : r.status === "error" ? "var(--c-error-bg)" : "var(--c-warning-bg)",

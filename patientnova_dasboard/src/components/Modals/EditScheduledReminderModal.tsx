@@ -1,5 +1,5 @@
 import { DateTimePicker } from "../DateTimePicker";
-import { Reminder, ReminderStatus, CHANNEL_ICON, CHANNEL_LABEL } from "@/src/types/Reminder";
+import { Reminder, ReminderStatus, CHANNEL_CFG } from "@/src/types/Reminder";
 import { useState } from "react";
 import { RequiredField } from "../Info/Requiered";
 import { useUpdateReminder } from "@/src/api/useUpdateReminder";
@@ -30,7 +30,7 @@ export function EditScheduledReminderModal({ reminder, onClose, onSaved }: { rem
                 <div className="summary-card" style={{ marginBottom: 20 }}>
                     <div className="summary-row">
                         <span className="summary-row__key">Canal</span>
-                        <span className="summary-row__value">{CHANNEL_ICON[ reminder.channel ]} {CHANNEL_LABEL[ reminder.channel ]}</span>
+                        <span className="summary-row__value">{CHANNEL_CFG[ reminder.channel ].iconAndLabel}</span>
                     </div>
                     <div className="summary-row">
                         <span className="summary-row__key">Destinatario</span>

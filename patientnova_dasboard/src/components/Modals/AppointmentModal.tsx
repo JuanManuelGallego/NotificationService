@@ -3,7 +3,7 @@ import { useCreateReminder } from "@/src/api/useCreateReminder";
 import { useUpdateAppointment } from "@/src/api/useUpdateAppointment";
 import { useUpdateReminder } from "@/src/api/useUpdateReminder";
 import { Appointment, AppointmentForm, AppointmentStatus, APPT_TYPE_CFG, AppointmentDuration, APPOINTMENT_LOCATIONS, APPT_LOCATION_CFG, APPT_STATUS_CFG, AppointmentType, APPT_PAID_STATUS_CFG, AppointmentPaidStatus, REMINDER_TEMPLATE } from "@/src/types/Appointment";
-import { ReminderType, Reminder, ReminderMode, ReminderStatus, CHANNEL_ICON, CHANNEL_LABEL, Channel, REMINDER_TYPE_CONFIG } from "@/src/types/Reminder";
+import { ReminderType, Reminder, ReminderMode, ReminderStatus, CHANNEL_CFG, Channel, REMINDER_TYPE_CONFIG } from "@/src/types/Reminder";
 import { getAvatarColor, getInitials } from "@/src/utils/AvatarHelper";
 import { isReminderTypeFeasible, formatDate, formatTime, getDuration, getRemindersendAt, getAppointmentEndTime, getTommorrowSixAm, getReminderType, getDate } from "@/src/utils/TimeUtils";
 import { useState } from "react";
@@ -260,9 +260,9 @@ function LocationAndTimeStep({ form, set, setForm, selectedPatient, reminderChan
                       className={`selection-card${reminderChannel === c ? " selection-card--active" : ""}${!available ? " selection-card--disabled" : ""}`}
                       style={{ flex: 1 }}
                     >
-                      <span style={{ fontSize: 22 }}>{CHANNEL_ICON[ c ]}</span>
+                      <span style={{ fontSize: 22 }}>{CHANNEL_CFG[ c ].icon}</span>
                       <div style={{ textAlign: "left" }}>
-                        <div className="patient-preview__name">{CHANNEL_LABEL[ c ]}</div>
+                        <div className="patient-preview__name">{CHANNEL_CFG[ c ].label}</div>
                         <div className="patient-preview__detail">
                           {available
                             ? (c === Channel.WHATSAPP ? selectedPatient?.whatsappNumber : c === Channel.SMS ? selectedPatient?.smsNumber : selectedPatient?.email)

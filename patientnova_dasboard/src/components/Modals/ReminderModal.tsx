@@ -1,26 +1,27 @@
 import { useCreateReminder } from "@/src/api/useCreateReminder";
 import { useNotify } from "@/src/api/useNotify";
-import { AppointmentType, APPT_TYPE_CFG, REMINDER_TEMPLATE } from "@/src/types/Appointment";
+import { AppointmentType, APPT_TYPE_CFG } from "@/src/types/Appointment";
 import { Patient } from "@/src/types/Patient";
-import { Reminder, ReminderMode, CHANNEL_ICON, CHANNEL_LABEL, Channel, ReminderForm } from "@/src/types/Reminder";
+import { Reminder, ReminderMode, Channel, ReminderForm, CHANNEL_CFG } from "@/src/types/Reminder";
 import { getAvatarColor, getInitials } from "@/src/utils/AvatarHelper";
 import { fmtDateTime } from "@/src/utils/TimeUtils";
 import { useState } from "react";
 import { DateTimePicker } from "../DateTimePicker";
 import { CustomSelect } from "../CustomSelect";
 import { RequiredField } from "../Info/Requiered";
+import { useFetchPatients } from "@/src/api/useFetchPatients";
 
 export function ReminderModal({
-    onClose, onSaved, patients, reminder,
+    onClose, onSaved, reminder,
 }: {
     onClose: () => void;
     onSaved: () => void;
-    patients: Patient[];
     reminder?: Reminder;
 }) {
     const isEdit = !!reminder;
     const { createReminder } = useCreateReminder();
     const { notify } = useNotify();
+    const { patients } = useFetchPatients();
     const [ step, setStep ] = useState(1);
     const [ sendMode, setMode ] = useState<ReminderMode>(ReminderMode.IMMEDIATE);
     const [ saving, setSaving ] = useState(false);
@@ -176,7 +177,7 @@ function SendModeAndPatientStep({ sendMode, setMode, form, setForm, patients }: 
                 <CustomSelect
                     value={form.patientId}
                     placeholder="Seleccionar paciente…"
-                    options={patients.filter(p => p.status === "ACTIVE").map(p => ({ value: p.id, label: `${p.name} ${p.lastName}` }))}
+                    options={patients.length > 0 ? patients.filter(p => p.status === "ACTIVE").map(p => ({ value: p.id, label: `${p.name} ${p.lastName}` })) : [ { value: "", label: "No hay pacientes registrados" } ]}
                     onChange={(v) => setForm(f => ({ ...f, patientId: v }))}
                 />
             </label>
@@ -225,9 +226,9 @@ function ChannelAndMessageStep({ form, setForm, selectedPatient, sendMode, set }
                                 className={`selection-card${form.channel === c ? " selection-card--active" : ""}${!available ? " selection-card--disabled" : ""}`}
                                 style={{ flex: 1 }}
                             >
-                                <span style={{ fontSize: 22 }}>{CHANNEL_ICON[ c ]}</span>
+                                <span style={{ fontSize: 22 }}>{CHANNEL_CFG[ c ].icon}</span>
                                 <div>
-                                    <div className="patient-preview__name">{CHANNEL_LABEL[ c ]}</div>
+                                    <div className="patient-preview__name">{CHANNEL_CFG[ c ].label}</div>
                                     <div className="patient-preview__detail">
                                         {available
                                             ? (c === Channel.WHATSAPP ? selectedPatient?.whatsappNumber : selectedPatient?.smsNumber)
@@ -284,7 +285,7 @@ function SummaryStep({ form, selectedPatient, sendMode }: {
                 <div className="summary-card__label">Resumen del recordatorio</div>
                 {[
                     { k: "Paciente", v: selectedPatient ? `${selectedPatient.name} ${selectedPatient.lastName}` : "—" },
-                    { k: "Canal", v: `${CHANNEL_ICON[ form.channel ]} ${CHANNEL_LABEL[ form.channel ]}` },
+                    { k: "Canal", v: CHANNEL_CFG[ form.channel ].iconAndLabel },
                     { k: "Enviará a", v: form.channel === Channel.WHATSAPP ? (selectedPatient?.whatsappNumber ?? "—") : (selectedPatient?.smsNumber ?? "—") },
                     { k: "Programado", v: sendMode === ReminderMode.IMMEDIATE ? "Inmediatamente" : form.sendAt ? fmtDateTime(form.sendAt) : "—" },
                 ].map(({ k, v }) => (
