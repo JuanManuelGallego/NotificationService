@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { API_BASE, ApiPaginatedResponse } from "../types/API";
 import { Appointment, FetchAppointmentsFilters } from "../types/Appointment";
 import { buildAppointmentQueryString } from "../utils/ApiUtils";
+import { fetchWithAuth } from "./fetchWithAuth";
 
 export const useFetchAppointments = (filters?: FetchAppointmentsFilters) => {
     const [ appointments, setAppointments ] = useState<Appointment[]>([]);
@@ -15,7 +16,7 @@ export const useFetchAppointments = (filters?: FetchAppointmentsFilters) => {
 
         try {
             const query = buildAppointmentQueryString(filters);
-            const res = await fetch(`${API_BASE}/appointments${query}`, {
+            const res = await fetchWithAuth(`${API_BASE}/appointments${query}`, {
                     credentials: 'include', 
                 });
 

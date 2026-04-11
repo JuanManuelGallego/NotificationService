@@ -3,7 +3,9 @@ import { AppointmentDrawer } from "@/src/components/Drawers/AppointmentDrawer";
 import { AppointmentModal } from "@/src/components/Modals/AppointmentModal";
 import { CancelAppointmentModal } from "@/src/components/Modals/CancelAppointmentModal";
 import { PayBadge } from "@/src/components/Info/PayBadge";
-import Sidebar from "@/src/components/Navigation/Sidebar";
+import PageLayout from "@/src/components/PageLayout";
+import { PageHeader } from "@/src/components/PageHeader";
+import { FilterBar } from "@/src/components/FilterBar";
 import { DataTable, TableFooter } from "@/src/components/DataTable";
 import { EmptyState } from "@/src/components/EmptyState";
 import { StatCard } from "@/src/components/Info/StatCard";
@@ -66,64 +68,56 @@ function AppointmentsPageContent() {
 
   return (
     <>
-      <div className="page-shell">
-        <Sidebar />
-        <main className="page-main">
-          <div className="page-header">
-            <div>
-              <h1 className="page-title">Citas</h1>
-              <p className="page-subtitle">
-                {new Date().toLocaleDateString("es-ES", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}
-              </p>
-            </div>
-            <div className="page-header__actions">
-              <button onClick={() => { setShowCreate(true); }} className="btn-primary btn-hero">
-                <span className="btn-plus-icon">+</span> Nueva Cita
-              </button>
-            </div>
+      <PageLayout>
+        <PageHeader
+          title="Citas"
+          subtitle={new Date().toLocaleDateString("es-ES", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}
+          actions={
+            <button onClick={() => { setShowCreate(true); }} className="btn-primary btn-hero">
+              <span className="btn-plus-icon">+</span> Nueva Cita
+            </button>
+          }
+        />
+        <div className="stats-grid stats-grid--5">
+          <StatCard label="Total" value={stats?.total ?? 0} sub="todas las citas" accent="var(--c-brand)" />
+          <StatCard label="Hoy" value={stats?.todayCount ?? 0} sub="citas de hoy" accent="var(--c-brand-accent)" />
+          <StatCard label="Próximas" value={stats?.byStatus[ AppointmentStatus.SCHEDULED ] ?? 0} sub="sin confirmar" accent="var(--c-warning)" />
+          <StatCard label="Sin pagar" value={stats?.unpaidCount ?? 0} sub="requieren cobro" accent="var(--c-error)" />
+          <StatCard label="Ingresos" value={`$ ${stats?.paidRevenue.toLocaleString("es-ES") ?? 0}`} sub="total cobrado" accent="var(--c-success)" />
+        </div>
+        {error && <ErrorBanner msg={error} onRetry={fetchAppointments} />}
+        <FilterBar
+          value={search}
+          onChange={v => setSearch(v)}
+          onClear={() => { setSearch(""); setPage(1); }}
+          placeholder="Buscar paciente, tipo, ubicación…"
+          wrap
+        >
+          <DateTimePicker date={dateFilter} onChanged={iso => setDateFilter(iso.slice(0, 10))} isFuture />
+          {dateFilter && <button onClick={() => setDateFilter("")} className="btn-secondary btn-secondary--sm">✕ Fecha</button>}
+          <div className="filter-chips filter-chips--wrap">
+            {([
+              { k: "ALL", l: "Todas" },
+              { k: AppointmentStatus.SCHEDULED, l: "Programadas" },
+              { k: AppointmentStatus.CONFIRMED, l: "Confirmadas" },
+              { k: AppointmentStatus.COMPLETED, l: "Completadas" },
+              { k: AppointmentStatus.CANCELLED, l: "Canceladas" },
+              { k: AppointmentStatus.NO_SHOW, l: "No asistió" },
+            ] as const).map(({ k, l }) => (
+              <button key={k} onClick={() => setFilterStatus(k)} className={`filter-chip ${filterStatus === k ? "filter-chip--active" : ""}`}>{l}</button>
+            ))}
           </div>
-          <div className="stats-grid stats-grid--5">
-            <StatCard label="Total" value={stats?.total ?? 0} sub="todas las citas" accent="var(--c-brand)" />
-            <StatCard label="Hoy" value={stats?.todayCount ?? 0} sub="citas de hoy" accent="var(--c-brand-accent)" />
-            <StatCard label="Próximas" value={stats?.byStatus[ AppointmentStatus.SCHEDULED ] ?? 0} sub="sin confirmar" accent="var(--c-warning)" />
-            <StatCard label="Sin pagar" value={stats?.unpaidCount ?? 0} sub="requieren cobro" accent="var(--c-error)" />
-            <StatCard label="Ingresos" value={`$ ${stats?.paidRevenue.toLocaleString("es-ES") ?? 0}`} sub="total cobrado" accent="var(--c-success)" />
-          </div>
-          {error && <ErrorBanner msg={error} onRetry={fetchAppointments} />}
-          <div className="filter-bar filter-bar--wrap">
-            <div className="search-wrapper">
-              <input placeholder="Buscar paciente, tipo, ubicación…" value={search} onChange={e => setSearch(e.target.value)} className="form-input" />
-              <button
-                onClick={() => { setSearch(""); setPage(1); }}
-                className="search-clear-btn"
-                aria-label="Limpiar búsqueda"
-              >✕</button>
-            </div>
-            <DateTimePicker date={dateFilter} onChanged={iso => setDateFilter(iso.slice(0, 10))} isFuture />
-            {dateFilter && <button onClick={() => setDateFilter("")} className="btn-secondary btn-secondary--sm">✕ Fecha</button>}
-            <div className="filter-chips filter-chips--wrap">
-              {([
-                { k: "ALL", l: "Todas" },
-                { k: AppointmentStatus.SCHEDULED, l: "Programadas" },
-                { k: AppointmentStatus.CONFIRMED, l: "Confirmadas" },
-                { k: AppointmentStatus.COMPLETED, l: "Completadas" },
-                { k: AppointmentStatus.CANCELLED, l: "Canceladas" },
-                { k: AppointmentStatus.NO_SHOW, l: "No asistió" },
-              ] as const).map(({ k, l }) => (
-                <button key={k} onClick={() => setFilterStatus(k)} className={`filter-chip ${filterStatus === k ? "filter-chip--active" : ""}`}>{l}</button>
-              ))}
-            </div>
-            <CustomSelect
-              value={filterpaid}
-              className="form-input--auto"
-              options={[
-                { value: "ALL", label: "💳 Todas" },
-                { value: "true", label: "💳 Pagadas" },
-                { value: "false", label: "⏳ Sin pagar" },
-              ]}
-              onChange={(v) => setFilterpaid(v as "true" | "false" | "ALL")}
-            />
-          </div>
+          <CustomSelect
+            value={filterpaid}
+            className="form-input--auto"
+            options={[
+              { value: "ALL", label: "💳 Todas" },
+              { value: "true", label: "💳 Pagadas" },
+              { value: "false", label: "⏳ Sin pagar" },
+            ]}
+            onChange={(v) => setFilterpaid(v as "true" | "false" | "ALL")}
+          />
+        </FilterBar>
           <DataTable
             columns={[ "Paciente", "Tipo", "Fecha", "Recordatorio", "Ubicación", "Estado", "Pago", "" ]}
             rows={appointments}
@@ -174,8 +168,7 @@ function AppointmentsPageContent() {
             emptyState={<EmptyState icon="🔍" title="Sin resultados" sub="Prueba ajustando los filtros o crea una nueva cita." />}
             footer={<TableFooter page={page} pageSize={PAGE_SIZE} total={total} totalPages={totalPages} label="citas" onPageChange={setPage} />}
           />
-        </main>
-      </div>
+      </PageLayout>
       {showCreate && (
         <AppointmentModal
           appt={undefined}

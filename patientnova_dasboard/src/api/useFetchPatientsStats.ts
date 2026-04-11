@@ -1,8 +1,9 @@
 import { useState, useCallback, useEffect } from "react";
-import { API_BASE, AppointmentStats } from "../types/API";
+import { API_BASE, PatientStats } from "../types/API";
+import { fetchWithAuth } from "./fetchWithAuth";
 
-export const useFetchAppointmentsStats = () => {
-    const [ stats, setStats ] = useState<AppointmentStats>();
+export const useFetchPatientsStats = () => {
+    const [ stats, setStats ] = useState<PatientStats>();
     const [ loading, setLoading ] = useState(false);
     const [ error, setError ] = useState<string | null>(null);
 
@@ -11,7 +12,7 @@ export const useFetchAppointmentsStats = () => {
             setLoading(true);
             setError(null);
             try {
-                const res = await fetch(`${API_BASE}/appointments/stats`,{
+                const res = await fetchWithAuth(`${API_BASE}/patients/stats`,{
                     credentials: 'include', 
                 });
                 if (!res.ok) {
@@ -23,9 +24,9 @@ export const useFetchAppointmentsStats = () => {
                     throw new Error("API returned an error");
                 }
 
-                setStats(json.data as AppointmentStats);
+                setStats(json.data as PatientStats);
             } catch (err) {
-                setError(err instanceof Error ? err.message : "Failed to load appointment stats");
+                setError(err instanceof Error ? err.message : "Failed to load patient stats");
             }
             finally {
                 setLoading(false);

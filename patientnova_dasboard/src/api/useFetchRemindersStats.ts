@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect } from "react";
 import { API_BASE, ReminderStats } from "../types/API";
+import { fetchWithAuth } from "./fetchWithAuth";
 
 export const useFetchRemindersStats = () => {
     const [ stats, setStats ] = useState<ReminderStats>();
@@ -11,7 +12,7 @@ export const useFetchRemindersStats = () => {
             setLoading(true);
             setError(null);
             try {
-                const res = await fetch(`${API_BASE}/reminders/stats`,{
+                const res = await fetchWithAuth(`${API_BASE}/reminders/stats`,{
                     credentials: 'include', 
                 });
                 if (!res.ok) {

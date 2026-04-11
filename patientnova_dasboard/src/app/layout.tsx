@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { DM_Sans } from "next/font/google";
-import { NuqsAdapter } from 'nuqs/adapters/next/app'
+import { Providers } from "./providers";
 import "./globals.css";
 
 const dmSans = DM_Sans({
@@ -22,9 +22,9 @@ export default function RootLayout({
   return (
     <html lang="en" className={dmSans.className}>
       <body>
-        <NuqsAdapter>
+        <Providers>
           {children}
-        </NuqsAdapter>
+        </Providers>
       </body>
     </html>
   );

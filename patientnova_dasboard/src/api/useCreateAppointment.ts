@@ -1,23 +1,24 @@
 import { useState, useCallback } from "react";
 import { API_BASE, ApiResponse } from "../types/API";
-import { Reminder } from "../types/Reminder";
+import { Appointment } from "../types/Appointment";
+import { fetchWithAuth } from "./fetchWithAuth";
 
-export const useCreateReminder = () => {
+export const useCreateAppointment = () => {
     const [ loading, setLoading ] = useState(false);
     const [ error, setError ] = useState<string | null>(null);
 
-    const createReminder = useCallback(async (reminderData: Partial<Reminder>) => {
+    const createAppointment = useCallback(async (appointmentData: Partial<Appointment>) => {
         setLoading(true);
         setError(null);
 
         try {
-            const res = await fetch(`${API_BASE}/reminders`, {
+            const res = await fetchWithAuth(`${API_BASE}/appointments`, {
                 method: "POST",
                 credentials: 'include',
                 headers: {
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify(reminderData),
+                body: JSON.stringify(appointmentData),
             });
 
             if (!res.ok) {
@@ -30,9 +31,9 @@ export const useCreateReminder = () => {
                 throw new Error("API returned an error");
             }
 
-            return json.data as Reminder;
+            return json.data as Appointment;
         } catch (err) {
-            const errorMessage = err instanceof Error ? err.message : "Failed to create reminder";
+            const errorMessage = err instanceof Error ? err.message : "Failed to create appointment";
             setError(errorMessage);
             throw err;
         } finally {
@@ -40,5 +41,5 @@ export const useCreateReminder = () => {
         }
     }, []);
 
-    return { createReminder, loading, error };
+    return { createAppointment, loading, error };
 };

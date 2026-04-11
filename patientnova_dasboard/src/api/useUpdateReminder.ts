@@ -1,23 +1,24 @@
 import { useState, useCallback } from "react";
 import { API_BASE, ApiResponse } from "../types/API";
-import { Appointment } from "../types/Appointment";
+import { Reminder } from "../types/Reminder";
+import { fetchWithAuth } from "./fetchWithAuth";
 
-export const useUpdateAppointment = () => {
+export const useUpdateReminder = () => {
     const [ loading, setLoading ] = useState(false);
     const [ error, setError ] = useState<string | null>(null);
 
-    const updateAppointment = useCallback(async (appointmentId: string, appointmentData: Partial<Appointment>) => {
+    const updateReminder = useCallback(async (reminderId: string, reminderData: Partial<Reminder>) => {
         setLoading(true);
         setError(null);
 
         try {
-            const res = await fetch(`${API_BASE}/appointments/${appointmentId}`, {
+            const res = await fetchWithAuth(`${API_BASE}/reminders/${reminderId}`, {
                 method: "PATCH",
                 credentials: 'include',
                 headers: {
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify(appointmentData),
+                body: JSON.stringify(reminderData),
             });
 
             if (!res.ok) {
@@ -30,9 +31,9 @@ export const useUpdateAppointment = () => {
                 throw new Error("API returned an error");
             }
 
-            return json.data as Appointment;
+            return json.data as Reminder;
         } catch (err) {
-            const errorMessage = err instanceof Error ? err.message : "Failed to update appointment";
+            const errorMessage = err instanceof Error ? err.message : "Failed to update reminder";
             setError(errorMessage);
             throw err;
         } finally {
@@ -40,5 +41,5 @@ export const useUpdateAppointment = () => {
         }
     }, []);
 
-    return { updateAppointment, loading, error };
+    return { updateReminder, loading, error };
 };

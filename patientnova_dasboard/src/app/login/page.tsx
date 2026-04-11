@@ -1,26 +1,39 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { useAuth } from '@/src/api/useAuth';
+import { useState, useEffect, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useAuthContext } from '@/src/app/AuthContext';
 import Image from 'next/image';
 
-export default function LoginPage() {
+function LoginForm() {
     const router = useRouter();
-    const { login, loading, error } = useAuth();
+    const searchParams = useSearchParams();
+    const { login, loading, error, isAuthenticated, initializing } = useAuthContext();
 
     const [ email, setEmail ] = useState("");
     const [ password, setPassword ] = useState("");
+
+    const fromParam = searchParams.get("from");
+    const redirectTo = fromParam && fromParam.startsWith("/") && !fromParam.startsWith("//") ? fromParam : "/dashboard";
+
+    // Redirect already-authenticated users away from login
+    useEffect(() => {
+        if (!initializing && isAuthenticated) {
+            router.replace(redirectTo);
+        }
+    }, [ initializing, isAuthenticated, router, redirectTo ]);
 
     async function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
         try {
             await login(email, password);
-            router.push("/dashboard");
+            router.push(redirectTo);
         } catch {
-            // error is already set by useAuth
+            // error is already set by AuthContext
         }
     }
+
+    if (initializing) return null;
 
     return (
         <div className="login-shell">
@@ -71,8 +84,24 @@ export default function LoginPage() {
                     >
                         {loading ? "Iniciando sesión…" : "Iniciar sesión"}
                     </button>
+
+                    <button
+                        type="button"
+                        className="btn-secondary login-card__submit"
+                        onClick={() => router.push("/")}
+                    >
+                        {"Volver al inicio"}
+                    </button>
                 </form>
             </div>
         </div>
+    );
+}
+
+export default function LoginPage() {
+    return (
+        <Suspense>
+            <LoginForm />
+        </Suspense>
     );
 }

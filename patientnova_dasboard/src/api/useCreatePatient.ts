@@ -1,18 +1,19 @@
 import { useState, useCallback } from "react";
 import { API_BASE, ApiResponse } from "../types/API";
 import { Patient } from "../types/Patient";
+import { fetchWithAuth } from "./fetchWithAuth";
 
-export const useUpdatePatient = () => {
+export const useCreatePatient = () => {
     const [ loading, setLoading ] = useState(false);
     const [ error, setError ] = useState<string | null>(null);
 
-    const updatePatient = useCallback(async (patientId: string, patientData: Partial<Patient>) => {
+    const createPatient = useCallback(async (patientData: Partial<Patient>) => {
         setLoading(true);
         setError(null);
 
         try {
-            const res = await fetch(`${API_BASE}/patients/${patientId}`, {
-                method: "PATCH",
+            const res = await fetchWithAuth(`${API_BASE}/patients`, {
+                method: "POST",
                 credentials: 'include',
                 headers: {
                     "Content-Type": "application/json",
@@ -32,7 +33,7 @@ export const useUpdatePatient = () => {
 
             return json.data as Patient;
         } catch (err) {
-            const errorMessage = err instanceof Error ? err.message : "Failed to update patient";
+            const errorMessage = err instanceof Error ? err.message : "Failed to create patient";
             setError(errorMessage);
             throw err;
         } finally {
@@ -40,5 +41,5 @@ export const useUpdatePatient = () => {
         }
     }, []);
 
-    return { updatePatient, loading, error };
+    return { createPatient, loading, error };
 };

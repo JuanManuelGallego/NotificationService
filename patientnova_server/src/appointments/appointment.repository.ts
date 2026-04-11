@@ -9,6 +9,37 @@ import {
 import { AppointmentPatientNotFoundError, AppointmentReminderNotFoundError, AppointmentNotFoundError } from '../utils/errors.js';
 import { appointmentInclude, type AppointmentWithRelations, type PaginatedAppointments, type AppointmentStats } from '../utils/types.js';
 
+/**
+ * Returns the UTC start and end of "today" in the given IANA timezone.
+ * Falls back to UTC if the timezone is invalid.
+ */
+function getTodayBoundsInTz(timezone: string): { start: Date; end: Date } {
+  const tz = (() => { try { Intl.DateTimeFormat(undefined, { timeZone: timezone }); return timezone; } catch { return 'UTC'; } })();
+  const now = new Date();
+
+  const fmt = (zone: string) =>
+    new Intl.DateTimeFormat('sv-SE', {
+      timeZone: zone,
+      year: 'numeric', month: '2-digit', day: '2-digit',
+      hour: '2-digit', minute: '2-digit', second: '2-digit',
+      hourCycle: 'h23',
+    }).format(now).replace(' ', 'T');
+
+  const localStr = fmt(tz);
+  const utcStr   = fmt('UTC');
+
+  // UTC offset in ms: positive for zones ahead of UTC (e.g. UTC+5), negative for behind
+  const offsetMs = new Date(localStr + 'Z').getTime() - new Date(utcStr + 'Z').getTime();
+
+  // Today's date in the target timezone ("YYYY-MM-DD")
+  const localDateStr = localStr.slice(0, 10);
+
+  // Midnight of that date, expressed as UTC
+  const startMs = new Date(localDateStr + 'T00:00:00.000Z').getTime() - offsetMs;
+
+  return { start: new Date(startMs), end: new Date(startMs + 86_400_000 - 1) };
+}
+
 export const appointmentRepository = {
   async create(dto: CreateAppointmentDto, userId: string): Promise<AppointmentWithRelations> {
     const patient = await prisma.patient.findFirst({ where: { id: dto.patientId, userId } });
@@ -48,13 +79,10 @@ export const appointmentRepository = {
     return appt;
   },
 
-  async findMany(query: ListAppointmentsQuery, userId: string): Promise<PaginatedAppointments> {
+  async findMany(query: ListAppointmentsQuery, userId: string, timezone = 'UTC'): Promise<PaginatedAppointments> {
     const { patientId, status, startAt, dateFrom, dateTo, paid, search, page, pageSize, orderBy, order } = query;
     const skip = (page - 1) * pageSize;
-    const todayStart = new Date(startAt || new Date());
-    todayStart.setUTCHours(0, 0, 0, 0);
-    const todayEnd = new Date(startAt || new Date());
-    todayEnd.setUTCHours(23, 59, 59, 999);
+    const { start: todayStart, end: todayEnd } = getTodayBoundsInTz(timezone);
 
 
     const where: Prisma.AppointmentWhereInput = {
@@ -154,7 +182,7 @@ export const appointmentRepository = {
     });
   },
 
-  async getStats(query: AppointmentStatsQuery, userId: string): Promise<AppointmentStats> {
+  async getStats(query: AppointmentStatsQuery, userId: string, timezone = 'UTC'): Promise<AppointmentStats> {
     const { patientId, dateFrom, dateTo } = query;
     const where: Prisma.AppointmentWhereInput = {
       patient: { userId },
@@ -169,10 +197,7 @@ export const appointmentRepository = {
         : {}),
     };
 
-    const todayStart = new Date();
-    todayStart.setUTCHours(0, 0, 0, 0);
-    const todayEnd = new Date();
-    todayEnd.setUTCHours(23, 59, 59, 999);
+    const { start: todayStart, end: todayEnd } = getTodayBoundsInTz(timezone);
 
     const [ statusGroups, paidAgg, unpaidAgg, todayAgg ] = await prisma.$transaction([
       prisma.appointment.groupBy({

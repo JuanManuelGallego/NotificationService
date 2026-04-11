@@ -1,3 +1,4 @@
+import { ConfirmDialog } from "@/src/components/Modals/ConfirmDialog";
 import { useUpdateAppointment } from "@/src/api/useUpdateAppointment";
 import { useUpdateReminder } from "@/src/api/useUpdateReminder";
 import { Appointment, AppointmentStatus } from "@/src/types/Appointment";
@@ -9,6 +10,7 @@ export function CancelAppointmentModal({ appt, onClose, onCanceled }: { appt: Ap
     const { updateAppointment, loading: cancelingAppt } = useUpdateAppointment();
     const { updateReminder, loading: cancelingReminder } = useUpdateReminder();
     const [ error, setError ] = useState<string | null>(null);
+    const loading = cancelingAppt || cancelingReminder;
 
     async function handleCancel() {
         setError(null);
@@ -20,23 +22,22 @@ export function CancelAppointmentModal({ appt, onClose, onCanceled }: { appt: Ap
     }
 
     return (
-        <div className="modal-overlay modal-overlay--nested" onClick={onClose}>
-            <div className="modal-panel modal-panel--sm" onClick={e => e.stopPropagation()}>
-                <div className="modal-confirm">
-                    <div className="modal-confirm__icon">🚫</div>
-                    <h2 className="modal-title modal-title--sm">Cancelar Cita</h2>
-                    <p className="modal-confirm__text">
-                        ¿Estás seguro que deseas cancelar la cita de <br /><strong>{appt.patient.name} {appt.patient.lastName}</strong> del <strong>{fmtDate(appt.startAt)}</strong>?
-                    </p>
-                </div>
-                {error && <div className="error-inline">⚠️ {error}</div>}
-                <div className="modal-confirm__actions">
-                    <button onClick={onClose} className="btn-secondary btn-block" disabled={cancelingAppt || cancelingReminder}>Regresar</button>
-                    <button onClick={handleCancel} disabled={cancelingAppt || cancelingReminder} className="btn-danger btn-block">
-                        {cancelingAppt || cancelingReminder ? "Cancelando…" : "Sí, cancelar"}
-                    </button>
-                </div>
-            </div>
-        </div>
+        <ConfirmDialog
+            icon="🚫"
+            title="Cancelar Cita"
+            confirmLabel="Sí, cancelar"
+            loadingLabel="Cancelando…"
+            loading={loading}
+            error={error}
+            nested
+            onClose={onClose}
+            onConfirm={handleCancel}
+        >
+            <p className="modal-confirm__text">
+                ¿Estás seguro que deseas cancelar la cita de <br />
+                <strong>{appt.patient.name} {appt.patient.lastName}</strong> del{" "}
+                <strong>{fmtDate(appt.startAt)}</strong>?
+            </p>
+        </ConfirmDialog>
     );
 }

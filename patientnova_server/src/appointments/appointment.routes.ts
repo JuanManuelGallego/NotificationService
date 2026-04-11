@@ -27,7 +27,7 @@ appointmentRouter.get<{}, any, any, ListAppointmentsQuery>(
   validateQuery(listAppointmentsSchema),
   async (req: Request<{}, any, any, ListAppointmentsQuery>, res: Response) => {
     try {
-      const result = await appointmentRepository.findMany(req.query, req.user!.id);
+      const result = await appointmentRepository.findMany(req.query, req.user!.id, req.user!.timezone);
       ok(res, result);
     } catch (err) { handleError(res, err); }
   }
@@ -43,7 +43,7 @@ appointmentRouter.get<{}, any, any, AppointmentStatsQuery>(
   validateQuery(appointmentStatsSchema),
   async (req: Request<{}, any, any, AppointmentStatsQuery>, res: Response) => {
     try {
-      ok(res, await appointmentRepository.getStats(req.query, req.user!.id));
+      ok(res, await appointmentRepository.getStats(req.query, req.user!.id, req.user!.timezone));
     } catch (err) { handleError(res, err); }
   }
 );

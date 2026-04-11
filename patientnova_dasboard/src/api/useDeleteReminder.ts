@@ -1,5 +1,6 @@
 import { useState, useCallback } from "react";
 import { API_BASE } from "../types/API";
+import { fetchWithAuth } from "./fetchWithAuth";
 
 export const useDeleteReminder = () => {
     const [ loading, setLoading ] = useState(false);
@@ -10,7 +11,7 @@ export const useDeleteReminder = () => {
         setError(null);
 
         try {
-            const res = await fetch(`${API_BASE}/reminders/${reminderId}`, {
+            const res = await fetchWithAuth(`${API_BASE}/reminders/${reminderId}`, {
                 method: "DELETE",
                 credentials: 'include',
             });

@@ -5,7 +5,8 @@ import { flagUrl } from "@/src/components/CountryCodeInput";
 import { AppointmentDrawer } from "@/src/components/Drawers/AppointmentDrawer";
 import { AppointmentModal } from "@/src/components/Modals/AppointmentModal";
 import { CancelAppointmentModal } from "@/src/components/Modals/CancelAppointmentModal";
-import Sidebar from "@/src/components/Navigation/Sidebar";
+import PageLayout from "@/src/components/PageLayout";
+import { PageHeader } from "@/src/components/PageHeader";
 import { Appointment, APPT_LOCATION_CFG, AppointmentStatus } from "@/src/types/Appointment";
 import { today, MONTH_NAMES_ES, DAY_NAMES_ES, formatTime, fmtDate, getColombianHolidays } from "@/src/utils/TimeUtils";
 import Image from "next/image";
@@ -94,22 +95,16 @@ export default function CalendarPage() {
 
   return (
     <>
-      <div className="page-shell">
-        <Sidebar />
-        <main className="page-main">
-          <div className="page-header">
-            <div>
-              <h1 className="page-title">Agenda</h1>
-              <p className="page-subtitle">
-                {new Date().toLocaleDateString("es-ES", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}
-              </p>
-            </div>
-            <div className="page-header__actions">
-              <button onClick={() => setShowCreate(true)} className="btn-primary btn-hero">
-                <span className="btn-plus-icon">+</span> Nueva Cita
-              </button>
-            </div>
-          </div>
+      <PageLayout>
+        <PageHeader
+          title="Agenda"
+          subtitle={new Date().toLocaleDateString("es-ES", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}
+          actions={
+            <button onClick={() => setShowCreate(true)} className="btn-primary btn-hero">
+              <span className="btn-plus-icon">+</span> Nueva Cita
+            </button>
+          }
+        />
 
           <div className="table-card">
             <div className="cal-nav-header">
@@ -215,8 +210,7 @@ export default function CalendarPage() {
               </div>
             )}
           </div>
-        </main>
-      </div>
+      </PageLayout>
       {selectedDay && (
         <div className="cal-day-panel-overlay" onClick={() => setSelectedDay(null)}>
           <div className="cal-day-panel" onClick={e => e.stopPropagation()}>

@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { API_BASE, ApiPaginatedResponse } from "../types/API";
 import { FetchPatientsFilters, Patient } from "../types/Patient";
 import { buildPatientQueryString } from "../utils/ApiUtils";
+import { fetchWithAuth } from "./fetchWithAuth";
 
 export const useFetchPatients = (filters?: FetchPatientsFilters) => {
     const [ patients, setPatients ] = useState<Patient[]>([]);
@@ -16,7 +17,7 @@ export const useFetchPatients = (filters?: FetchPatientsFilters) => {
 
             try {
                 const queryString = buildPatientQueryString(overrideFilters ?? filters);
-                const res = await fetch(`${API_BASE}/patients${queryString}`, {
+                const res = await fetchWithAuth(`${API_BASE}/patients${queryString}`, {
                     credentials: 'include', 
                 });
 

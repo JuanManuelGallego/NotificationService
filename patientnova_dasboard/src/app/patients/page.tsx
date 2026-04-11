@@ -2,7 +2,9 @@
 import { useState, useMemo, Suspense } from "react";
 import { useQueryState, parseAsInteger, parseAsString, parseAsStringEnum } from 'nuqs';
 
-import Sidebar from '../../components/Navigation/Sidebar';
+import PageLayout from '../../components/PageLayout';
+import { PageHeader } from '../../components/PageHeader';
+import { FilterBar } from '../../components/FilterBar';
 import { FetchPatientsFilters, Patient, PatientStatus } from "@/src/types/Patient";
 import { getAvatarColor, getInitials } from "@/src/utils/AvatarHelper";
 import { StatCard } from "@/src/components/Info/StatCard";
@@ -47,52 +49,37 @@ function PatientsPageContent() {
 
   return (
     <>
-      <div className="page-shell">
-        <Sidebar />
-        <main className="page-main">
-          <div className="page-header">
-            <div>
-              <h1 className="page-title">Pacientes</h1>
-              <p className="page-subtitle">
-                {new Date().toLocaleDateString("es-ES", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}
-              </p>
-            </div>
-            <div className="page-header__actions">
-              <button onClick={() => setShowCreate(true)} className="btn-primary btn-hero">
-                <span className="btn-plus-icon">+</span> Nuevo Paciente
-              </button>
-            </div>
+      <PageLayout>
+        <PageHeader
+          title="Pacientes"
+          subtitle={new Date().toLocaleDateString("es-ES", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}
+          actions={
+            <button onClick={() => setShowCreate(true)} className="btn-primary btn-hero">
+              <span className="btn-plus-icon">+</span> Nuevo Paciente
+            </button>
+          }
+        />
+        <div className="stats-grid">
+          <StatCard label="Total Pacientes" value={stats?.total ?? 0} sub="en el sistema" accent="var(--c-brand)" />
+          <StatCard label="Activos" value={stats?.byStatus[ PatientStatus.ACTIVE ] ?? 0} sub="reciben notificaciones" accent="var(--c-success)" />
+          <StatCard label="Inactivos" value={stats?.byStatus[ PatientStatus.INACTIVE ] ?? 0} sub="sin notificaciones" accent="var(--c-warning)" />
+        </div>
+        <FilterBar
+          value={search}
+          onChange={v => { setSearch(v); setPage(1); }}
+          onClear={() => { setSearch(""); setPage(1); }}
+          placeholder="Buscar por nombre, apellido o correo…"
+        >
+          <div className="filter-chips">
+            {([
+              { key: "ALL", label: "Todos" },
+              { key: PatientStatus.ACTIVE, label: "Activos" },
+              { key: PatientStatus.INACTIVE, label: "Inactivos" },
+            ] as const).map(({ key, label }) => (
+              <button key={key} onClick={() => { setFilterStatus(key); setPage(1); }} className={`filter-chip ${filterStatus === key ? "filter-chip--active" : ""}`}>{label}</button>
+            ))}
           </div>
-          <div className="stats-grid">
-            <StatCard label="Total Pacientes" value={stats?.total ?? 0} sub="en el sistema" accent="var(--c-brand)" />
-            <StatCard label="Activos" value={stats?.byStatus[ PatientStatus.ACTIVE ] ?? 0} sub="reciben notificaciones" accent="var(--c-success)" />
-            <StatCard label="Inactivos" value={stats?.byStatus[ PatientStatus.INACTIVE ] ?? 0} sub="sin notificaciones" accent="var(--c-warning)" />
-          </div>
-          <div className="filter-bar">
-            <div className="search-wrapper">
-              <input
-                placeholder="Buscar por nombre, apellido o correo…"
-                value={search}
-                onChange={e => { setSearch(e.target.value); setPage(1); }}
-                autoComplete="new-password"
-                className="form-input"
-              />
-              <button
-                onClick={() => { setSearch(""); setPage(1); }}
-                className="search-clear-btn"
-                aria-label="Limpiar búsqueda"
-              >✕</button>
-            </div>
-            <div className="filter-chips">
-              {([
-                { key: "ALL", label: "Todos" },
-                { key: PatientStatus.ACTIVE, label: "Activos" },
-                { key: PatientStatus.INACTIVE, label: "Inactivos" },
-              ] as const).map(({ key, label }) => (
-                <button key={key} onClick={() => { setFilterStatus(key); setPage(1); }} className={`filter-chip ${filterStatus === key ? "filter-chip--active" : ""}`}>{label}</button>
-              ))}
-            </div>
-          </div>
+        </FilterBar>
           {error && <ErrorBanner msg={error} onRetry={fetchPatients} />}
           <DataTable
             columns={[ "Paciente", "Correo", "WhatsApp", "SMS", "Estado", "Registrado", "" ]}
@@ -139,8 +126,7 @@ function PatientsPageContent() {
             }
             footer={<TableFooter page={page} pageSize={PAGE_SIZE} total={total} totalPages={totalPages} label="pacientes" onPageChange={setPage} />}
           />
-        </main>
-      </div>
+      </PageLayout>
       {showCreate && (
         <PatientModal
           onClose={() => setShowCreate(false)}

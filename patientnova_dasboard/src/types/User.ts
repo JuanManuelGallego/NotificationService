@@ -8,6 +8,7 @@ export interface User {
     jobTitle: string
     role: AdminRole
     status: AdminStatus
+    timezone: string
 }
 
 export enum AdminRole {

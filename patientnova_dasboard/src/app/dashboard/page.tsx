@@ -9,7 +9,8 @@ import { useFetchPatientsStats } from '@/src/api/useFetchPatientsStats';
 import { useFetchAppointments } from '@/src/api/useFetchAppointments';
 import { ReminderStatus, CHANNEL_ICON } from '@/src/types/Reminder';
 import { useFetchReminders } from '@/src/api/useFetchReminders';
-import Sidebar from '@/src/components/Navigation/Sidebar';
+import PageLayout from '@/src/components/PageLayout';
+import { PageHeader } from '@/src/components/PageHeader';
 import { StatCard } from '@/src/components/Info/StatCard';
 import { PatientStatus } from '@/src/types/Patient';
 import { getInitials, getAvatarColor } from '@/src/utils/AvatarHelper';
@@ -51,18 +52,11 @@ export default function DashboardPage() {
     const failedReminders = reminderStats?.byStatus[ ReminderStatus.FAILED ] ?? 0;
 
     return (
-        <div className="page-shell">
-            <Sidebar />
-            <main className="page-main">
-                {/* Header */}
-                <div className="page-header">
-                    <div>
-                        <h1 className="page-title">Vista General</h1>
-                        <p className="page-subtitle">
-                            {new Date().toLocaleDateString("es-ES", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}
-                        </p>
-                    </div>
-                </div>
+        <PageLayout>
+            <PageHeader
+                title="Vista General"
+                subtitle={new Date().toLocaleDateString("es-ES", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}
+            />
 
                 {/* Welcome banner */}
                 <div className="dash-welcome fade-in">
@@ -180,8 +174,6 @@ export default function DashboardPage() {
                         </div>
                     </div>
                 </div>
-
-                {/* Quick nav cards */}
                 <div className="dash-quick-nav fade-in">
                     <h3 className="dash-section-title">Acceso Rápido</h3>
                     <div className="dash-nav-grid">
@@ -203,7 +195,6 @@ export default function DashboardPage() {
                         ))}
                     </div>
                 </div>
-            </main>
-        </div>
+        </PageLayout>
     );
 }

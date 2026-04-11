@@ -3,11 +3,11 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
-import { useAuth } from '@/src/api/useAuth';
+import { useAuthContext } from '@/src/app/AuthContext';
 import { useRouter } from "next/navigation";
 
 export const NAV_ITEMS = [
-    { id: "dashboard", path: "/", icon: "🏠", label: "Vista General" },
+    { id: "dashboard", path: "/dashboard", icon: "🏠", label: "Vista General" },
     { id: "patients", path: "/patients", icon: "🪪", label: "Pacientes" },
     { id: "appointments", path: "/appointments", icon: "📝", label: "Citas" },
     { id: "calendar", path: "/calendar", icon: "📆", label: "Calendario" },
@@ -19,7 +19,7 @@ export const NAV_ITEMS = [
 export default function Sidebar() {
     const pathname = usePathname();
     const router = useRouter();
-    const { logout } = useAuth();
+    const { user, logout } = useAuthContext();
 
     return (
         <aside className="sidebar">
@@ -50,13 +50,20 @@ export default function Sidebar() {
                 <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                     {/* Avatar */}
                     <div style={{
-                        flexShrink: 0, // Prevents the circle from squishing
+                        flexShrink: 0,
                         width: 38, height: 38, borderRadius: "50%", background: "var(--c-brand-accent)",
                         display: "flex", alignItems: "center", justifyContent: "center",
                         fontSize: 14, fontWeight: 700, color: "var(--c-white)",
-                    }}>DR</div>
+                        overflow: "hidden",
+                    }}>
+                        {user?.avatarUrl ?
+                            <Image src={user.avatarUrl} alt={user.displayName} width={36} height={36} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                            : user ? (
+                                `${user.firstName[ 0 ]}${user.lastName[ 0 ]}`.toUpperCase()
+                            ) : "?"}
+                    </div>
 
-                    {/* Text Container - Now with flex: 1 to push the button to the edge */}
+                    {/* Text Container */}
                     <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{
                             fontSize: 14,
@@ -64,18 +71,18 @@ export default function Sidebar() {
                             color: "var(--c-white)",
                             whiteSpace: "nowrap",
                             overflow: "hidden",
-                            textOverflow: "ellipsis" // Adds "..." if name is too long
+                            textOverflow: "ellipsis",
                         }}>
-                            Dr. Manuela Cardona
+                            {user?.displayName ?? "—"}
                         </div>
                         <div style={{ fontSize: 11, color: "var(--c-brand-sub)" }}>
-                            Administradora
+                            {user?.jobTitle ?? ""}
                         </div>
                     </div>
 
-                    {/* Logout Icon Button - Takes less horizontal space than text */}
+                    {/* Logout Icon Button */}
                     <button
-                        onClick={() => { logout?.(); router.push("/") }}
+                        onClick={async () => { await logout(); router.replace("/login"); }}
                         title="Cerrar sesión"
                         style={{
                             flexShrink: 0,

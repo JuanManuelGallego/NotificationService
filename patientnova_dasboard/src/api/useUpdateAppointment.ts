@@ -1,18 +1,19 @@
 import { useState, useCallback } from "react";
 import { API_BASE, ApiResponse } from "../types/API";
 import { Appointment } from "../types/Appointment";
+import { fetchWithAuth } from "./fetchWithAuth";
 
-export const useCreateAppointment = () => {
+export const useUpdateAppointment = () => {
     const [ loading, setLoading ] = useState(false);
     const [ error, setError ] = useState<string | null>(null);
 
-    const createAppointment = useCallback(async (appointmentData: Partial<Appointment>) => {
+    const updateAppointment = useCallback(async (appointmentId: string, appointmentData: Partial<Appointment>) => {
         setLoading(true);
         setError(null);
 
         try {
-            const res = await fetch(`${API_BASE}/appointments`, {
-                method: "POST",
+            const res = await fetchWithAuth(`${API_BASE}/appointments/${appointmentId}`, {
+                method: "PATCH",
                 credentials: 'include',
                 headers: {
                     "Content-Type": "application/json",
@@ -32,7 +33,7 @@ export const useCreateAppointment = () => {
 
             return json.data as Appointment;
         } catch (err) {
-            const errorMessage = err instanceof Error ? err.message : "Failed to create appointment";
+            const errorMessage = err instanceof Error ? err.message : "Failed to update appointment";
             setError(errorMessage);
             throw err;
         } finally {
@@ -40,5 +41,5 @@ export const useCreateAppointment = () => {
         }
     }, []);
 
-    return { createAppointment, loading, error };
+    return { updateAppointment, loading, error };
 };

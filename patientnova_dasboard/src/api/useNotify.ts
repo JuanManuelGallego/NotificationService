@@ -1,30 +1,30 @@
 import { useState, useCallback } from "react";
-import { API_BASE, ApiResponse } from "../types/API";
-import { Reminder } from "../types/Reminder";
+import { API_BASE } from "../types/API";
+import { Channel, Reminder } from '../types/Reminder';
+import { fetchWithAuth } from "./fetchWithAuth";
 
-export const useUpdateReminder = () => {
+export const useNotify = () => {
     const [ loading, setLoading ] = useState(false);
     const [ error, setError ] = useState<string | null>(null);
 
-    const updateReminder = useCallback(async (reminderId: string, reminderData: Partial<Reminder>) => {
-        setLoading(true);
-        setError(null);
+    const notify = useCallback(async (channel: Channel, payload: Partial<Reminder>) => {
+        setLoading(true); setError(null);
 
         try {
-            const res = await fetch(`${API_BASE}/reminders/${reminderId}`, {
-                method: "PATCH",
+            const res = await fetchWithAuth(`${API_BASE}/notify/${channel.toLowerCase()}`, {
+                method: "POST",
                 credentials: 'include',
                 headers: {
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify(reminderData),
+                body: JSON.stringify(payload),
             });
 
             if (!res.ok) {
                 throw new Error(`Server error: ${res.status}`);
             }
 
-            const json: ApiResponse = await res.json();
+            const json = await res.json();
 
             if (!json.success) {
                 throw new Error("API returned an error");
@@ -32,7 +32,7 @@ export const useUpdateReminder = () => {
 
             return json.data as Reminder;
         } catch (err) {
-            const errorMessage = err instanceof Error ? err.message : "Failed to update reminder";
+            const errorMessage = err instanceof Error ? err.message : "Failed to send notification";
             setError(errorMessage);
             throw err;
         } finally {
@@ -40,5 +40,5 @@ export const useUpdateReminder = () => {
         }
     }, []);
 
-    return { updateReminder, loading, error };
+    return { notify, loading, error };
 };

@@ -55,8 +55,13 @@ app.use(
         }
     }));
 
+// Strict rate limit scoped to login and register only — not /me or /refresh
+const authWriteLimit = rateLimit({ windowMs: 15 * 60 * 1000, max: 50, standardHeaders: true, legacyHeaders: false });
+app.use('/auth/login', authWriteLimit);
+app.use('/auth/register', authWriteLimit);
+
 app.use('/', router);
-app.use('/auth', rateLimit({ windowMs: 15 * 60 * 1000, max: 5 }), authRouter); // Extra strict rate limit on auth routes
+app.use('/auth', authRouter);
 app.use('/notify', authenticate, requireAdmin, notifyRouter);
 app.use('/patients', authenticate, requireAdminForWrites, patientRouter);
 app.use('/reminders', authenticate, requireAdminForWrites, reminderRouter);

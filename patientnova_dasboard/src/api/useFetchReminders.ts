@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { API_BASE, ApiPaginatedResponse } from "../types/API";
 import { FetchRemindersFilters, Reminder } from "../types/Reminder";
 import { buildReminderQueryString } from "../utils/ApiUtils";
+import { fetchWithAuth } from "./fetchWithAuth";
 
 export const useFetchReminders = (filters?: FetchRemindersFilters) => {
     const [ reminders, setReminders ] = useState<Reminder[]>([]);
@@ -15,7 +16,7 @@ export const useFetchReminders = (filters?: FetchRemindersFilters) => {
 
         try {
             const queryString = buildReminderQueryString(filters);
-            const res = await fetch(`${API_BASE}/reminders${queryString}`,{
+            const res = await fetchWithAuth(`${API_BASE}/reminders${queryString}`,{
                     credentials: 'include', 
                 });
 

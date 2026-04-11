@@ -7,6 +7,8 @@ export interface AuthPayload {
   id: string;
   email: string;
   role: string;
+  /** IANA timezone string (e.g. "America/Bogota"). Defaults to "UTC" for legacy tokens. */
+  timezone: string;
 }
 
 declare global {
@@ -54,7 +56,13 @@ export function authenticate(req: Request, res: Response, next: NextFunction): v
       return apiError(res, 'Invalid token payload', 401);
     }
 
-    req.user = payload;
+    // Normalize: inject timezone with fallback for tokens issued before this field was added
+    req.user = {
+      id:       payload.id,
+      email:    payload.email,
+      role:     payload.role,
+      timezone: typeof (payload as any).timezone === 'string' ? (payload as any).timezone : 'UTC',
+    };
     next();
   } catch (err) {
     console.warn(`[authenticate] Auth failure - ${(err as Error).message} - IP: ${req.ip}`);

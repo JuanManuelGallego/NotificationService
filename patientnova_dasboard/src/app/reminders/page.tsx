@@ -15,7 +15,9 @@ import { useFetchReminders } from '@/src/api/useFetchReminders';
 import { useFetchPatients } from '@/src/api/useFetchPatients';
 import { ErrorBanner } from '@/src/components/Info/ErrorBanner';
 import { ReminderStatusPill } from '@/src/components/Info/StatusPill';
-import Sidebar from "@/src/components/Navigation/Sidebar";
+import PageLayout from "@/src/components/PageLayout";
+import { PageHeader } from "@/src/components/PageHeader";
+import { FilterBar } from "@/src/components/FilterBar";
 import { useFetchRemindersStats } from "@/src/api/useFetchRemindersStats";
 import { useDebounceState } from "@/src/utils/useDebounceState";
 import { useQueryState, parseAsInteger, parseAsString, parseAsStringEnum } from 'nuqs';
@@ -51,22 +53,16 @@ function RemindersPageContent() {
 
     return (
         <>
-            <div className="page-shell">
-                <Sidebar />
-                <main className="page-main">
-                    <div className="page-header">
-                        <div>
-                            <h1 className="page-title">Recordatorios</h1>
-                            <p className="page-subtitle">
-                                {new Date().toLocaleDateString("es-ES", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}
-                            </p>
-                        </div>
-                        <div className="page-header__actions">
-                            <button onClick={() => setShowCreate(true)} className="btn-primary btn-hero">
-                                <span className="btn-plus-icon">+</span> Nuevo Recordatorio
-                            </button>
-                        </div>
-                    </div>
+            <PageLayout>
+                <PageHeader
+                    title="Recordatorios"
+                    subtitle={new Date().toLocaleDateString("es-ES", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}
+                    actions={
+                        <button onClick={() => setShowCreate(true)} className="btn-primary btn-hero">
+                            <span className="btn-plus-icon">+</span> Nuevo Recordatorio
+                        </button>
+                    }
+                />
                     <div className="stats-grid">
                         <StatCard label="Activos" value={(stats?.byStatus[ ReminderStatus.PENDING ] || 0) + (stats?.byStatus[ ReminderStatus.QUEUED ] || 0)} sub="por enviar" accent="var(--c-link)" />
                         <StatCard label="Enviados" value={stats?.byStatus[ ReminderStatus.SENT ] || 0} sub="entregados" accent="var(--c-success)" />
@@ -75,22 +71,12 @@ function RemindersPageContent() {
                     </div>
                     <ReminderTabs activeTab={activeTab} setActiveTab={setActiveTab} stats={stats} />
                     {activeTab !== "Bulk" && (
-                        <div className="filter-bar">
-                            <div className="search-wrapper">
-
-                                <input
-                                    placeholder="Buscar por nombre, número, canal…"
-                                    value={search}
-                                    onChange={e => setSearch(e.target.value)}
-                                    className="form-input"
-                                />
-                                <button
-                                    onClick={() => { setSearch(""); setPage(1); }}
-                                    className="search-clear-btn"
-                                    aria-label="Limpiar búsqueda"
-                                >✕</button>
-                            </div>
-                        </div>
+                        <FilterBar
+                            value={search}
+                            onChange={v => setSearch(v)}
+                            onClear={() => { setSearch(""); setPage(1); }}
+                            placeholder="Buscar por nombre, número, canal…"
+                        />
                     )}
                     {error && activeTab !== "Bulk" && <ErrorBanner msg={error} onRetry={() => { fetchReminders(); fetchStats(); }} />}
                     {activeTab === "Active" && (
@@ -108,8 +94,7 @@ function RemindersPageContent() {
                         />
                     )}
                     {activeTab === "Bulk" && <BulkTab patients={patients} />}
-                </main>
-            </div>
+            </PageLayout>
             {showCreate && (
                 <ReminderModal patients={patients} onClose={() => { setShowCreate(false); fetchReminders(); fetchStats(); }} onSaved={() => { fetchReminders(); fetchStats(); }} />
             )}

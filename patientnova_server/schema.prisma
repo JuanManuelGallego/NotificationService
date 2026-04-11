@@ -168,11 +168,14 @@ model User {
   avatarUrl      String?
   jobTitle       String?   
 
-  lastPasswordChange  DateTime?
-  failedLoginAttempts Int       @default(0)
-  lockedUntil         DateTime? 
-  lastLoginAt         DateTime?
-  lastLoginIp         String?
+  timezone             String    @default("America/Bogota") @db.VarChar(50)
+
+  lastPasswordChange   DateTime?
+  failedLoginAttempts  Int       @default(0)
+  lockedUntil          DateTime? 
+  lastLoginAt          DateTime?
+  lastLoginIp          String?
+  refreshTokenVersion  Int       @default(0)
 
   deletedAt      DateTime?
   deletedById    String?  

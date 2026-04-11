@@ -1,5 +1,6 @@
 import { useState, useCallback } from "react";
 import { API_BASE } from "../types/API";
+import { fetchWithAuth } from "./fetchWithAuth";
 
 export const useDeleteAppointment = () => {
     const [ loading, setLoading ] = useState(false);
@@ -10,7 +11,7 @@ export const useDeleteAppointment = () => {
         setError(null);
 
         try {
-            const res = await fetch(`${API_BASE}/appointments/${appointmentId}`, {
+            const res = await fetchWithAuth(`${API_BASE}/appointments/${appointmentId}`, {
                 method: "DELETE",
                 credentials: 'include',
             });
