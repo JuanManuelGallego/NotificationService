@@ -115,7 +115,7 @@ async function seed() {
                 data: { name: 'Vamos a Terapia', address: null, isVirtual: false, color: '#D97706', icon: '💬', userId: user.id },
             }),
             prisma.appointmentLocation.create({
-                data: { name: 'Virtual', meetingUrl: null, isVirtual: true, color: '#7C3AED', icon: '💻', userId: user.id },
+                data: { name: 'Virtual', isVirtual: true, color: '#7C3AED', icon: '💻', userId: user.id },
             }),
         ]);
         console.log(`✅ Created ${locations.length} default locations`);
