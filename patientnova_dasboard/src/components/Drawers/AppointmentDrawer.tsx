@@ -47,10 +47,10 @@ export function AppointmentDrawer({ appt, onClose, onEdit, onPay, onDelete }: {
                     </Section>
                     <Section title="Lugar">
                         <Row icon="📍" label="Ubicación" value={appt.appointmentLocation.name} />
-                        {appt.appointmentLocation.meetingUrl && (
+                        {appt.meetingUrl && (
                             <div className="detail-row">
                                 <span className="detail-row__icon">🔗</span>
-                                <a href={appt.appointmentLocation.meetingUrl} target="_blank" rel="noopener noreferrer" className="meeting-link">Unirse a la videollamada</a>
+                                <a href={appt.meetingUrl} target="_blank" rel="noopener noreferrer" className="meeting-link">Unirse a la videollamada</a>
                             </div>
                         )}
                     </Section>
