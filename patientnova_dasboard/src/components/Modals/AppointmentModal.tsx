@@ -2,9 +2,9 @@ import { useCreateAppointment } from "@/src/api/useCreateAppointment";
 import { useCreateReminder } from "@/src/api/useCreateReminder";
 import { useUpdateAppointment } from "@/src/api/useUpdateAppointment";
 import { useUpdateReminder } from "@/src/api/useUpdateReminder";
-import { Appointment, AppointmentForm, AppointmentStatus, AppointmentDuration, APPT_STATUS_CFG, APPT_PAID_STATUS_CFG, AppointmentPaidStatus, REMINDER_TEMPLATE, AppointmentLocation, AppointmentType } from "@/src/types/Appointment";
+import { Appointment, AppointmentForm, AppointmentStatus, AppointmentDuration, APPT_STATUS_CFG, APPT_PAID_STATUS_CFG, AppointmentPaidStatus, AppointmentLocation, AppointmentType } from "@/src/types/Appointment";
 import { ReminderType, Reminder, ReminderMode, ReminderStatus, CHANNEL_CFG, Channel, REMINDER_TYPE_CONFIG } from "@/src/types/Reminder";
-import { getAvatarColor, getInitials } from "@/src/utils/AvatarHelper";
+import { getAvatarColor, getInitials, getUserName } from "@/src/utils/AvatarHelper";
 import { isReminderTypeFeasible, formatDate, formatTime, getDuration, getRemindersendAt, getAppointmentEndTime, getTommorrowSixAm, getReminderType, getDate } from "@/src/utils/TimeUtils";
 import { useState } from "react";
 import { AppointmentDateTimePicker } from "../AppointmentDateTimePicker";
@@ -14,6 +14,8 @@ import { useFetchPatients } from "@/src/api/useFetchPatients";
 import { Patient } from "@/src/types/Patient";
 import { useFetchAppointmentTypes } from "@/src/api/useFetchAppointmentTypes";
 import { useFetchLocations } from "@/src/api/useFetchLocations";
+import { TWILLO_CONFIG } from "@/src/utils/twilloConfig";
+import { useAuthContext } from "@/src/app/AuthContext";
 
 export function AppointmentModal({ appt, prefillDate, onClose, onSaved }: {
   appt?: Appointment;
@@ -22,6 +24,7 @@ export function AppointmentModal({ appt, prefillDate, onClose, onSaved }: {
   onSaved: () => void;
 }) {
   const isEdit = !!appt;
+  const { user } = useAuthContext();
   const { patients } = useFetchPatients();
   const { createAppointment } = useCreateAppointment();
   const { updateAppointment } = useUpdateAppointment();
@@ -75,12 +78,14 @@ export function AppointmentModal({ appt, prefillDate, onClose, onSaved }: {
 
     return {
       to,
-      contentSid: "HX37ade446b4d27706eefce63ee11d1528",
+      contentSid: TWILLO_CONFIG.PATIENT_APPOINTMENT_REMINDER.contentSid,
       contentVariables: {
-        "1": getDate(form.startAt),
-        "2": formatTime(form.startAt)
+        "1": selectedPatient ? `${selectedPatient.name}` : "",
+        "2": getUserName(user) || "su profesional de salud",
+        "3": getDate(form.startAt),
+        "4": formatTime(form.startAt)
       },
-      body: REMINDER_TEMPLATE.replace("{{1}}", formatDate(form.startAt)).replace("{{2}}", formatTime(form.startAt)),
+      body: TWILLO_CONFIG.PATIENT_APPOINTMENT_REMINDER.template.replace("{{1}}", selectedPatient ? `${selectedPatient.name}` : "").replace("{{2}}", getUserName(user) || "su profesional de salud").replace("{{3}}", formatDate(form.startAt)).replace("{{4}}", formatTime(form.startAt)),
       patientId: form.patientId,
       channel: reminderChannel,
       sendMode: ReminderMode.SCHEDULED,

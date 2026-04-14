@@ -1,17 +1,18 @@
 import { useCreateReminder } from "@/src/api/useCreateReminder";
 import { useNotify } from "@/src/api/useNotify";
 import { DateTimePicker } from "@/src/components/DateTimePicker";
-import { REMINDER_TEMPLATE } from "@/src/types/Appointment";
 import { Patient } from "@/src/types/Patient";
 import { ReminderMode, BulkRemindersResult, Channel, StepChannelProps, StepMessageProps, StepPatientsProps, StepResultsProps, CHANNEL_CFG } from "@/src/types/Reminder";
-import { getAvatarColor, getInitials } from "@/src/utils/AvatarHelper";
+import { getAvatarColor, getInitials, getUserName } from "@/src/utils/AvatarHelper";
 import { useState, useMemo, useCallback, memo } from "react";
+import { useAuthContext } from "../AuthContext";
+import { TWILLO_CONFIG } from "@/src/utils/twilloConfig";
 
 
 export function BulkSendWizard({ patients }: { patients: Patient[] }) {
     const { notify } = useNotify();
     const { createReminder } = useCreateReminder();
-
+    const { user } = useAuthContext();
     const [ step, setStep ] = useState(1);
     const [ channel, setChannel ] = useState<Channel>(Channel.WHATSAPP);
     const [ message, setMessage ] = useState("");
@@ -58,26 +59,30 @@ export function BulkSendWizard({ patients }: { patients: Patient[] }) {
                     await notify(channel, {
                         to,
                         patientId: pid,
-                        contentSid: "HX37ade446b4d27706eefce63ee11d1528",
+                        contentSid: TWILLO_CONFIG.PATIENT_APPOINTMENT_REMINDER.contentSid,
                         contentVariables: {
-                            "1": "12 de Abril",
-                            "2": "3:00 PM"
+                            "1": p ? `${p.name}` : "",
+                            "2": getUserName(user) || "su profesional de salud",
+                            "3": "12 de Abril",
+                            "4": "3:00 PM"
                         },
-                        body: message || REMINDER_TEMPLATE.replace("{{1}}", "12 de Abril").replace("{{2}}", "3:00 PM"),
+                        body: message|| TWILLO_CONFIG.PATIENT_APPOINTMENT_REMINDER.template.replace("{{1}}", p.name).replace("{{2}}", getUserName(user) || "su profesional de salud")
                     });
                 } else {
                     await createReminder({
                         patientId: pid,
-                        contentSid: "HX37ade446b4d27706eefce63ee11d1528",
+                        contentSid: TWILLO_CONFIG.PATIENT_APPOINTMENT_REMINDER.contentSid,
                         contentVariables: {
-                            "1": "12 de Abril",
-                            "2": "3:00 PM"
+                            "1": p ? `${p.name}` : "",
+                            "2": getUserName(user) || "su profesional de salud",
+                            "3": "12 de Abril",
+                            "4": "3:00 PM"
                         },
                         sendMode,
                         channel,
                         to,
                         sendAt,
-                        body: message || REMINDER_TEMPLATE.replace("{{1}}", "12 de Abril").replace("{{2}}", "3:00 PM"),
+                        body: message || TWILLO_CONFIG.PATIENT_APPOINTMENT_REMINDER.template.replace("{{1}}", p.name).replace("{{2}}", getUserName(user) || "su profesional de salud")
 
                     });
                 }
@@ -88,7 +93,7 @@ export function BulkSendWizard({ patients }: { patients: Patient[] }) {
         });
         const res = await Promise.all(tasks);
         setResults(res); setSending(false); setDone(true); setStep(4);
-    }, [ eligible, selected, channel, sendMode, sendAt, notify, createReminder, message ]);
+    }, [ eligible, selected, channel, sendMode, notify, message, user, createReminder, sendAt ]);
 
     const reset = useCallback(() => { setStep(1); setSelected(new Set()); setMessage(""); setResults([]); setDone(false); }, []);
 

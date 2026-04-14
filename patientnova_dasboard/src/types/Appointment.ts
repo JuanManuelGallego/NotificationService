@@ -96,8 +96,6 @@ export interface FetchAppointmentsFilters {
     order?: 'asc' | 'desc';
 }
 
-export const REMINDER_TEMPLATE = "Asunto: Recordatorio de cita médica - Dra. Manuela Cardona\nBuen día!\nLe escribimos para recordarle su próxima cita con la Dra. Manuela Cardona:\nFecha: {{1}}\nHora: {{2}}\nLe recordamos cordialmente que el pago de la consulta debe estar gestionado y confirmado antes del inicio de la sesión.\nQuedamos a su disposición para cualquier duda. ¡Feliz día!"
-
 export interface AppointmentLocation {
     id: string;
     name: string;

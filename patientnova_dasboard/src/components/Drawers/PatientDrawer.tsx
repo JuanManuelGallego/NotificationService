@@ -4,6 +4,8 @@ import { REMINDER_STATUS_CONFIG } from "@/src/types/Reminder";
 import { fmtDate, fmtDateTime } from "@/src/utils/TimeUtils";
 import { PatientStatusPill, AppointmentStatusPill, ReminderStatusPill } from "../Info/StatusPill";
 import { Section, Row } from "./DrawerUtils";
+import { useFetchLocations } from "@/src/api/useFetchLocations";
+import { useFetchAppointmentTypes } from "@/src/api/useFetchAppointmentTypes";
 
 export function PatientDrawer({ patient, onClose, onEdit, onDelete }: {
     patient: Patient;
@@ -12,6 +14,11 @@ export function PatientDrawer({ patient, onClose, onEdit, onDelete }: {
     onDelete: () => void;
 }) {
     const s = PATIENT_STATUS_CONFIG[ patient.status ];
+    const { locations } = useFetchLocations()
+    const { appointmentTypes } = useFetchAppointmentTypes()
+
+    const locationNameById = locations.reduce((acc, loc) => ({ ...acc, [ loc.id ]: loc.name }), {} as Record<string, string>);
+    const appointmentTypeNameById = appointmentTypes.reduce((acc, at) => ({ ...acc, [ at.id ]: at.name }), {} as Record<string, string>);
 
     return (
         <div className="drawer-overlay" onClick={onClose}>
@@ -60,13 +67,13 @@ export function PatientDrawer({ patient, onClose, onEdit, onDelete }: {
                                         <div key={apt.id} className="linked-card" style={{ borderLeft: `3px solid ${aptStatus.dot}` }}>
                                             <div className="linked-card__header">
                                                 <div>
-                                                    <div className="linked-card__title">{apt.appointmentType.name}</div>
+                                                    <div className="linked-card__title">{appointmentTypeNameById[ apt.typeId ?? "" ] || "Desconocido"}</div>
                                                     <div className="linked-card__meta">📅 {fmtDateTime(apt.startAt.toString())}</div>
                                                 </div>
                                                 <AppointmentStatusPill status={apt.status} />
                                             </div>
                                             <div className="linked-card__footer">
-                                                <span>📍 {apt.appointmentLocation.name}</span>
+                                                <span>📍 {locationNameById[ apt.locationId ?? "" ] || "Desconocida"}</span>
                                                 {apt.paid && <span>💰 Pagada</span>}
                                             </div>
                                         </div>

@@ -2,14 +2,17 @@ import { useCreateReminder } from "@/src/api/useCreateReminder";
 import { useNotify } from "@/src/api/useNotify";
 import { Patient } from "@/src/types/Patient";
 import { Reminder, ReminderMode, Channel, ReminderForm, CHANNEL_CFG } from "@/src/types/Reminder";
-import { getAvatarColor, getInitials } from "@/src/utils/AvatarHelper";
+import { getAvatarColor, getInitials, getUserName } from "@/src/utils/AvatarHelper";
 import { fmtDateTime } from "@/src/utils/TimeUtils";
 import { useState } from "react";
 import { DateTimePicker } from "../DateTimePicker";
 import { CustomSelect } from "../CustomSelect";
 import { RequiredField } from "../Info/Requiered";
 import { useFetchPatients } from "@/src/api/useFetchPatients";
-import { useFetchAppointmentTypes } from "@/src/api/useFetchAppointmentTypes";
+import { TWILLO_CONFIG } from "@/src/utils/twilloConfig";
+import { useAuthContext } from "@/src/app/AuthContext";
+import { User } from "@/src/types/User";
+import { validatePhoneNumber } from "@/src/utils/DataValidator";
 
 export function ReminderModal({
     onClose, onSaved, reminder,
@@ -19,6 +22,8 @@ export function ReminderModal({
     reminder?: Reminder;
 }) {
     const isEdit = !!reminder;
+    const { user } = useAuthContext();
+
     const { createReminder } = useCreateReminder();
     const { notify } = useNotify();
     const { patients } = useFetchPatients();
@@ -32,12 +37,13 @@ export function ReminderModal({
         channel: Channel.WHATSAPP,
         message: "",
         sendAt: "",
-        appointmentType: undefined,
+        fecha: "",
+        hora: "",
     });
 
     const isValid = step === 1
-        ? !!form.patientId && !!form.appointmentType
-        : step === 2 ? !!form.channel && !!form.message.trim() && (sendMode === ReminderMode.SCHEDULED ? !!form.sendAt : true) : true;
+        ? !!form.patientId && (sendMode === ReminderMode.SCHEDULED ? !!form.sendAt : true)
+        : step === 2 ? form.channel == Channel.WHATSAPP ? form.fecha && form.hora : !!form.message.trim() : true;
 
     const selectedPatient = patients.find(p => p.id === form.patientId);
 
@@ -47,14 +53,17 @@ export function ReminderModal({
 
     function validateForm() {
         if (!selectedPatient) { setError("Selecciona un paciente"); return false; }
-        if (!form.appointmentType) { setError("Selecciona un tipo de cita"); return false; }
         if (!form.channel) { setError("Selecciona un canal de notificación"); return false; }
-        if (!form.message.trim()) { setError("El mensaje no puede estar vacío"); return false; }
-        if (form.channel === Channel.WHATSAPP && !selectedPatient.whatsappNumber) {
-            setError("El paciente no tiene número de WhatsApp"); return false;
+        if (form.channel === Channel.SMS && !form.message.trim()) { setError("El mensaje no puede estar vacío"); return false; }
+
+        if (form.channel === Channel.WHATSAPP) {
+            if (!selectedPatient.whatsappNumber) { setError("El paciente no tiene número de WhatsApp"); return false; }
+            if (!validatePhoneNumber(selectedPatient.whatsappNumber)) { setError("El número de WhatsApp del paciente no es válido"); return false; }
         }
-        if (form.channel === Channel.SMS && !selectedPatient.smsNumber) {
-            setError("El paciente no tiene número de SMS"); return false;
+        if (form.channel === Channel.SMS) {
+            if (!form.message.trim()) { setError("El mensaje no puede estar vacío"); return false; }
+            if (!selectedPatient.smsNumber) { setError("El paciente no tiene número de SMS"); return false; }
+            if (!validatePhoneNumber(selectedPatient.smsNumber)) { setError("El número de SMS del paciente no es válido"); return false; }
         }
         if (sendMode === ReminderMode.SCHEDULED && !form.sendAt) {
             setError("Selecciona fecha y hora de envío"); return false;
@@ -70,8 +79,8 @@ export function ReminderModal({
 
         return {
             to,
-            contentSid: "HX37ade446b4d27706eefce63ee11d1528",
-            contentVariables: { "1": "12 de Abril", "2": "3:00 PM" },
+            contentSid: TWILLO_CONFIG.PATIENT_APPOINTMENT_REMINDER.contentSid,
+            contentVariables: { "1": ` ${selectedPatient?.name ?? ""}`, "2": getUserName(user), "3": form.fecha, "4": form.hora },
             body: form.message,
             patientId: form.patientId,
         };
@@ -126,7 +135,7 @@ export function ReminderModal({
                     <div className="error-inline">⚠️ {error}</div>
                 )}
                 {step === 1 && <SendModeAndPatientStep sendMode={sendMode} setMode={setMode} form={form} setForm={setForm} patients={patients} />}
-                {step === 2 && <ChannelAndMessageStep form={form} setForm={setForm} selectedPatient={selectedPatient} sendMode={sendMode} set={set} />}
+                {step === 2 && <ChannelAndMessageStep form={form} setForm={setForm} selectedPatient={selectedPatient} set={set} user={user!} />}
                 {step === 3 && <SummaryStep form={form} selectedPatient={selectedPatient} sendMode={sendMode} />}
                 <div className="modal-footer">
                     {step > 1 && <button onClick={() => setStep(s => s - 1)} className="btn-secondary" disabled={saving}>Atrás</button>}
@@ -151,8 +160,6 @@ function SendModeAndPatientStep({ sendMode, setMode, form, setForm, patients }: 
     setForm: React.Dispatch<React.SetStateAction<ReminderForm>>;
     patients: Patient[];
 }) {
-    const { appointmentTypes } = useFetchAppointmentTypes();
-
     return (
         <div className="form-stack">
             <div>
@@ -184,25 +191,22 @@ function SendModeAndPatientStep({ sendMode, setMode, form, setForm, patients }: 
                     onChange={(v) => setForm(f => ({ ...f, patientId: v }))}
                 />
             </label>
-            <label className="form-label">
-                <RequiredField label="Tipo de cita" />
-                <CustomSelect
-                    value={form.appointmentType?.id ?? ""}
-                    placeholder="Seleccionar tipo…"
-                    options={appointmentTypes.map(t => ({ value: t.id, label: t.name }))}
-                    onChange={(v) => setForm(f => ({ ...f, appointmentType: appointmentTypes.find(t => t.id === v) }))}
-                />
-            </label>
+            {sendMode === ReminderMode.SCHEDULED && (
+                <label className="form-label">
+                    <RequiredField label="Fecha y hora de envío" />
+                    <DateTimePicker date={form.sendAt} onChanged={(d) => setForm(f => ({ ...f, sendAt: d }))} showTime isFuture />
+                </label>
+            )}
         </div>
     );
 }
 
-function ChannelAndMessageStep({ form, setForm, selectedPatient, sendMode, set }: {
+function ChannelAndMessageStep({ form, setForm, selectedPatient, set, user }: {
     form: ReminderForm;
     setForm: React.Dispatch<React.SetStateAction<ReminderForm>>;
     selectedPatient: Patient | undefined;
-    sendMode: ReminderMode;
     set: SetField;
+    user: User
 }) {
     return (
         <div className="form-stack">
@@ -244,35 +248,59 @@ function ChannelAndMessageStep({ form, setForm, selectedPatient, sendMode, set }
                     })}
                 </div>
             </div>
-            {sendMode === ReminderMode.SCHEDULED && (
+            {form.channel === Channel.SMS && (
                 <label className="form-label">
-                    <RequiredField label="Fecha y hora de envío" />
-                    <DateTimePicker date={form.sendAt} onChanged={(d) => setForm(f => ({ ...f, sendAt: d }))} showTime isFuture />
+                    <RequiredField label="Mensaje" />
+                    <textarea
+                        className="form-input form-input--textarea"
+                        style={{ minHeight: 100 }}
+                        value={form.message}
+                        onChange={set("message")}
+                        placeholder={`Hola ${selectedPatient?.name ?? "{nombre}"}, le recordamos su cita próximamente. Por favor confirme su asistencia.`}
+                    />
+                    <span className="form-input-hint">{form.message.length} / 1600 caracteres</span>
+                    <div className="channel-section-label">Plantillas rápidas</div>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                        {[
+                            "Le recordamos su próxima cita médica. Por favor confirme su asistencia respondiendo este mensaje.",
+                            "Su cita está confirmada para mañana. Recuerde traer su tarjeta de seguro y llegar 10 minutos antes.",
+                            "Importante: No olvide su cita de mañana. Si necesita cancelar, contáctenos con 24 horas de anticipación.",
+                            TWILLO_CONFIG.PATIENT_APPOINTMENT_REMINDER.template.replace("{{1}}", ` ${selectedPatient?.name ?? ""}`).replace("{{2}}", getUserName(user)),
+                        ].map((tmpl) => (
+                            <button key={tmpl} onClick={() => setForm(f => ({ ...f, message: tmpl }))} className="template-btn">
+                                {tmpl}
+                            </button>
+                        ))}
+                    </div>
                 </label>
             )}
-            <label className="form-label">
-                <RequiredField label="Mensaje" />
-                <textarea
-                    className="form-input form-input--textarea"
-                    style={{ minHeight: 100 }}
-                    value={form.message}
-                    onChange={set("message")}
-                    placeholder={`Hola ${selectedPatient?.name ?? "{nombre}"}, le recordamos su cita${form.appointmentType ? ` de ${form.appointmentType}` : ""} próximamente. Por favor confirme su asistencia.`}
-                />
-                <span className="form-input-hint">{form.message.length} / 1600 caracteres</span>
-                <div className="channel-section-label">Plantillas rápidas</div>
-                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                    {[
-                        "Le recordamos su próxima cita médica. Por favor confirme su asistencia respondiendo este mensaje.",
-                        "Su cita está confirmada para mañana. Recuerde traer su tarjeta de seguro y llegar 10 minutos antes.",
-                        "Importante: No olvide su cita de mañana. Si necesita cancelar, contáctenos con 24 horas de anticipación.",
-                    ].map((tmpl) => (
-                        <button key={tmpl} onClick={() => setForm(f => ({ ...f, message: tmpl }))} className="template-btn">
-                            {tmpl}
-                        </button>
-                    ))}
-                </div>
-            </label>
+            {form.channel === Channel.WHATSAPP && (
+                <>
+                    <label className="form-label">
+                        <RequiredField label="Mensaje" />
+                        <textarea
+                            disabled
+                            className="form-input form-input--textarea"
+                            style={{ minHeight: 100 }}
+                            value={TWILLO_CONFIG.PATIENT_APPOINTMENT_REMINDER.template.replace("{{1}}", ` ${selectedPatient?.name ?? ""}`).replace("{{2}}", getUserName(user)).replace("{{3}}", form.fecha).replace("{{4}}", form.hora)}
+                            onChange={set("message")}
+                            placeholder={`Hola ${selectedPatient?.name ?? "{nombre}"}, le recordamos su cita próximamente. Por favor confirme su asistencia.`}
+                        />
+                        <span className="form-input-hint">{form.message.length} / 1600 caracteres</span>
+                    </label>
+                    <div className="form-grid-2">
+
+                        <label className="form-label">
+                            <RequiredField label="Fecha" />
+                            <input className="form-input" type="text" value={form.fecha} onChange={e => setForm(f => ({ ...f, fecha: e.target.value }))} />
+                        </label>
+                        <label className="form-label">
+                            <RequiredField label="Hora" />
+                            <input className="form-input" type="text" value={form.hora} onChange={e => setForm(f => ({ ...f, hora: e.target.value }))} />
+                        </label>
+                    </div>
+                </>
+            )}
         </div>
     );
 }

@@ -1,8 +1,9 @@
-import { FetchAppointmentsFilters } from "../types/Appointment";
+import { AppointmentStatus, FetchAppointmentsFilters } from "../types/Appointment";
 import { PatientStatus, FetchPatientsFilters } from "../types/Patient";
 import { FetchRemindersFilters } from "../types/Reminder";
 
-export const DEFAULT_STATUS = [ PatientStatus.ACTIVE, PatientStatus.INACTIVE ];
+export const DEFAULT_PATIENT_STATUS = [ PatientStatus.ACTIVE, PatientStatus.INACTIVE ];
+export const DEFAULT_APPOINTMENT_STATUS = [ AppointmentStatus.SCHEDULED, AppointmentStatus.CONFIRMED ];
 
 export const buildPatientQueryString = (filters?: FetchPatientsFilters): string => {
     const params = new URLSearchParams();
@@ -12,7 +13,7 @@ export const buildPatientQueryString = (filters?: FetchPatientsFilters): string 
             ? Array.isArray(filters.status)
                 ? filters.status
                 : [ filters.status ]
-            : DEFAULT_STATUS;
+            : DEFAULT_PATIENT_STATUS;
 
     statusList.forEach(s => params.append("status", s));
 
@@ -54,10 +55,14 @@ export const buildAppointmentQueryString = (filters?: FetchAppointmentsFilters):
     if (filters?.patientId) {
         params.set("patientId", filters.patientId);
     }
+    const statusList =
+        filters?.status
+            ? Array.isArray(filters.status)
+                ? filters.status
+                : [ filters.status ]
+            : DEFAULT_APPOINTMENT_STATUS;
 
-    if (filters?.status) {
-        params.set("status", filters.status);
-    }
+    statusList.forEach(s => params.append("status", s));
 
     if (filters?.startAt) {
         params.set("startAt", filters.startAt);
@@ -103,7 +108,7 @@ export const buildReminderQueryString = (filters?: FetchRemindersFilters): strin
     const params = new URLSearchParams();
 
     if (filters?.status) {
-        const statusList = Array.isArray(filters.status) ? filters.status : [filters.status];
+        const statusList = Array.isArray(filters.status) ? filters.status : [ filters.status ];
         statusList.forEach(s => params.append("status", s));
     }
 

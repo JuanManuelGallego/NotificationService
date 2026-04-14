@@ -1,6 +1,18 @@
+import { Patient } from "../types/Patient";
+import { User } from "../types/User";
 
 function getInitials(name: string, lastName: string) {
     return `${name.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
+}
+
+function getPatientFullName(patient: Patient | undefined) {
+    if (!patient) return "";
+    return `${patient.name} ${patient.lastName}`;
+}
+
+function getUserName(user: User | undefined | null) {
+    if (!user) return "";
+    return user.displayName ?? `${user.firstName} ${user.lastName}`;
 }
 
 function getAvatarColor(id: string) {
@@ -31,4 +43,4 @@ async function resizeToBase64(file: File, maxSide = 256): Promise<string> {
     });
 }
 
-export { getInitials, getAvatarColor, resizeToBase64 };
+export { getInitials, getAvatarColor, resizeToBase64, getPatientFullName, getUserName };
