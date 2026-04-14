@@ -90,7 +90,9 @@ export const appointmentRepository = {
       ...(patientId && { patientId }),
       ...(locationId && { locationId }),
       ...(typeId && { typeId }),
-      ...(status && { status }),
+      ...(status && {
+        status: Array.isArray(status) ? { in: status } : status
+      }),
       ...(paid !== undefined && { paid }),
       ...(startAt && {
         startAt: {

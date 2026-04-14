@@ -84,7 +84,7 @@ export const APPT_STATUS_CFG: Record<AppointmentStatus, { label: string; color: 
 
 export interface FetchAppointmentsFilters {
     patientId?: string;
-    status?: AppointmentStatus;
+    status?: AppointmentStatus[] | AppointmentStatus;
     startAt?: string;
     dateFrom?: string;
     dateTo?: string;

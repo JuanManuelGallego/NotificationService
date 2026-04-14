@@ -41,7 +41,10 @@ export const listAppointmentsSchema = z.object({
   patientId: z.string().uuid().optional(),
   locationId: z.string().uuid().optional(),
   typeId: z.string().uuid().optional(),
-  status: z.nativeEnum(AppointmentStatus).optional(),
+  status: z.union([
+    z.nativeEnum(AppointmentStatus),
+    z.array(z.nativeEnum(AppointmentStatus))
+  ]).optional(),
   startAt: z.string().datetime().optional(),
   dateFrom: z.string().datetime().optional(),
   dateTo: z.string().datetime().optional(),

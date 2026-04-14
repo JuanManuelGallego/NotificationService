@@ -31,7 +31,7 @@ function AppointmentsPageContent() {
   const { stats, fetchStats } = useFetchAppointmentsStats();
   const { updateAppointment } = useUpdateAppointment();
 
-  const [ filterStatus, setFilterStatus ] = useQueryState("filterStatus", parseAsStringEnum<AppointmentStatus | "ALL">([ "ALL", AppointmentStatus.SCHEDULED, AppointmentStatus.CONFIRMED, AppointmentStatus.COMPLETED, AppointmentStatus.CANCELLED, AppointmentStatus.NO_SHOW ]).withDefault("ALL"));
+  const [ filterStatus, setFilterStatus ] = useQueryState("filterStatus", parseAsStringEnum<AppointmentStatus | "ALL" | "Upcoming">([ "ALL", "Upcoming", AppointmentStatus.SCHEDULED, AppointmentStatus.CONFIRMED, AppointmentStatus.COMPLETED, AppointmentStatus.CANCELLED, AppointmentStatus.NO_SHOW ]).withDefault("Upcoming"));
   const [ filterpaid, setFilterpaid ] = useQueryState("filterpaid", parseAsStringEnum<"ALL" | "true" | "false">([ "ALL", "true", "false" ]).withDefault("ALL"));
   const [ dateFilter, setDateFilter ] = useQueryState("dateFilter", parseAsString.withDefault(""));
   const [ page, setPage ] = useQueryState("page", parseAsInteger.withDefault(1));
@@ -46,7 +46,7 @@ function AppointmentsPageContent() {
 
   const filters = useMemo<FetchAppointmentsFilters>(() => ({
     patientId: undefined,
-    status: filterStatus !== "ALL" ? filterStatus : undefined,
+    status: filterStatus === "Upcoming" ? [ AppointmentStatus.SCHEDULED, AppointmentStatus.CONFIRMED ] : filterStatus !== "ALL" ? filterStatus : undefined,
     startAt: undefined,
     dateFrom: dateFilter ? `${dateFilter}T00:00:00.000Z` : undefined,
     dateTo: dateFilter ? `${dateFilter}T23:59:59.999Z` : undefined,
@@ -98,6 +98,7 @@ function AppointmentsPageContent() {
           <div className="filter-chips filter-chips--wrap">
             {([
               { k: "ALL", l: "Todas" },
+              { k: "Upcoming", l: "Próximas" },
               { k: AppointmentStatus.SCHEDULED, l: "Programadas" },
               { k: AppointmentStatus.CONFIRMED, l: "Confirmadas" },
               { k: AppointmentStatus.COMPLETED, l: "Completadas" },
