@@ -15,6 +15,7 @@ export const config = {
     authToken: requireEnv('TWILIO_AUTH_TOKEN'),
     whatsappFrom: requireEnv('TWILIO_WHATSAPP_FROM'),
     smsFrom: requireEnv('TWILIO_SMS_FROM'),
+    tomorrowAppointmentsReminderSid: requireEnv('TWILIO_WHATSAPP_USER_REMINDER_SID'),
   },
 
   rateLimit: {

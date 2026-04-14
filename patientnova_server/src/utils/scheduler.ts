@@ -4,6 +4,7 @@ import { prisma } from "../prisma/prismaClient.js";
 import { logger } from "./logger.js";
 import { getMessageStatus, sendSms, sendWhatsApp } from "../twillo/twilioClient.js";
 import { getLocalTimeParts, getTomorrowUTCRange } from "./timeUtils.js";
+import { config } from "./config.js";
 
 let schedulerTask: cron.ScheduledTask | null = null;
 
@@ -203,7 +204,7 @@ export async function appointmentWorker(): Promise<void> {
       await prisma.appointment.update({ where: { id: appointment.id }, data: { status: AppointmentStatus.COMPLETED, completedAt: now } })
       logger.info({ appointmentId: appointment.id }, "Appointment completed successfully")
     } catch (error) {
-      logger.error({ appointmentId: appointment.id }, "Failed to update appointment status");
+      logger.error({ appointmentId: appointment.id, error }, "Failed to update appointment status");
     }
   }
 }
@@ -219,9 +220,6 @@ function buildAppointmentsPayload(appointments: AppointmentWithDetails[], timezo
     .map((appt) => {
       const timeStr = new Intl.DateTimeFormat("es-ES", {
         timeZone: timezone,
-        weekday: "long",
-        month: "long",
-        day: "numeric",
         hour: "2-digit",
         minute: "2-digit",
         hour12: true,
@@ -236,14 +234,14 @@ function buildAppointmentsPayload(appointments: AppointmentWithDetails[], timezo
 export async function dailyReminderWorker(): Promise<void> {
   const users = await prisma.user.findMany({
     where: { reminderActive: true, reminderChannel: { not: null } },
-    select: { id: true, timezone: true, reminderChannel: true, email: true, whatsappNumber: true, phoneNumber: true },
+    select: { id: true, timezone: true, reminderChannel: true, email: true, whatsappNumber: true, phoneNumber: true, firstName: true, lastName: true, displayName: true },
   });
 
   for (const user of users) {
     try {
       const { hour, minute } = getLocalTimeParts(user.timezone);
       // Only trigger at exactly 6:00 PM in the user's timezone (cron runs every minute)
-       if (hour !== 18 || minute !== 0) continue;
+      if (hour !== 18 || minute !== 0) continue;
 
       const channel = user.reminderChannel!;
       const { start: tomorrowStart, end: tomorrowEnd } = getTomorrowUTCRange(user.timezone);
@@ -267,35 +265,58 @@ export async function dailyReminderWorker(): Promise<void> {
 
       logger.info({ userId: user.id, count: appointments.length }, "Creating daily reminders for tomorrow's appointments");
 
-      let to: string | null = null;
-      if (channel === Channel.WHATSAPP) to = user.whatsappNumber ?? null;
-      else if (channel === Channel.SMS) to = user.phoneNumber ?? null;
-      else if (channel === Channel.EMAIL) to = user.email ?? null;
-
-      if (!to) {
-        logger.warn({ userId: user.id, channel }, "User missing contact info for reminder channel, skipping");
-        continue;
-      }
-
+      const userName = user.displayName ? user.displayName : `${user.firstName} ${user.lastName}`;
+      const tomorrowDate = new Intl.DateTimeFormat("es-ES", { timeZone: user.timezone, weekday: "long", month: "long", day: "numeric" }).format(new Date().getTime() + 24 * 60 * 60 * 1000);
       const payload = buildAppointmentsPayload(appointments, user.timezone);
 
       try {
         let result = null;
-        if (channel === Channel.WHATSAPP) {
-          logger.warn({ userId: user.id }, "EMAIL channel not yet implemented for daily reminders, skipping");
-          continue;
-        } else if (channel === Channel.SMS) {
-          result = await sendSms({
-            to,
-            body: payload,
-          });
-        }
-        else if (channel === Channel.EMAIL) {
-          logger.warn({ userId: user.id }, "EMAIL channel not yet implemented for daily reminders, skipping");
-          continue;
+        switch (channel) {
+          case Channel.WHATSAPP:
+            if (user.whatsappNumber == null) {
+              logger.warn({ userId: user.id }, "User missing WhatsApp number, cannot send WhatsApp reminder");
+              continue;
+            }
+            result = await sendWhatsApp({
+              to: user.whatsappNumber,
+              contentSid: config.twilio.tomorrowAppointmentsReminderSid,
+              contentVariables: { "1": userName, "2": tomorrowDate, "3": payload.replace(/\n/g, " | ") },
+            });
+            break;
+
+          case Channel.SMS:
+            if (user.phoneNumber == null) {
+              logger.warn({ userId: user.id }, "User missing phone number, cannot send SMS reminder");
+              continue;
+            }
+            const body = `Buenas tardes, ${userName}:\n\nLe informamos que a continuación encontrará su horario de citas para mañana el ${tomorrowDate}:\n\n${payload}\n\nQue tenga un excelente día!`;
+            result = await sendSms({
+              to: user.phoneNumber,
+              body,
+            });
+            break;
+
+          case Channel.EMAIL:
+            result = {
+              success: false,
+              error: "EMAIL channel not yet implemented",
+              messageSid: null,
+            };
+            break;
+
+          default:
+            result = {
+              success: false,
+              error: "Channel not supported",
+              messageSid: null,
+            };
         }
 
-        logger.info({ userId: user.id, channel }, "Daily reminder created");
+        if (result.success) {
+          logger.info({ userId: user.id, channel, result }, "Daily reminder created");
+        } else {
+          logger.error({ userId: user.id, channel, error: result.error }, "Failed to send daily reminder");
+        }
       } catch (err) {
         logger.error({ userId: user.id, err }, "Failed to create daily reminder");
       }
