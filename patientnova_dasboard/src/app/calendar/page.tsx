@@ -8,11 +8,11 @@ import { CancelAppointmentModal } from "@/src/components/Modals/CancelAppointmen
 import PageLayout from "@/src/components/PageLayout";
 import { PageHeader } from "@/src/components/PageHeader";
 import { Appointment, AppointmentStatus } from "@/src/types/Appointment";
-import { today, MONTH_NAMES_ES, DAY_NAMES_ES, formatTime, fmtDate, getColombianHolidays } from "@/src/utils/TimeUtils";
+import { todayFormatedString, MONTH_NAMES_ES, DAY_NAMES_ES, formatTime, fmtDate, getColombianHolidays, todayString } from "@/src/utils/TimeUtils";
 import Image from "next/image";
 import { useState, useMemo, useEffect, useCallback } from "react";
 
-const TODAY_STR = today();
+const TODAY_STR = todayFormatedString();
 
 export default function CalendarPage() {
   const { appointments, loading, fetchAppointments } = useFetchAppointments();
@@ -98,7 +98,7 @@ export default function CalendarPage() {
       <PageLayout>
         <PageHeader
           title="Agenda"
-          subtitle={new Date().toLocaleDateString("es-ES", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}
+          subtitle={todayString()}
           actions={
             <button onClick={() => setShowCreate(true)} className="btn-primary btn-hero">
               <span className="btn-plus-icon">+</span> Nueva Cita

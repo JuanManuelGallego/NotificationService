@@ -104,13 +104,13 @@ export function PatientModal({
               <input autoComplete="family-name" className="form-input" value={form.lastName} onChange={set("lastName")} placeholder="ej. García" />
             </label>
           </div>
-          <label className="form-label">
+          {/* <label className="form-label">
             📅 Fecha de Nacimiento
             <DateTimePicker
               date={form.dateOfBirth || undefined}
               onChanged={(date) => setForm(f => ({ ...f, dateOfBirth: date }))}
             />
-          </label>
+          </label> */}
           <label className="form-label">
             ✉️ Correo electrónico
             <input className="form-input" type="email" value={form.email || undefined} onChange={set("email")} placeholder="paciente@ejemplo.com" />

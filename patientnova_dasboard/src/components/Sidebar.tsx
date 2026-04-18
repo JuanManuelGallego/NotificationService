@@ -9,6 +9,7 @@ import { useRouter } from "next/navigation";
 export const NAV_ITEMS = [
     { id: "dashboard", path: "/dashboard", icon: "🏠", label: "Vista General" },
     { id: "patients", path: "/patients", icon: "🪪", label: "Pacientes" },
+    { id: "medical-records", path: "/medical-records", icon: "📋", label: "Historias Clinicas" },
     { id: "appointments", path: "/appointments", icon: "📝", label: "Citas" },
     { id: "calendar", path: "/calendar", icon: "📆", label: "Calendario" },
     { id: "reminders", path: "/reminders", icon: "🔔", label: "Recordatorios" },

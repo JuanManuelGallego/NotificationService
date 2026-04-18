@@ -2,9 +2,8 @@
 import { useState, useMemo, Suspense } from "react";
 import { useQueryState, parseAsInteger, parseAsString, parseAsStringEnum } from 'nuqs';
 
-import PageLayout from '../../components/PageLayout';
-import { PageHeader } from '../../components/PageHeader';
-import { FilterBar } from '../../components/FilterBar';
+import PageLayout from "@/src/components/PageLayout";
+import { PageHeader } from "@/src/components/PageHeader";
 import { FetchPatientsFilters, Patient, PatientStatus } from "@/src/types/Patient";
 import { getAvatarColor, getInitials } from "@/src/utils/AvatarHelper";
 import { StatCard } from "@/src/components/Info/StatCard";
@@ -20,6 +19,8 @@ import { PatientStatusPill } from "@/src/components/Info/StatusPill";
 import { EmptyState } from "@/src/components/EmptyState";
 import { useDebounceState } from "@/src/utils/useDebounceState";
 import { useFetchPatientsStats } from "@/src/api/useFetchPatientsStats";
+import { FilterBar } from "@/src/components/FilterBar";
+import { todayString } from "@/src/utils/TimeUtils";
 
 const PAGE_SIZE = 10;
 
@@ -52,7 +53,7 @@ function PatientsPageContent() {
       <PageLayout>
         <PageHeader
           title="Pacientes"
-          subtitle={new Date().toLocaleDateString("es-ES", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}
+          subtitle={todayString()}
           actions={
             <button onClick={() => setShowCreate(true)} className="btn-primary btn-hero">
               <span className="btn-plus-icon">+</span> Nuevo Paciente

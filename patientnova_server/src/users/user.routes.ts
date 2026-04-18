@@ -47,6 +47,20 @@ userRouter.get(
 );
 
 /**
+ * GET /users/me
+ * Returns info about the authenticated user.
+ */
+userRouter.get(
+    '/me',
+    authenticate,
+    async (req: Request, res: Response) => {
+        try {
+            ok(res, await userRepository.findById(req.user!.id));
+        } catch (err) { handleError(res, err); }
+    }
+);
+
+/**
  * GET /users
  * Super-admin only. Get an user by ID.
  */
@@ -57,19 +71,6 @@ userRouter.get(
     async (req: Request, res: Response) => {
         try {
             ok(res, await userRepository.findById(req.params.id as string));
-        } catch (err) { handleError(res, err); }
-    }
-);
-/**
- * GET /users/me
- * Returns info about the authenticated user.
- */
-userRouter.get(
-    '/me',
-    authenticate,
-    async (req: Request, res: Response) => {
-        try {
-            ok(res, await userRepository.findById(req.user!.id));
         } catch (err) { handleError(res, err); }
     }
 );

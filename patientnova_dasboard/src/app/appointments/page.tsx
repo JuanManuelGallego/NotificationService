@@ -15,7 +15,7 @@ import { ErrorBanner } from "@/src/components/Info/ErrorBanner";
 import { Appointment, AppointmentStatus, FetchAppointmentsFilters } from "@/src/types/Appointment";
 import { ReminderStatus } from "@/src/types/Reminder";
 import { getAvatarColor, getInitials } from "@/src/utils/AvatarHelper";
-import { fmtDateAndTime } from "@/src/utils/TimeUtils";
+import { fmtDateAndTime, todayString } from "@/src/utils/TimeUtils";
 import { useState, useMemo, Suspense } from "react";
 import { useFetchAppointments } from "@/src/api/useFetchAppointments";
 import { ReminderStatusPill, EmptyStatusPill, AppointmentStatusPill } from "@/src/components/Info/StatusPill";
@@ -71,7 +71,7 @@ function AppointmentsPageContent() {
       <PageLayout>
         <PageHeader
           title="Citas"
-          subtitle={new Date().toLocaleDateString("es-ES", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}
+          subtitle={todayString()}
           actions={
             <button onClick={() => { setShowCreate(true); }} className="btn-primary btn-hero">
               <span className="btn-plus-icon">+</span> Nueva Cita

@@ -1,7 +1,7 @@
 "use client";;
 import { useMemo, useState, Suspense } from "react";
 import { CHANNEL_CFG, FetchRemindersFilters, Reminder, ReminderStatus } from '@/src/types/Reminder';
-import { fmtDateAndTime, fmtRelative } from '@/src/utils/TimeUtils';
+import { fmtDateAndTime, fmtRelative, todayString } from '@/src/utils/TimeUtils';
 import { StatCard } from '@/src/components/Info/StatCard';
 import { ReminderModal } from '@/src/components/Modals/ReminderModal';
 import { EditScheduledReminderModal } from '@/src/components/Modals/EditScheduledReminderModal';
@@ -55,44 +55,44 @@ function RemindersPageContent() {
             <PageLayout>
                 <PageHeader
                     title="Recordatorios"
-                    subtitle={new Date().toLocaleDateString("es-ES", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}
+                    subtitle={todayString()}
                     actions={
                         <button onClick={() => setShowCreate(true)} className="btn-primary btn-hero">
                             <span className="btn-plus-icon">+</span> Nuevo Recordatorio
                         </button>
                     }
                 />
-                    <div className="stats-grid">
-                        <StatCard label="Activos" value={(stats?.byStatus[ ReminderStatus.PENDING ] || 0) + (stats?.byStatus[ ReminderStatus.QUEUED ] || 0)} sub="por enviar" accent="var(--c-link)" />
-                        <StatCard label="Enviados" value={stats?.byStatus[ ReminderStatus.SENT ] || 0} sub="entregados" accent="var(--c-success)" />
-                        <StatCard label="Fallidos" value={stats?.byStatus[ ReminderStatus.FAILED ] || 0} sub="requieren atención" accent="var(--c-error)" />
-                        <StatCard label="Cancelados" value={stats?.byStatus[ ReminderStatus.CANCELLED ] || 0} sub="fuera de la cola" accent="var(--c-gray-400)" />
-                    </div>
-                    <ReminderTabs activeTab={activeTab} setActiveTab={setActiveTab} stats={stats} />
-                    {activeTab !== "Bulk" && (
-                        <FilterBar
-                            value={search}
-                            onChange={v => setSearch(v)}
-                            onClear={() => { setSearch(""); setPage(1); }}
-                            placeholder="Buscar por nombre, número, canal…"
-                        />
-                    )}
-                    {error && activeTab !== "Bulk" && <ErrorBanner msg={error} onRetry={() => { fetchReminders(); fetchStats(); }} />}
-                    {activeTab === "Active" && (
-                        <ActiveRemindersTab
-                            reminders={reminders} loading={loading}
-                            page={page} total={total} totalPages={totalPages} setPage={setPage}
-                            setViewReminder={setViewReminder} setEditReminder={setEditReminder} setCancelReminder={setCancelReminder}
-                        />
-                    )}
-                    {activeTab === "History" && (
-                        <HistoryRemindersTab
-                            reminders={reminders} loading={loading}
-                            page={page} total={total} totalPages={totalPages} setPage={setPage}
-                            setViewReminder={setViewReminder}
-                        />
-                    )}
-                    {activeTab === "Bulk" && <BulkTab patients={patients} />}
+                <div className="stats-grid">
+                    <StatCard label="Activos" value={(stats?.byStatus[ ReminderStatus.PENDING ] || 0) + (stats?.byStatus[ ReminderStatus.QUEUED ] || 0)} sub="por enviar" accent="var(--c-link)" />
+                    <StatCard label="Enviados" value={stats?.byStatus[ ReminderStatus.SENT ] || 0} sub="entregados" accent="var(--c-success)" />
+                    <StatCard label="Fallidos" value={stats?.byStatus[ ReminderStatus.FAILED ] || 0} sub="requieren atención" accent="var(--c-error)" />
+                    <StatCard label="Cancelados" value={stats?.byStatus[ ReminderStatus.CANCELLED ] || 0} sub="fuera de la cola" accent="var(--c-gray-400)" />
+                </div>
+                <ReminderTabs activeTab={activeTab} setActiveTab={setActiveTab} stats={stats} />
+                {activeTab !== "Bulk" && (
+                    <FilterBar
+                        value={search}
+                        onChange={v => setSearch(v)}
+                        onClear={() => { setSearch(""); setPage(1); }}
+                        placeholder="Buscar por nombre, número, canal…"
+                    />
+                )}
+                {error && activeTab !== "Bulk" && <ErrorBanner msg={error} onRetry={() => { fetchReminders(); fetchStats(); }} />}
+                {activeTab === "Active" && (
+                    <ActiveRemindersTab
+                        reminders={reminders} loading={loading}
+                        page={page} total={total} totalPages={totalPages} setPage={setPage}
+                        setViewReminder={setViewReminder} setEditReminder={setEditReminder} setCancelReminder={setCancelReminder}
+                    />
+                )}
+                {activeTab === "History" && (
+                    <HistoryRemindersTab
+                        reminders={reminders} loading={loading}
+                        page={page} total={total} totalPages={totalPages} setPage={setPage}
+                        setViewReminder={setViewReminder}
+                    />
+                )}
+                {activeTab === "Bulk" && <BulkTab patients={patients} />}
             </PageLayout>
             {showCreate && (
                 <ReminderModal onClose={() => { setShowCreate(false); fetchReminders(); fetchStats(); }} onSaved={() => { fetchReminders(); fetchStats(); }} />
@@ -142,7 +142,7 @@ function ActiveRemindersTab({ reminders, loading, page, total, totalPages, setPa
                         <div className="td-name__primary">{reminder.patient?.name ?? "—"} {reminder.patient?.lastName ?? "—"}</div>
                         <div className="td-name__secondary">{reminder.to}</div>
                     </td>
-                    <td className="td">{CHANNEL_CFG[reminder.channel].icon}</td>
+                    <td className="td">{CHANNEL_CFG[ reminder.channel ].icon}</td>
                     <td className="td"><ReminderStatusPill status={reminder.status} /></td>
                     <td className="td td--date">{fmtDateAndTime(reminder.sendAt)}</td>
                     <td className="td td--muted">
@@ -184,7 +184,7 @@ function HistoryRemindersTab({ reminders, loading, page, total, totalPages, setP
                         <div className="td-name__primary">{reminder.patient?.name ?? "—"} {reminder.patient?.lastName ?? "—"}</div>
                         <div className="td-name__secondary">{reminder.to}</div>
                     </td>
-                    <td className="td">{CHANNEL_CFG[reminder.channel].icon}</td>
+                    <td className="td">{CHANNEL_CFG[ reminder.channel ].icon}</td>
                     <td className="td"><ReminderStatusPill status={reminder.status} /></td>
                     <td className="td td--muted">{fmtDateAndTime(reminder.sendAt)}</td>
                     <td className="td td--muted">{fmtDateAndTime(reminder.updatedAt)}</td>

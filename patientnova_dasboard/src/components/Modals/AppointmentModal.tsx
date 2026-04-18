@@ -4,7 +4,7 @@ import { useUpdateAppointment } from "@/src/api/useUpdateAppointment";
 import { useUpdateReminder } from "@/src/api/useUpdateReminder";
 import { Appointment, AppointmentForm, AppointmentStatus, AppointmentDuration, APPT_STATUS_CFG, APPT_PAID_STATUS_CFG, AppointmentPaidStatus, AppointmentLocation, AppointmentType } from "@/src/types/Appointment";
 import { ReminderType, Reminder, ReminderMode, ReminderStatus, CHANNEL_CFG, Channel, REMINDER_TYPE_CONFIG } from "@/src/types/Reminder";
-import { getAvatarColor, getInitials, getUserName } from "@/src/utils/AvatarHelper";
+import { getAvatarColor, getInitials, getPatientFullName, getUserName } from "@/src/utils/AvatarHelper";
 import { isReminderTypeFeasible, formatDate, formatTime, getDuration, getRemindersendAt, getAppointmentEndTime, getTommorrowSixAm, getReminderType, getDate } from "@/src/utils/TimeUtils";
 import { useState } from "react";
 import { AppointmentDateTimePicker } from "../AppointmentDateTimePicker";
@@ -181,7 +181,7 @@ function PatientAndTypeStep({ form, setForm, patients, isEdit, selectedPatient, 
       <CustomSelect
         value={form.patientId}
         placeholder="Seleccionar paciente…"
-        options={patients.length > 0 ? patients.filter(p => p.status === "ACTIVE").map(p => ({ value: p.id, label: `${p.name} ${p.lastName}` })) : [ { value: "", label: "No hay pacientes registrados" } ]}
+        options={patients.length > 0 ? patients.filter(p => p.status === "ACTIVE").map(p => ({ value: p.id, label: getPatientFullName(p) })) : [ { value: "", label: "No hay pacientes registrados" } ]}
         onChange={(v) => setForm(f => ({ ...f, patientId: v }))}
       />
     </label>}

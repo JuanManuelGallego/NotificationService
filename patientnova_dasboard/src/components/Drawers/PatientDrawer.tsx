@@ -7,6 +7,7 @@ import { Section, Row } from "./DrawerUtils";
 import { useFetchLocations } from "@/src/api/useFetchLocations";
 import { useFetchAppointmentTypes } from "@/src/api/useFetchAppointmentTypes";
 import { useState } from "react";
+import Link from "next/link";
 
 export enum RelativeTime {
     UPCOMING = "upcoming",
@@ -24,8 +25,8 @@ export function PatientDrawer({ patient, onClose, onEdit, onDelete }: {
     const { locations } = useFetchLocations()
     const { appointmentTypes } = useFetchAppointmentTypes()
 
-    const [ appointmentView, setAppointmentView ] = useState<RelativeTime>(RelativeTime.ALL);
-    const [ reminderView, setReminderView ] = useState<RelativeTime>(RelativeTime.ALL);
+    const [ appointmentView, setAppointmentView ] = useState<RelativeTime>(RelativeTime.UPCOMING);
+    const [ reminderView, setReminderView ] = useState<RelativeTime>(RelativeTime.UPCOMING);
 
     const filteredAppointments = patient.appointments?.filter(apt => {
         const now = new Date();
@@ -83,6 +84,9 @@ export function PatientDrawer({ patient, onClose, onEdit, onDelete }: {
                         {!patient.dateOfBirth && !patient.notes && (
                             <div className="text-muted">Sin información adicional</div>
                         )}
+                        <Link href={`/medical-records?patientId=${patient.id}`} className="btn-secondary btn-primary--block" style={{ marginTop: 12, textDecoration: "none" }}>
+                            Ver historia clínica
+                        </Link>
                     </Section>
                     {filteredAppointments && filteredAppointments.length > 0 && (
                         <Section title="Citas Vinculadas">

@@ -14,6 +14,7 @@ import { authRouter } from './auth/auth.routes.js';
 import { userRouter } from './users/user.routes.js';
 import { locationRouter } from './locations/location.routes.js';
 import { appointmentTypeRouter } from './appointment-types/appointment-type.routes.js';
+import { medicalRecordRouter } from './medical-record.routes.js';
 import { authenticate, requireAdmin, requireAdminForWrites } from './middlewares/authenticate.js';
 import { apiError } from './utils/apiUtils.js';
 import cookieParser from 'cookie-parser';
@@ -71,6 +72,7 @@ app.use('/reminders', authenticate, requireAdminForWrites, reminderRouter);
 app.use('/appointments', authenticate, requireAdminForWrites, appointmentRouter);
 app.use('/locations', authenticate, requireAdminForWrites, locationRouter);
 app.use('/appointment-types', authenticate, requireAdminForWrites, appointmentTypeRouter);
+app.use('/medical-records', authenticate, requireAdminForWrites, medicalRecordRouter);
 
 app.use((_req: Request, res: Response) => {
     apiError(res, 'Route not found', 404);
