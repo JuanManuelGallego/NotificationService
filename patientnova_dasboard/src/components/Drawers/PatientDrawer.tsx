@@ -6,6 +6,13 @@ import { PatientStatusPill, AppointmentStatusPill, ReminderStatusPill } from "..
 import { Section, Row } from "./DrawerUtils";
 import { useFetchLocations } from "@/src/api/useFetchLocations";
 import { useFetchAppointmentTypes } from "@/src/api/useFetchAppointmentTypes";
+import { useState } from "react";
+
+export enum RelativeTime {
+    UPCOMING = "upcoming",
+    PAST = "past",
+    ALL = "all"
+}
 
 export function PatientDrawer({ patient, onClose, onEdit, onDelete }: {
     patient: Patient;
@@ -16,6 +23,25 @@ export function PatientDrawer({ patient, onClose, onEdit, onDelete }: {
     const s = PATIENT_STATUS_CONFIG[ patient.status ];
     const { locations } = useFetchLocations()
     const { appointmentTypes } = useFetchAppointmentTypes()
+
+    const [ appointmentView, setAppointmentView ] = useState<RelativeTime>(RelativeTime.ALL);
+    const [ reminderView, setReminderView ] = useState<RelativeTime>(RelativeTime.ALL);
+
+    const filteredAppointments = patient.appointments?.filter(apt => {
+        const now = new Date();
+        const aptDate = new Date(apt.startAt);
+        if (appointmentView === RelativeTime.UPCOMING) return aptDate >= now;
+        if (appointmentView === RelativeTime.PAST) return aptDate < now;
+        return true;
+    }).sort((a, b) => new Date(a.startAt).getTime() - new Date(b.startAt).getTime()) || [];
+
+    const filteredReminders = patient.reminders?.filter(rem => {
+        const now = new Date();
+        const remDate = new Date(rem.sendAt);
+        if (reminderView === RelativeTime.UPCOMING) return remDate >= now;
+        if (reminderView === RelativeTime.PAST) return remDate < now;
+        return true;
+    }).sort((a, b) => new Date(a.sendAt).getTime() - new Date(b.sendAt).getTime()) || [];
 
     const locationNameById = locations.reduce((acc, loc) => ({ ...acc, [ loc.id ]: loc.name }), {} as Record<string, string>);
     const appointmentTypeNameById = appointmentTypes.reduce((acc, at) => ({ ...acc, [ at.id ]: at.name }), {} as Record<string, string>);
@@ -58,10 +84,15 @@ export function PatientDrawer({ patient, onClose, onEdit, onDelete }: {
                             <div className="text-muted">Sin información adicional</div>
                         )}
                     </Section>
-                    {patient.appointments && patient.appointments.length > 0 && (
+                    {filteredAppointments && filteredAppointments.length > 0 && (
                         <Section title="Citas Vinculadas">
+                            <div className="filter-chips">
+                                <button onClick={() => setAppointmentView(RelativeTime.UPCOMING)} className={`filter-chip ${appointmentView === RelativeTime.UPCOMING ? "filter-chip--active" : ""}`}>Próximas</button>
+                                <button onClick={() => setAppointmentView(RelativeTime.PAST)} className={`filter-chip ${appointmentView === RelativeTime.PAST ? "filter-chip--active" : ""}`}>Pasadas</button>
+                                <button onClick={() => setAppointmentView(RelativeTime.ALL)} className={`filter-chip ${appointmentView === RelativeTime.ALL ? "filter-chip--active" : ""}`}>Todas</button>
+                            </div>
                             <div className="card-list">
-                                {patient.appointments.map(apt => {
+                                {filteredAppointments.map(apt => {
                                     const aptStatus = APPT_STATUS_CFG[ apt.status ];
                                     return (
                                         <div key={apt.id} className="linked-card" style={{ borderLeft: `3px solid ${aptStatus.dot}` }}>
@@ -82,10 +113,15 @@ export function PatientDrawer({ patient, onClose, onEdit, onDelete }: {
                             </div>
                         </Section>
                     )}
-                    {patient.reminders && patient.reminders.length > 0 && (
+                    {filteredReminders && filteredReminders.length > 0 && (
                         <Section title="Recordatorios Vinculados">
+                            <div className="filter-chips">
+                                <button onClick={() => setReminderView(RelativeTime.UPCOMING)} className={`filter-chip ${reminderView === RelativeTime.UPCOMING ? "filter-chip--active" : ""}`}>Próximos</button>
+                                <button onClick={() => setReminderView(RelativeTime.PAST)} className={`filter-chip ${reminderView === RelativeTime.PAST ? "filter-chip--active" : ""}`}>Pasados</button>
+                                <button onClick={() => setReminderView(RelativeTime.ALL)} className={`filter-chip ${reminderView === RelativeTime.ALL ? "filter-chip--active" : ""}`}>Todos</button>
+                            </div>
                             <div className="card-list">
-                                {patient.reminders.map(rem => {
+                                {filteredReminders.map(rem => {
                                     const remStatus = REMINDER_STATUS_CONFIG[ rem.status ];
                                     const channelLabel = rem.channel === "WHATSAPP" ? "💬 WhatsApp" : "📱 SMS";
                                     return (
@@ -93,7 +129,7 @@ export function PatientDrawer({ patient, onClose, onEdit, onDelete }: {
                                             <div className="linked-card__header">
                                                 <div>
                                                     <div className="linked-card__title">{channelLabel}</div>
-                                                    <div className="linked-card__meta linked-card__meta--mono">Envío: {rem.sentAt ? fmtDateTime(rem.sentAt.toString()) : "Pendiente"}</div>
+                                                    <div className="linked-card__meta linked-card__meta--mono">{rem.sentAt ? `Enviado: ${fmtDateTime(rem.sentAt.toString())}` : `Programado: ${fmtDateTime(rem.sendAt.toString())}`}</div>
                                                 </div>
                                                 <ReminderStatusPill status={rem.status} />
                                             </div>

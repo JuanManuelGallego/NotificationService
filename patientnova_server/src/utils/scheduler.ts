@@ -215,20 +215,42 @@ type AppointmentWithDetails = Appointment & {
 };
 
 function buildAppointmentsPayload(appointments: AppointmentWithDetails[], timezone: string): string {
-  return appointments
-    .sort((a, b) => a.startAt.getTime() - b.startAt.getTime())
-    .map((appt) => {
-      const timeStr = new Intl.DateTimeFormat("es-ES", {
-        timeZone: timezone,
-        hour: "2-digit",
-        minute: "2-digit",
-        hour12: true,
-      }).format(appt.startAt);
-      const patientName = `${appt.patient.name} ${appt.patient.lastName}`;
-      const location = appt.appointmentLocation?.name ?? "No location specified";
-      return `• ${patientName} — ${timeStr} — ${location}`;
-    })
-    .join("\n");
+  const dateFormatter = new Intl.DateTimeFormat("es-ES", {
+    timeZone: timezone,
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
+  });
+
+  const formatAppointment = (appt: AppointmentWithDetails): string => {
+    const timeStr = dateFormatter.format(appt.startAt);
+    const patientName = `${appt.patient.name} ${appt.patient.lastName}`;
+    const location = appt.appointmentLocation?.name ?? "No location specified";
+    return `• ${patientName} — ${timeStr} — ${location}`;
+  };
+
+  const sortByTime = (a: AppointmentWithDetails, b: AppointmentWithDetails) =>
+    a.startAt.getTime() - b.startAt.getTime();
+
+  const scheduled = appointments
+    .filter((appt) => appt.status === AppointmentStatus.SCHEDULED)
+    .sort(sortByTime);
+
+  const confirmed = appointments
+    .filter((appt) => appt.status === AppointmentStatus.CONFIRMED)
+    .sort(sortByTime);
+
+  const sections: string[] = [];
+
+  if (confirmed.length > 0) {
+    sections.push(`✅ *Confirmadas (${confirmed.length})*\n${confirmed.map(formatAppointment).join(" | ")}`);
+  }
+
+  if (scheduled.length > 0) {
+    sections.push(`🕐 *Pendientes de confirmación (${scheduled.length})*\n${scheduled.map(formatAppointment).join(" | ")}`);
+  }
+
+  return sections.join(" ------- ");
 }
 
 export async function dailyReminderWorker(): Promise<void> {
@@ -280,7 +302,7 @@ export async function dailyReminderWorker(): Promise<void> {
             result = await sendWhatsApp({
               to: user.whatsappNumber,
               contentSid: config.twilio.tomorrowAppointmentsReminderSid,
-              contentVariables: { "1": userName, "2": tomorrowDate, "3": payload.replace(/\n/g, " | ") },
+              contentVariables: { "1": userName, "2": tomorrowDate, "3": payload },
             });
             break;
 
