@@ -4,7 +4,7 @@ import { prisma } from "../prisma/prismaClient.js";
 import { logger } from "./logger.js";
 import { getMessageStatus, sendSms, sendWhatsApp } from "../twillo/twilioClient.js";
 import { getLocalTimeParts, getTomorrowUTCRange } from "./timeUtils.js";
-import { config } from "./config.js";
+import { APPT_SID_MAP, config } from "./config.js";
 
 let schedulerTask: cron.ScheduledTask | null = null;
 
@@ -214,7 +214,7 @@ type AppointmentWithDetails = Appointment & {
   appointmentLocation: { name: string } | null;
 };
 
-function buildAppointmentsPayload(appointments: AppointmentWithDetails[], timezone: string): string {
+function buildAppointmentsPayload(appointments: AppointmentWithDetails[], timezone: string): string[] {
   const dateFormatter = new Intl.DateTimeFormat("es-ES", {
     timeZone: timezone,
     hour: "2-digit",
@@ -232,25 +232,25 @@ function buildAppointmentsPayload(appointments: AppointmentWithDetails[], timezo
   const sortByTime = (a: AppointmentWithDetails, b: AppointmentWithDetails) =>
     a.startAt.getTime() - b.startAt.getTime();
 
-  const scheduled = appointments
-    .filter((appt) => appt.status === AppointmentStatus.SCHEDULED)
-    .sort(sortByTime);
+  return appointments.sort(sortByTime).map(formatAppointment);
+}
 
-  const confirmed = appointments
-    .filter((appt) => appt.status === AppointmentStatus.CONFIRMED)
-    .sort(sortByTime);
+function buildWhatsAppContent(
+  userName: string,
+  tomorrowDate: string,
+  payload: string[]
+): { contentSid: string; contentVariables: Record<string, string> } {
+  const contentSid = APPT_SID_MAP[ payload.length ] ?? config.twilio.tomorrowAppointmentsReminderSid;
+  const baseVariables = { "1": userName, "2": tomorrowDate };
 
-  const sections: string[] = [];
+  const contentVariables = APPT_SID_MAP[ payload.length ]
+    ? payload.reduce(
+      (acc, item, i) => ({ ...acc, [ String(i + 3) ]: item || "N/A" }),
+      baseVariables
+    )
+    : { ...baseVariables, "3": payload.join(" | ") };
 
-  if (confirmed.length > 0) {
-    sections.push(`*Confirmadas* : \n${confirmed.map(formatAppointment).join("\n")}`);
-  }
-
-  if (scheduled.length > 0) {
-    sections.push(`*Pendientes de confirmación* : \n${scheduled.map(formatAppointment).join("\n")}`);
-  }
-
-  return sections.join("\n\n");
+  return { contentSid, contentVariables };
 }
 
 export async function dailyReminderWorker(): Promise<void> {
@@ -272,7 +272,7 @@ export async function dailyReminderWorker(): Promise<void> {
         where: {
           patient: { userId: user.id },
           startAt: { gte: tomorrowStart, lte: tomorrowEnd },
-          status: { in: [ AppointmentStatus.SCHEDULED, AppointmentStatus.CONFIRMED ] },
+          status: { in: [ AppointmentStatus.CONFIRMED ] },
         },
         include: {
           patient: true,
@@ -299,10 +299,13 @@ export async function dailyReminderWorker(): Promise<void> {
               logger.warn({ userId: user.id }, "User missing WhatsApp number, cannot send WhatsApp reminder");
               continue;
             }
+
+            const { contentSid, contentVariables } = buildWhatsAppContent(userName, tomorrowDate, payload);
+
             result = await sendWhatsApp({
               to: user.whatsappNumber,
-              contentSid: config.twilio.tomorrowAppointmentsReminderSid,
-              contentVariables: { "1": userName, "2": tomorrowDate, "3": payload.replace("\n", " | ") },
+              contentSid,
+              contentVariables,
             });
             break;
 
@@ -311,7 +314,8 @@ export async function dailyReminderWorker(): Promise<void> {
               logger.warn({ userId: user.id }, "User missing phone number, cannot send SMS reminder");
               continue;
             }
-            const body = `Buenas tardes, ${userName}:\n\nLe informamos que a continuación encontrará su horario de citas para mañana el ${tomorrowDate}:\n\n${payload}\n\nQue tenga un excelente día!`;
+
+            const body = `Buenas tardes, ${userName}:\n\nLe informamos que a continuación encontrará su horario de citas para mañana el ${tomorrowDate}:\n\n${payload.join("\n")}\n\nQue tenga un excelente día!`;
             result = await sendSms({
               to: user.phoneNumber,
               body,

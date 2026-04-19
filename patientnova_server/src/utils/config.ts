@@ -16,6 +16,12 @@ export const config = {
     whatsappFrom: requireEnv('TWILIO_WHATSAPP_FROM'),
     smsFrom: requireEnv('TWILIO_SMS_FROM'),
     tomorrowAppointmentsReminderSid: requireEnv('TWILIO_WHATSAPP_USER_REMINDER_SID'),
+    tomorrowAppointmentsReminder2Sid: requireEnv('TWILIO_WHATSAPP_USER_REMINDER_2_APPT_SID'),
+    tomorrowAppointmentsReminder3Sid: requireEnv('TWILIO_WHATSAPP_USER_REMINDER_3_APPT_SID'),
+    tomorrowAppointmentsReminder4Sid: requireEnv('TWILIO_WHATSAPP_USER_REMINDER_4_APPT_SID'),
+    tomorrowAppointmentsReminder5Sid: requireEnv('TWILIO_WHATSAPP_USER_REMINDER_5_APPT_SID'),
+    tomorrowAppointmentsReminder6Sid: requireEnv('TWILIO_WHATSAPP_USER_REMINDER_6_APPT_SID'),
+
   },
 
   rateLimit: {
@@ -45,3 +51,11 @@ export const config = {
   },
 
 } as const;
+
+export const APPT_SID_MAP: Record<number, string> = {
+  2: config.twilio.tomorrowAppointmentsReminder2Sid,
+  3: config.twilio.tomorrowAppointmentsReminder3Sid,
+  4: config.twilio.tomorrowAppointmentsReminder4Sid,
+  5: config.twilio.tomorrowAppointmentsReminder5Sid,
+  6: config.twilio.tomorrowAppointmentsReminder6Sid,
+};
