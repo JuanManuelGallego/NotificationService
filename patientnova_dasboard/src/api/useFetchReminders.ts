@@ -1,48 +1,16 @@
-import { useState, useEffect, useCallback } from "react";
-import { API_BASE, ApiPaginatedResponse } from "../types/API";
+import { useMemo } from "react";
+import { API_BASE } from "../types/API";
 import { FetchRemindersFilters, Reminder } from "../types/Reminder";
 import { buildReminderQueryString } from "../utils/ApiUtils";
-import { fetchWithAuth } from "./fetchWithAuth";
+import { useApiPaginatedQuery } from "./useApiPaginatedQuery";
 
 export const useFetchReminders = (filters?: FetchRemindersFilters) => {
-    const [ reminders, setReminders ] = useState<Reminder[]>([]);
-    const [ loading, setLoading ] = useState(false);
-    const [ error, setError ] = useState<string | null>(null);
-    const [ total, setTotal ] = useState(0);
-    const [ totalPages, setTotalPages ] = useState(0);
-
-    const fetchReminders = useCallback(async () => {
-        setLoading(true); setError(null);
-
-        try {
-            const queryString = buildReminderQueryString(filters);
-            const res = await fetchWithAuth(`${API_BASE}/reminders${queryString}`);
-
-            if (!res.ok) {
-                throw new Error(`Server error: ${res.status}`);
-            }
-
-            const json: ApiPaginatedResponse = await res.json();
-
-            if (!json.success) {
-                throw new Error("API returned an error");
-            }
-
-            setReminders(json.data.data as Reminder[]);
-            setTotal(json.data.total);
-            setTotalPages(json.data.totalPages);
-        } catch (err) {
-            setError(err instanceof Error ? err.message : "Failed to load reminders");
-        } finally {
-            setLoading(false);
-        }
-    }, [ filters ]);
-
-    useEffect(() => {
-        fetchReminders();
-        const interval = setInterval(fetchReminders, 60000); // Poll every 1 minute
-        return () => clearInterval(interval);
-    }, [ fetchReminders ]);
-
+    const url = useMemo(
+        () => `${API_BASE}/reminders${buildReminderQueryString(filters)}`,
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [ JSON.stringify(filters) ]
+    );
+    const { items: reminders, loading, error, refetch: fetchReminders, total, totalPages } =
+        useApiPaginatedQuery<Reminder>(url, { pollingIntervalMs: 60000, errorMessage: "Failed to load reminders" });
     return { reminders, loading, error, fetchReminders, total, totalPages };
 };

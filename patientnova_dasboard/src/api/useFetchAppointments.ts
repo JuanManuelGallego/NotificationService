@@ -1,48 +1,16 @@
-import { useState, useEffect, useCallback } from "react";
-import { API_BASE, ApiPaginatedResponse } from "../types/API";
+import { useMemo } from "react";
+import { API_BASE } from "../types/API";
 import { Appointment, FetchAppointmentsFilters } from "../types/Appointment";
 import { buildAppointmentQueryString } from "../utils/ApiUtils";
-import { fetchWithAuth } from "./fetchWithAuth";
+import { useApiPaginatedQuery } from "./useApiPaginatedQuery";
 
 export const useFetchAppointments = (filters?: FetchAppointmentsFilters) => {
-    const [ appointments, setAppointments ] = useState<Appointment[]>([]);
-    const [ loading, setLoading ] = useState(false);
-    const [ error, setError ] = useState<string | null>(null);
-    const [ total, setTotal ] = useState(0);
-    const [ totalPages, setTotalPages ] = useState(0);
-
-    const fetchAppointments = useCallback(async () => {
-        setLoading(true); setError(null);
-
-        try {
-            const query = buildAppointmentQueryString(filters);
-            const res = await fetchWithAuth(`${API_BASE}/appointments${query}`);
-
-            if (!res.ok) {
-                throw new Error(`Server error: ${res.status}`);
-            }
-
-            const json: ApiPaginatedResponse = await res.json();
-
-            if (!json.success) {
-                throw new Error("API returned an error");
-            }
-
-            setAppointments(json.data.data as Appointment[]);
-            setTotal(json.data.total);
-            setTotalPages(json.data.totalPages);
-        } catch (err) {
-            setError(err instanceof Error ? err.message : "Failed to load appointments");
-        } finally {
-            setLoading(false);
-        }
-    }, [ filters ]);
-
-    useEffect(() => {
-        fetchAppointments();
-        const interval = setInterval(fetchAppointments, 300000); // Poll every 5 minutes
-        return () => clearInterval(interval);
-    }, [ fetchAppointments ]);
-
+    const url = useMemo(
+        () => `${API_BASE}/appointments${buildAppointmentQueryString(filters)}`,
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [ JSON.stringify(filters) ]
+    );
+    const { items: appointments, loading, error, refetch: fetchAppointments, total, totalPages } =
+        useApiPaginatedQuery<Appointment>(url, { pollingIntervalMs: 300000, errorMessage: "Failed to load appointments" });
     return { appointments, loading, error, fetchAppointments, total, totalPages };
 };

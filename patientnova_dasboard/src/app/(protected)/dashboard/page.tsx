@@ -15,9 +15,9 @@ import { PageHeader } from '@/src/components/PageHeader';
 import { StatCard } from '@/src/components/Info/StatCard';
 import { PatientStatus } from '@/src/types/Patient';
 import { getInitials, getAvatarColor } from '@/src/utils/AvatarHelper';
-import { fmtDateAndTime, fmtRelative, todayString } from '@/src/utils/TimeUtils';
+import { fmtDateTime, fmtRelative, todayString } from '@/src/utils/TimeUtils';
 import { AppointmentStatusPill, ReminderStatusPill } from '@/src/components/Info/StatusPill';
-import { useAuthContext } from "../AuthContext";
+import { useAuthContext } from "../../AuthContext";
 import { ReminderModal } from "@/src/components/Modals/ReminderModal";
 
 export default function DashboardPage() {
@@ -111,7 +111,7 @@ export default function DashboardPage() {
                       </div>
                       <div>
                         <div className="dash-list-item__name">{a.patient.name} {a.patient.lastName}</div>
-                        <div className="dash-list-item__meta">{a.appointmentType?.name} · {fmtDateAndTime(a.startAt)}</div>
+                        <div className="dash-list-item__meta">{a.appointmentType?.name} · {fmtDateTime(a.startAt)}</div>
                       </div>
                     </div>
                     <div className="dash-list-item__right">

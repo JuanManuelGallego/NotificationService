@@ -8,14 +8,6 @@ function fmtDateTime(iso: string | undefined): string {
     });
 }
 
-function fmtDateAndTime(d: string): string {
-    if (!d) return "Invalid Date"
-
-    return new Date(d).toLocaleString("es-ES", {
-        day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit",
-    });
-}
-
 function fmtDate(d: string | undefined): string {
     if (!d) return "Invalid Date"
 
@@ -98,15 +90,6 @@ function getRemindersendAt(date: string, reminderType: ReminderType): string {
     }
 }
 
-function formatDate(d: string): string {
-    return new Date(d).toLocaleDateString("es-ES", {
-        day: "numeric", month: "long", year: "numeric",
-    });
-}
-
-function formatTime(d: string): string {
-    return new Date(d).toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" });
-}
 
 function getDuration(startAt: string | undefined, endAt: string | undefined): AppointmentDuration {
     if (!startAt || !endAt) return AppointmentDuration.MIN_60; //default
@@ -126,7 +109,7 @@ function getAppointmentEndTime(startAt: string, duration: AppointmentDuration): 
     return new Date(start.getTime() + dur * 60000).toISOString();
 }
 
-function getTommorrowSixAm(): string {
+function getTomorrowSixAm(): string {
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
     tomorrow.setHours(6, 0, 0, 0);
@@ -249,18 +232,15 @@ const COMMON_TIMEZONES: { value: string; label: string }[] = [
 export {
     fmtDate,
     fmtTime,
-    fmtDateAndTime,
     fmtDateTime,
     fmtDateWeekDay,
     fmtRelative,
-    formatDate,
-    formatTime,
     getDate,
     getAppointmentEndTime,
     getDuration,
     getRemindersendAt,
     getReminderType,
-    getTommorrowSixAm,
+    getTomorrowSixAm,
     isoToLocal,
     isReminderTypeFeasible,
     today,

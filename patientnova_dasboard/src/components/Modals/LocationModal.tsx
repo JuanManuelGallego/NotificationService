@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useCreateLocation } from "@/src/api/useCreateLocation";
 import { useUpdateLocation } from "@/src/api/useUpdateLocation";
 import { AppointmentLocation } from "@/src/types/Appointment";
-import { RequiredField } from "@/src/components/Info/Requiered";
+import { RequiredField } from "@/src/components/Info/Required";
 
 type LocationForm = {
     name: string;

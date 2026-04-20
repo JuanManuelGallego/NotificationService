@@ -5,7 +5,7 @@ import { getInitials, resizeToBase64 } from "@/src/utils/AvatarHelper";
 import { COMMON_TIMEZONES } from "@/src/utils/TimeUtils";
 import Image from "next/image";
 import { useState, useRef } from "react";
-import { useAuthContext } from "../AuthContext";
+import { useAuthContext } from "../../AuthContext";
 
 export function ProfileTab() {
     const { user, updateUser } = useAuthContext();

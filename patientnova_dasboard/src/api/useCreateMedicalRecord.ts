@@ -1,33 +1,13 @@
-import { useState, useCallback } from "react";
-import { API_BASE, ApiResponse } from "../types/API";
-import { AppointmentLocation } from "../types/Appointment";
-import { fetchWithAuth } from "./fetchWithAuth";
+import { useCallback } from "react";
+import { API_BASE } from "../types/API";
 import { MedicalRecord } from "../types/MedicalRecord";
+import { useApiMutation } from "./useApiMutation";
 
 export const useCreateMedicalRecord = () => {
-    const [ loading, setLoading ] = useState(false);
-    const [ error, setError ] = useState<string | null>(null);
-
-    const createMedicalRecord = useCallback(async (data: Partial<MedicalRecord>) => {
-        setLoading(true); setError(null);
-        try {
-            const res = await fetchWithAuth(`${API_BASE}/medical-records`, {
-                method: "POST", credentials: 'include',
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(data),
-            });
-            if (!res.ok) throw new Error(`Server error: ${res.status}`);
-            const json: ApiResponse = await res.json();
-            if (!json.success) throw new Error("API returned an error");
-            return json.data as AppointmentLocation;
-        } catch (err) {
-            const errorMessage = err instanceof Error ? err.message : "Failed to create location";
-            setError(errorMessage);
-            throw err;
-        } finally {
-            setLoading(false);
-        }
-    }, []);
-
+    const { mutate, loading, error } = useApiMutation<MedicalRecord>("POST", "Failed to create medical record");
+    const createMedicalRecord = useCallback(
+        (data: Partial<MedicalRecord>) => mutate(`${API_BASE}/medical-records`, data),
+        [ mutate ]
+    );
     return { createMedicalRecord, loading, error };
 };

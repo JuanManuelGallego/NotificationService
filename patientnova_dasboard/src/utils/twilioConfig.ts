@@ -1,4 +1,4 @@
-export const TWILLO_CONFIG = {
+export const TWILIO_CONFIG = {
     PATIENT_APPOINTMENT_REMINDER: {
         label: "Patient Appointment Reminder",
         contentSid: "HX0a1398b71c666ea718105cc603e69ccd",

@@ -1,36 +1,31 @@
-import { ConfigProvider, DatePicker } from "antd";
+import { ConfigProvider, DatePicker, notification } from "antd";
 import dayjs, { Dayjs } from "dayjs";
 import 'dayjs/locale/es';
 import esEs from 'antd/locale/es_ES';
 
 dayjs.locale('es');
-import { useFetchAppointments } from "../api/useFetchAppointments";
 import { antThemeConfig } from "@/src/styles/theme";
 
 export function AppointmentDateTimePicker({
     date,
     onChanged,
+    bookedSlots = [],
 }: {
     date: string | undefined;
     onChanged: (date: string) => void;
+    bookedSlots?: string[];
 }) {
-    const { appointments } = useFetchAppointments();
+    const bookedMs = bookedSlots.map(s => new Date(s).getTime());
 
     const handleChange = (selectedDate: Dayjs | null) => {
         if (!selectedDate) return;
 
-        const selectedIso = selectedDate.toISOString();
-
-        const isBooked = appointments.some((a) => {
-            return new Date(a.startAt).getTime() === selectedDate.valueOf();
-        });
-
-        if (isBooked) {
-            alert("This time slot is already booked");
+        if (bookedMs.includes(selectedDate.valueOf())) {
+            notification.warning({ message: "Este horario ya está reservado" });
             return;
         }
 
-        onChanged(selectedIso);
+        onChanged(selectedDate.toISOString());
     };
 
     return (

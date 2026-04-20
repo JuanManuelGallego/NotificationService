@@ -1,10 +1,11 @@
 import { PatientStatus } from './Patient';
 import { AppointmentStatus } from './Appointment';
 import { Channel, ReminderStatus } from './Reminder';
-export interface ApiPaginatedResponse {
+
+export interface ApiPaginatedResponse<T = unknown> {
     success: boolean;
     data: {
-        data: unknown;
+        data: T[];
         total: number;
         page: number;
         pageSize: number;
@@ -13,9 +14,9 @@ export interface ApiPaginatedResponse {
     timestamp: string;
 }
 
-export interface ApiResponse {
+export interface ApiResponse<T = unknown> {
     success: boolean;
-    data: unknown;
+    data: T;
     timestamp: string;
 }
 

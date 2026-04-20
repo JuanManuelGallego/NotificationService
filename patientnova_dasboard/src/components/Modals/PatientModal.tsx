@@ -3,7 +3,7 @@ import { useUpdatePatient } from "@/src/api/useUpdatePatient";
 import { Patient, PatientStatus, PATIENT_STATUS_CONFIG } from "@/src/types/Patient";
 import { validateEmail, validatePhoneNumber } from "@/src/utils/DataValidator";
 import { useState } from "react";
-import { RequiredField } from "../Info/Requiered";
+import { RequiredField } from "../Info/Required";
 import { DateTimePicker } from "../DateTimePicker";
 import { CountryCodeInput } from "../CountryCodeInput";
 import { CustomSelect } from "../CustomSelect";

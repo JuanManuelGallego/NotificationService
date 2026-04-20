@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { useAuthContext } from '@/src/app/AuthContext';
 import { useRouter } from "next/navigation";
+import styles from "./Sidebar.module.css";
 
 export const NAV_ITEMS = [
     { id: "dashboard", path: "/dashboard", icon: "🏠", label: "Vista General" },
@@ -84,24 +85,9 @@ export default function Sidebar() {
                     <button
                         onClick={async () => { await logout(); router.replace("/login"); }}
                         title="Cerrar sesión"
-                        style={{
-                            flexShrink: 0,
-                            background: "rgba(255,255,255,0.05)",
-                            border: "none",
-                            borderRadius: "8px",
-                            width: "32px",
-                            height: "32px",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            cursor: "pointer",
-                            color: "#ff4d4d",
-                            transition: "all 0.2s"
-                        }}
-                        onMouseEnter={(e) => e.currentTarget.style.background = "rgba(255,77,77,0.15)"}
-                        onMouseLeave={(e) => e.currentTarget.style.background = "rgba(255,255,255,0.05)"}
+                        className={styles.logoutBtn}
                     >
-                        <span style={{ fontSize: '16px' }}>➜]</span> {/* Or use a Logout Icon from a library */}
+                        <span style={{ fontSize: '16px' }}>➜]</span>
                     </button>
                 </div>
             </div>

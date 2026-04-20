@@ -1,42 +1,13 @@
-import { useState, useCallback } from "react";
-import { API_BASE, ApiResponse } from "../types/API";
+import { useCallback } from "react";
+import { API_BASE } from "../types/API";
 import { User } from "../types/User";
-import { fetchWithAuth } from "./fetchWithAuth";
+import { useApiMutation } from "./useApiMutation";
 
 export const useUpdateProfile = () => {
-    const [ loading, setLoading ] = useState(false);
-    const [ error, setError ] = useState<string | null>(null);
-
-    const updateProfile = useCallback(async (payload: Partial<User>) => {
-        setLoading(true);
-        setError(null);
-
-        try {
-            const res = await fetchWithAuth(`${API_BASE}/users/me`, {
-                method: "PATCH",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(payload),
-            });
-
-            if (!res.ok) {
-                throw new Error(`Server error: ${res.status}`);
-            }
-
-            const json: ApiResponse = await res.json();
-
-            if (!json.success) {
-                throw new Error("API returned an error");
-            }
-
-            return json.data as User;
-        } catch (err) {
-            const msg = err instanceof Error ? err.message : "Error al guardar";
-            setError(msg);
-            throw err;
-        } finally {
-            setLoading(false);
-        }
-    }, []);
-
+    const { mutate, loading, error } = useApiMutation<User>("PATCH", "Error al guardar");
+    const updateProfile = useCallback(
+        (data: Partial<User>) => mutate(`${API_BASE}/users/me`, data),
+        [ mutate ]
+    );
     return { updateProfile, loading, error };
 };

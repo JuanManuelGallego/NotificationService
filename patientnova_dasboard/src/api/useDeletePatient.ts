@@ -1,39 +1,12 @@
-import { useState, useCallback } from "react";
+import { useCallback } from "react";
 import { API_BASE } from "../types/API";
-import { fetchWithAuth } from "./fetchWithAuth";
+import { useApiMutation } from "./useApiMutation";
 
 export const useDeletePatient = () => {
-    const [ loading, setLoading ] = useState(false);
-    const [ error, setError ] = useState<string | null>(null);
-
-    const deletePatient = useCallback(async (patientId: string) => {
-        setLoading(true);
-        setError(null);
-
-        try {
-            const res = await fetchWithAuth(`${API_BASE}/patients/${patientId}`, {
-                method: "DELETE",
-            });
-
-            if (!res.ok) {
-                throw new Error(`Server error: ${res.status}`);
-            }
-
-            const json = await res.json();
-
-            if (!json.success) {
-                throw new Error("API returned an error");
-            }
-
-            return true;
-        } catch (err) {
-            const errorMessage = err instanceof Error ? err.message : "Failed to delete patient";
-            setError(errorMessage);
-            throw err;
-        } finally {
-            setLoading(false);
-        }
-    }, []);
-
+    const { mutate, loading, error } = useApiMutation("DELETE", "Failed to delete patient");
+    const deletePatient = useCallback(
+        async (id: string) => { await mutate(`${API_BASE}/patients/${id}`); return true as const; },
+        [ mutate ]
+    );
     return { deletePatient, loading, error };
 };

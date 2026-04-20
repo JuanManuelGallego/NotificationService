@@ -1,6 +1,6 @@
 import { SuccessBanner } from "@/src/components/Info/SuccessBanner";
 import { useState } from "react";
-import { useAuthContext } from "../AuthContext";
+import { useAuthContext } from "../../AuthContext";
 import { useUpdateProfile } from "@/src/api/useUpdateProfile";
 import { User } from "@/src/types/User";
 import { Channel, CHANNEL_CFG } from "@/src/types/Reminder";

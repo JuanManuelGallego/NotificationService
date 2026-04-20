@@ -1,43 +1,14 @@
-import { useState, useCallback } from "react";
+import { useCallback } from "react";
 import { API_BASE } from "../types/API";
-import { Channel, Reminder } from '../types/Reminder';
-import { fetchWithAuth } from "./fetchWithAuth";
+import { Channel, Reminder } from "../types/Reminder";
+import { useApiMutation } from "./useApiMutation";
 
 export const useNotify = () => {
-    const [ loading, setLoading ] = useState(false);
-    const [ error, setError ] = useState<string | null>(null);
-
-    const notify = useCallback(async (channel: Channel, payload: Partial<Reminder>) => {
-        setLoading(true); setError(null);
-
-        try {
-            const res = await fetchWithAuth(`${API_BASE}/notify/${channel.toLowerCase()}`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify(payload),
-            });
-
-            if (!res.ok) {
-                throw new Error(`Server error: ${res.status}`);
-            }
-
-            const json = await res.json();
-
-            if (!json.success) {
-                throw new Error("API returned an error");
-            }
-
-            return json.data as Reminder;
-        } catch (err) {
-            const errorMessage = err instanceof Error ? err.message : "Failed to send notification";
-            setError(errorMessage);
-            throw err;
-        } finally {
-            setLoading(false);
-        }
-    }, []);
-
+    const { mutate, loading, error } = useApiMutation<Reminder>("POST", "Failed to send notification");
+    const notify = useCallback(
+        (channel: Channel, payload: Partial<Reminder>) =>
+            mutate(`${API_BASE}/notify/${channel.toLowerCase()}`, payload),
+        [ mutate ]
+    );
     return { notify, loading, error };
 };

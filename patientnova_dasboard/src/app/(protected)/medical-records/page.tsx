@@ -6,7 +6,7 @@ import { useFetchPatients } from "@/src/api/useFetchPatients";
 import PageLayout from "@/src/components/PageLayout";
 import { PageHeader } from "@/src/components/PageHeader";
 import { CustomSelect } from "@/src/components/CustomSelect";
-import { RequiredField } from "@/src/components/Info/Requiered";
+import { RequiredField } from "@/src/components/Info/Required";
 import { getPatientFullName } from "@/src/utils/AvatarHelper";
 import { FormValues } from "@/src/types/MedicalRecord";
 import { GeneralDataSection } from "@/src/components/GeneralDataSection";
@@ -64,7 +64,6 @@ function MedicalRecordsPageContent() {
 
   useEffect(() => {
     if (medicalRecord) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setForm({
         name: medicalRecord.name || "",
         nationalId: medicalRecord.nationalId || "",
@@ -92,11 +91,12 @@ function MedicalRecordsPageContent() {
   }, [ medicalRecord ]);
 
   useEffect(() => {
-    if (!isReady.current || !selectedPatientId || !medicalRecord) return;
+    if (!isReady.current || !selectedPatientId || !medicalRecord?.id) return;
+    const recordId = medicalRecord.id;
 
     const timeout = setTimeout(async () => {
       try {
-        await updateMedicalRecord(medicalRecord.id, form);
+        await updateMedicalRecord(recordId, form);
         setSaveStatus("saved");
         setTimeout(() => setSaveStatus("idle"), AUTO_SAVE_DEBOUNCE_MS);
       } catch (err) {
@@ -110,7 +110,7 @@ function MedicalRecordsPageContent() {
       clearTimeout(timeout);
       setSaveStatus("idle");
     };
-  }, [ form ]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [ form, selectedPatientId, medicalRecord, updateMedicalRecord ]);
 
   const updateForm = (key: keyof typeof form, value: string) => {
     setForm((current) => ({ ...current, [ key ]: value }));

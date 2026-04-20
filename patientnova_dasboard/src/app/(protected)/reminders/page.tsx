@@ -1,12 +1,12 @@
-"use client";;
+"use client";
 import { useMemo, useState, Suspense } from "react";
 import { CHANNEL_CFG, FetchRemindersFilters, Reminder, ReminderStatus } from '@/src/types/Reminder';
-import { fmtDateAndTime, fmtRelative, todayString } from '@/src/utils/TimeUtils';
+import { fmtDateTime, fmtRelative, todayString } from '@/src/utils/TimeUtils';
 import { StatCard } from '@/src/components/Info/StatCard';
 import { ReminderModal } from '@/src/components/Modals/ReminderModal';
 import { EditScheduledReminderModal } from '@/src/components/Modals/EditScheduledReminderModal';
 import { ReminderDrawer } from '@/src/components/Drawers/ReminderDrawer';
-import { BulkSendWizard } from '@/src/app/reminders/BulkSendWizard';
+import { BulkSendWizard } from '@/src/app/(protected)/reminders/BulkSendWizard';
 import { EmptyState } from '@/src/components/EmptyState';
 import { DataTable, TableFooter } from '@/src/components/DataTable';
 import { CancelReminderModal } from '@/src/components/Modals/CancelReminderModal';
@@ -25,7 +25,6 @@ enum ActiveTab { Active = "Active", History = "History", Bulk = "Bulk" }
 const PAGE_SIZE = 10;
 
 function RemindersPageContent() {
-    const { patients } = useFetchPatients();
     const { stats, fetchStats } = useFetchRemindersStats();
 
     const [ activeTab, setActiveTab ] = useQueryState("activeTab", parseAsStringEnum(Object.values(ActiveTab)).withDefault(ActiveTab.Active));
@@ -92,7 +91,7 @@ function RemindersPageContent() {
                         setViewReminder={setViewReminder}
                     />
                 )}
-                {activeTab === "Bulk" && <BulkTab patients={patients} />}
+                {activeTab === "Bulk" && <BulkTab />}
             </PageLayout>
             {showCreate && (
                 <ReminderModal onClose={() => { setShowCreate(false); fetchReminders(); fetchStats(); }} onSaved={() => { fetchReminders(); fetchStats(); }} />
@@ -144,11 +143,11 @@ function ActiveRemindersTab({ reminders, loading, page, total, totalPages, setPa
                     </td>
                     <td className="td">{CHANNEL_CFG[ reminder.channel ].icon}</td>
                     <td className="td"><ReminderStatusPill status={reminder.status} /></td>
-                    <td className="td td--date">{fmtDateAndTime(reminder.sendAt)}</td>
+                    <td className="td td--date">{fmtDateTime(reminder.sendAt)}</td>
                     <td className="td td--muted">
                         <span className="badge-time">{fmtRelative(reminder.sendAt)}</span>
                     </td>
-                    <td className="td td--subtle">{fmtDateAndTime(reminder.sendAt)}</td>
+                    <td className="td td--subtle">{fmtDateTime(reminder.sendAt)}</td>
                     <td className="td" onClick={e => e.stopPropagation()}>
                         <div className="td-actions">
                             <button onClick={() => setEditReminder(reminder)} className="btn-action-edit">Reprogramar</button>
@@ -186,8 +185,8 @@ function HistoryRemindersTab({ reminders, loading, page, total, totalPages, setP
                     </td>
                     <td className="td">{CHANNEL_CFG[ reminder.channel ].icon}</td>
                     <td className="td"><ReminderStatusPill status={reminder.status} /></td>
-                    <td className="td td--muted">{fmtDateAndTime(reminder.sendAt)}</td>
-                    <td className="td td--muted">{fmtDateAndTime(reminder.updatedAt)}</td>
+                    <td className="td td--muted">{fmtDateTime(reminder.sendAt)}</td>
+                    <td className="td td--muted">{fmtDateTime(reminder.updatedAt)}</td>
                     <td className="td td--mono">
                         {reminder.messageId ? <span title={reminder.messageId}>{reminder.messageId}</span> : "—"}
                     </td>
@@ -205,7 +204,8 @@ function HistoryRemindersTab({ reminders, loading, page, total, totalPages, setP
     );
 }
 
-function BulkTab({ patients }: { patients: import("@/src/types/Patient").Patient[] }) {
+function BulkTab() {
+    const { patients } = useFetchPatients();
     return (
         <div className="bulk-section fade-in">
             <div className="info-banner">

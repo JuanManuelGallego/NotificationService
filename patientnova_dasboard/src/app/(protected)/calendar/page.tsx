@@ -8,19 +8,24 @@ import { CancelAppointmentModal } from "@/src/components/Modals/CancelAppointmen
 import PageLayout from "@/src/components/PageLayout";
 import { PageHeader } from "@/src/components/PageHeader";
 import { Appointment, AppointmentStatus } from "@/src/types/Appointment";
-import { todayFormatedString, MONTH_NAMES_ES, DAY_NAMES_ES, formatTime, fmtDate, getColombianHolidays, todayString } from "@/src/utils/TimeUtils";
+import { todayFormatedString, MONTH_NAMES_ES, DAY_NAMES_ES, fmtTime, fmtDate, getColombianHolidays, todayString } from "@/src/utils/TimeUtils";
 import Image from "next/image";
 import { useState, useMemo, useEffect, useCallback } from "react";
 
 const TODAY_STR = todayFormatedString();
 
 export default function CalendarPage() {
-  const { appointments, loading, fetchAppointments } = useFetchAppointments();
   const { updateAppointment } = useUpdateAppointment();
 
   const [ calYear, setCalYear ] = useState(new Date().getFullYear());
   const [ calMonth, setCalMonth ] = useState(new Date().getMonth());
 
+  const calendarFilters = useMemo(() => ({
+    dateFrom: new Date(calYear, calMonth, 1).toISOString().slice(0, 10),
+    dateTo: new Date(calYear, calMonth + 1, 0).toISOString().slice(0, 10),
+  }), [ calYear, calMonth ]);
+
+  const { appointments, loading, fetchAppointments } = useFetchAppointments(calendarFilters);
   const [ showCreate, setShowCreate ] = useState(false);
   const [ editAppt, setEditAppt ] = useState<Appointment | null>(null);
   const [ viewAppt, setViewAppt ] = useState<Appointment | null>(null);
@@ -187,7 +192,7 @@ export default function CalendarPage() {
                                 }}
                                 title={`${a.patient.name} ${a.patient.lastName} — ${a.appointmentLocation.name} — ${a.status}`}
                               >
-                                {formatTime(a.startAt)} {a.patient.name} {a.patient.lastName} — {a.appointmentLocation.name}
+                                {fmtTime(a.startAt)} {a.patient.name} {a.patient.lastName} — {a.appointmentLocation.name}
                                 {a.status === AppointmentStatus.CONFIRMED && " ✅"}
                                 {a.status === AppointmentStatus.SCHEDULED && " ⌛"}
                               </div>
@@ -233,7 +238,7 @@ export default function CalendarPage() {
                       style={{ background: a.appointmentLocation.dot ?? "var(--c-gray-400)" }}
                     />
                     <span className="cal-day-panel__appt-name">{a.patient.name} {a.patient.lastName}</span>
-                    <span className="cal-day-panel__appt-time">{formatTime(a.startAt)}</span>
+                    <span className="cal-day-panel__appt-time">{fmtTime(a.startAt)}</span>
                   </div>
                 ))}
               </div>

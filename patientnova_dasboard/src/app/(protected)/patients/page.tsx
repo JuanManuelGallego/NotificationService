@@ -1,4 +1,4 @@
-"use client";;
+"use client";
 import { useState, useMemo, Suspense } from "react";
 import { useQueryState, parseAsInteger, parseAsString, parseAsStringEnum } from 'nuqs';
 

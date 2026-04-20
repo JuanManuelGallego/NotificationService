@@ -1,7 +1,7 @@
 import { DateTimePicker } from "../DateTimePicker";
 import { Reminder, ReminderStatus, CHANNEL_CFG } from "@/src/types/Reminder";
 import { useState } from "react";
-import { RequiredField } from "../Info/Requiered";
+import { RequiredField } from "../Info/Required";
 import { useUpdateReminder } from "@/src/api/useUpdateReminder";
 
 export function EditScheduledReminderModal({ reminder, onClose, onSaved }: { reminder: Reminder; onClose: () => void; onSaved: () => void }) {

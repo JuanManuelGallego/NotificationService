@@ -2,19 +2,20 @@ import { useCreateAppointment } from "@/src/api/useCreateAppointment";
 import { useCreateReminder } from "@/src/api/useCreateReminder";
 import { useUpdateAppointment } from "@/src/api/useUpdateAppointment";
 import { useUpdateReminder } from "@/src/api/useUpdateReminder";
+import { useFetchAppointments } from "@/src/api/useFetchAppointments";
 import { Appointment, AppointmentForm, AppointmentStatus, AppointmentDuration, APPT_STATUS_CFG, APPT_PAID_STATUS_CFG, AppointmentPaidStatus, AppointmentLocation, AppointmentType } from "@/src/types/Appointment";
 import { ReminderType, Reminder, ReminderMode, ReminderStatus, CHANNEL_CFG, Channel, REMINDER_TYPE_CONFIG } from "@/src/types/Reminder";
 import { getAvatarColor, getInitials, getPatientFullName, getUserName } from "@/src/utils/AvatarHelper";
-import { isReminderTypeFeasible, formatDate, formatTime, getDuration, getRemindersendAt, getAppointmentEndTime, getTommorrowSixAm, getReminderType, getDate } from "@/src/utils/TimeUtils";
+import { isReminderTypeFeasible, fmtDate, fmtTime, getDuration, getRemindersendAt, getAppointmentEndTime, getTomorrowSixAm, getReminderType, getDate } from "@/src/utils/TimeUtils";
 import { useState } from "react";
 import { AppointmentDateTimePicker } from "../AppointmentDateTimePicker";
 import { CustomSelect } from "../CustomSelect";
-import { RequiredField } from "../Info/Requiered";
+import { RequiredField } from "../Info/Required";
 import { useFetchPatients } from "@/src/api/useFetchPatients";
 import { Patient } from "@/src/types/Patient";
 import { useFetchAppointmentTypes } from "@/src/api/useFetchAppointmentTypes";
 import { useFetchLocations } from "@/src/api/useFetchLocations";
-import { TWILLO_CONFIG } from "@/src/utils/twilloConfig";
+import { TWILIO_CONFIG } from "@/src/utils/twilioConfig";
 import { useAuthContext } from "@/src/app/AuthContext";
 
 export function AppointmentModal({ appt, prefillDate, onClose, onSaved }: {
@@ -26,6 +27,7 @@ export function AppointmentModal({ appt, prefillDate, onClose, onSaved }: {
   const isEdit = !!appt;
   const { user } = useAuthContext();
   const { patients } = useFetchPatients();
+  const { appointments } = useFetchAppointments();
   const { createAppointment } = useCreateAppointment();
   const { updateAppointment } = useUpdateAppointment();
   const { createReminder } = useCreateReminder();
@@ -40,7 +42,7 @@ export function AppointmentModal({ appt, prefillDate, onClose, onSaved }: {
 
   const [ form, setForm ] = useState<AppointmentForm>({
     patientId: appt?.patient.id ?? "",
-    startAt: appt?.startAt ?? prefillDate ?? getTommorrowSixAm(),
+    startAt: appt?.startAt ?? prefillDate ?? getTomorrowSixAm(),
     status: appt?.status ?? AppointmentStatus.SCHEDULED,
     typeId: appt?.appointmentType.id ?? "",
     locationId: appt?.appointmentLocation.id ?? "",
@@ -78,14 +80,14 @@ export function AppointmentModal({ appt, prefillDate, onClose, onSaved }: {
 
     return {
       to,
-      contentSid: TWILLO_CONFIG.PATIENT_APPOINTMENT_REMINDER_CONFIRMATION.contentSid,
+      contentSid: TWILIO_CONFIG.PATIENT_APPOINTMENT_REMINDER_CONFIRMATION.contentSid,
       contentVariables: {
         "1": selectedPatient ? `${selectedPatient.name}` : "",
         "2": getUserName(user) || "su profesional de salud",
         "3": getDate(form.startAt),
-        "4": formatTime(form.startAt)
+        "4": fmtTime(form.startAt)
       },
-      body: TWILLO_CONFIG.PATIENT_APPOINTMENT_REMINDER_CONFIRMATION.template.replace("{{1}}", selectedPatient ? `${selectedPatient.name}` : "").replace("{{2}}", getUserName(user) || "su profesional de salud").replace("{{3}}", formatDate(form.startAt)).replace("{{4}}", formatTime(form.startAt)),
+      body: TWILIO_CONFIG.PATIENT_APPOINTMENT_REMINDER_CONFIRMATION.template.replace("{{1}}", selectedPatient ? `${selectedPatient.name}` : "").replace("{{2}}", getUserName(user) || "su profesional de salud").replace("{{3}}", fmtDate(form.startAt)).replace("{{4}}", fmtTime(form.startAt)),
       patientId: form.patientId,
       channel: reminderChannel,
       sendMode: ReminderMode.SCHEDULED,
@@ -154,7 +156,7 @@ export function AppointmentModal({ appt, prefillDate, onClose, onSaved }: {
         {error && (
           <div className="error-inline">⚠️ {error}</div>
         )}
-        {step === 1 && <PatientAndTypeStep form={form} setForm={setForm} patients={patients} isEdit={isEdit} selectedPatient={selectedPatient} appointmentTypes={appointmentTypes} />}
+        {step === 1 && <PatientAndTypeStep form={form} setForm={setForm} patients={patients} isEdit={isEdit} selectedPatient={selectedPatient} appointmentTypes={appointmentTypes} bookedSlots={appointments.filter(a => a.id !== appt?.id).map(a => a.startAt)} />}
         {step === 2 && <LocationAndTimeStep form={form} set={set} setForm={setForm} selectedPatient={selectedPatient} reminderChannel={reminderChannel} setReminderChannel={setReminderChannel} locations={locations} />}
         {step === 3 && <PaymentAndStatusStep form={form} set={set} setForm={setForm} selectedPatient={selectedPatient} locations={locations} appointmentTypes={appointmentTypes} />}
         <div className="modal-footer">
@@ -174,7 +176,7 @@ export function AppointmentModal({ appt, prefillDate, onClose, onSaved }: {
 
 type SetField = (field: keyof AppointmentForm) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => void;
 
-function PatientAndTypeStep({ form, setForm, patients, isEdit, selectedPatient, appointmentTypes }: { form: AppointmentForm; setForm: React.Dispatch<React.SetStateAction<AppointmentForm>>; patients: Patient[]; isEdit: boolean; selectedPatient: Patient | undefined; appointmentTypes: AppointmentType[] }) {
+function PatientAndTypeStep({ form, setForm, patients, isEdit, selectedPatient, appointmentTypes, bookedSlots }: { form: AppointmentForm; setForm: React.Dispatch<React.SetStateAction<AppointmentForm>>; patients: Patient[]; isEdit: boolean; selectedPatient: Patient | undefined; appointmentTypes: AppointmentType[]; bookedSlots: string[] }) {
   return (<div className="form-stack">
     {!isEdit && <label className="form-label">
       <RequiredField label="Paciente" />
@@ -199,7 +201,11 @@ function PatientAndTypeStep({ form, setForm, patients, isEdit, selectedPatient, 
     )}
     <label className="form-label">
       <RequiredField label="Fecha y Hora" />
-      <AppointmentDateTimePicker date={form.startAt} onChanged={(date) => setForm(f => ({ ...f, startAt: date }))} />
+      <AppointmentDateTimePicker
+          date={form.startAt}
+          onChanged={(date) => setForm(f => ({ ...f, startAt: date }))}
+          bookedSlots={bookedSlots}
+        />
     </label>
     <label className="form-label">
       <RequiredField label="Tipo de cita" />
@@ -335,7 +341,7 @@ function PaymentAndStatusStep({ form, set, setForm, selectedPatient, locations, 
         {[
           [ "Paciente", selectedPatient ? `${selectedPatient.name} ${selectedPatient.lastName}` : "—" ],
           [ "Tipo", appointmentTypes.find(t => t.id === form.typeId)?.name || "—" ],
-          [ "Fecha", `${formatDate(form.startAt)} a las ${formatTime(form.startAt)}` ],
+          [ "Fecha", `${fmtDate(form.startAt)} a las ${fmtTime(form.startAt)}` ],
           [ "Duración", form.duration ],
           [ "Ubicación", locations.find(l => l.id === form.locationId)?.name || "—" ],
           [ "Precio", `$${form.price}` ],

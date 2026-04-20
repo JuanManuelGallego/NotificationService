@@ -1,5 +1,5 @@
 import { Reminder, REMINDER_STATUS_CONFIG, ReminderStatus, ReminderMode, Channel, CHANNEL_CFG } from "@/src/types/Reminder";
-import { fmtDateAndTime, fmtDateTime } from "@/src/utils/TimeUtils";
+import { fmtDateTime } from "@/src/utils/TimeUtils";
 import { AppointmentStatusPill, ReminderStatusPill } from "../Info/StatusPill";
 import { Section, Row } from "./DrawerUtils";
 import { getAvatarColor, getInitials } from "@/src/utils/AvatarHelper";
@@ -48,8 +48,8 @@ export function ReminderDrawer({ reminder, onClose, onEdit, onCancel }: {
                     </Section>}
                     <Section title="Programación">
                         <Row icon="📢" label="Modo" value={reminder.sendMode === ReminderMode.IMMEDIATE ? "Inmediato" : "Programado"} />
-                        <Row icon="⏰" label={isActive ? "Se envia el" : "Enviado el"} value={fmtDateAndTime(reminder.sendAt)} />
-                        {reminder.sendAt && <Row icon="🗓️" label="Programado" value={fmtDateAndTime(reminder.createdAt)} />}
+                        <Row icon="⏰" label={isActive ? "Se envia el" : "Enviado el"} value={fmtDateTime(reminder.sendAt)} />
+                        {reminder.sendAt && <Row icon="🗓️" label="Programado" value={fmtDateTime(reminder.createdAt)} />}
                     </Section>
                     {reminder.error && (
                         <Section title="Error">
@@ -81,8 +81,8 @@ export function ReminderDrawer({ reminder, onClose, onEdit, onCancel }: {
                     </Section>
                     <Section title="Información del sistema">
                         <Row icon="🆔" label="ID" value={<span className="mono-sm">{reminder.id}</span>} />
-                        <Row icon="📆" label="Creado" value={fmtDateAndTime(reminder.createdAt)} />
-                        <Row icon="🔁" label="Actualizado" value={fmtDateAndTime(reminder.updatedAt)} />
+                        <Row icon="📆" label="Creado" value={fmtDateTime(reminder.createdAt)} />
+                        <Row icon="🔁" label="Actualizado" value={fmtDateTime(reminder.updatedAt)} />
                         <Row icon="🆔" label="Twillo ID" value={<span className="mono">{reminder.messageId ?? '-'}</span>} />
                     </Section>
                 </div>

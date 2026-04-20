@@ -15,7 +15,7 @@ import { ErrorBanner } from "@/src/components/Info/ErrorBanner";
 import { Appointment, AppointmentStatus, FetchAppointmentsFilters } from "@/src/types/Appointment";
 import { ReminderStatus } from "@/src/types/Reminder";
 import { getAvatarColor, getInitials } from "@/src/utils/AvatarHelper";
-import { fmtDateAndTime, todayString } from "@/src/utils/TimeUtils";
+import { fmtDateTime, todayString } from "@/src/utils/TimeUtils";
 import { useState, useMemo, Suspense } from "react";
 import { useFetchAppointments } from "@/src/api/useFetchAppointments";
 import { ReminderStatusPill, EmptyStatusPill, AppointmentStatusPill } from "@/src/components/Info/StatusPill";
@@ -144,7 +144,7 @@ function AppointmentsPageContent() {
                 </div>
               </td>
               <td className="td"><AppointmentTypePill appointmentType={a.appointmentType} /></td>
-              <td className="td td--datetime">{fmtDateAndTime(a.startAt)}</td>
+              <td className="td td--datetime">{fmtDateTime(a.startAt)}</td>
               <td className="td">{a.reminder ? <ReminderStatusPill status={a.reminder?.status || ReminderStatus.FAILED} /> : <EmptyStatusPill label="Sin Recordatorio" />}</td>
               <td className="td td--muted" style={{ maxWidth: 130 }}>
                 <div className="location-badge" style={{ background: a.appointmentLocation.bg || "var(--c-gray-100)", color: a.appointmentLocation.color || "var(--c-gray-700)" }}>

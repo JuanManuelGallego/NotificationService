@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useCreateAppointmentType } from "@/src/api/useCreateAppointmentType";
 import { useUpdateAppointmentType } from "@/src/api/useUpdateAppointmentType";
 import { AppointmentType } from "@/src/types/Appointment";
-import { RequiredField } from "@/src/components/Info/Requiered";
+import { RequiredField } from "@/src/components/Info/Required";
 
 type AppointmentTypeForm = {
     name: string;
