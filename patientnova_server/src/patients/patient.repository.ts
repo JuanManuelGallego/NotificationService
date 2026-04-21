@@ -68,7 +68,7 @@ export const patientRepository = {
     return patient;
   },
 
-  /** Lists patients. Does NOT load relations — use `findByIdWithRelations` when you need them. */
+  /** Lists patients. Only loads relation counts — use `findByIdWithRelations` when you need full relations. */
   async findMany(query: ListPatientsQuery, userId: string): Promise<Paginated<Patient>> {
     const { status, search, page, pageSize, orderBy, order } = query;
     const skip = (page - 1) * pageSize;
@@ -96,9 +96,8 @@ export const patientRepository = {
         take: pageSize,
         orderBy: { [orderBy]: order },
         include: {
-          appointments: true,
-          reminders: true,
-          medicalRecord: true,
+          appointments: true, reminders: true,
+          medicalRecord: { select: { id: true } },
         },
       }),
       prisma.patient.count({ where }),

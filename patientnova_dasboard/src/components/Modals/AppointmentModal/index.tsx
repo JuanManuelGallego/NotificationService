@@ -16,6 +16,7 @@ import { TWILIO_CONFIG } from "@/src/utils/twilioConfig";
 import { useAuthContext } from "@/src/app/AuthContext";
 import { LBL_SAVE_CHANGES, LBL_CREATE_APPOINTMENT, LBL_SAVING, LBL_BACK } from "@/src/constants/ui";
 import { useState } from "react";
+import { useFocusTrap } from "@/src/hooks/useFocusTrap";
 import { PatientAndTypeStep } from "./PatientAndTypeStep";
 import { LocationAndTimeStep } from "./LocationAndTimeStep";
 import { PaymentAndStatusStep } from "./PaymentAndStatusStep";
@@ -28,6 +29,7 @@ export function AppointmentModal({ appt, prefillDate, onClose, onSaved }: {
 }) {
     const isEdit = !!appt;
     const { user } = useAuthContext();
+    const { ref: trapRef, handleKeyDown: trapKeyDown } = useFocusTrap<HTMLDivElement>();
     const { patients } = useFetchPatients();
     const { appointments } = useFetchAppointments();
     const { createAppointment } = useCreateAppointment();
@@ -141,7 +143,7 @@ export function AppointmentModal({ appt, prefillDate, onClose, onSaved }: {
     const steps = [ "Paciente & Tipo", "Lugar & Hora", "Pago & Estado" ];
 
     return (
-        <div className="modal-overlay modal-overlay--nested" onClick={onClose}>
+        <div className="modal-overlay modal-overlay--nested" onClick={onClose} role="dialog" aria-modal="true" aria-label={isEdit ? "Editar Cita" : "Nueva Cita"} ref={trapRef} onKeyDown={trapKeyDown}>
             <div className="modal-panel modal-panel--lg slide-up" onClick={e => e.stopPropagation()}>
                 <div className="modal-header modal-header--top">
                     <div>

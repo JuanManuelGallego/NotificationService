@@ -14,6 +14,7 @@ import { useAuthContext } from "@/src/app/AuthContext";
 import { User } from "@/src/types/User";
 import { validatePhoneNumber } from "@/src/utils/DataValidator";
 import { ERR_MSG_EMPTY, LBL_NO_PATIENTS } from "@/src/constants/ui";
+import { useFocusTrap } from "@/src/hooks/useFocusTrap";
 
 export function ReminderModal({
     onClose, onSaved, reminder,
@@ -24,6 +25,7 @@ export function ReminderModal({
 }) {
     const isEdit = !!reminder;
     const { user } = useAuthContext();
+    const { ref: trapRef, handleKeyDown: trapKeyDown } = useFocusTrap<HTMLDivElement>();
 
     const { createReminder } = useCreateReminder();
     const { notify } = useNotify();
@@ -116,7 +118,7 @@ export function ReminderModal({
     const totalSteps = 3;
 
     return (
-        <div className="modal-overlay" onClick={onClose}>
+        <div className="modal-overlay" onClick={onClose} role="dialog" aria-modal="true" aria-label={isEdit ? "Editar Recordatorio" : "Nuevo Recordatorio"} ref={trapRef} onKeyDown={trapKeyDown}>
             <div className="modal-panel modal-panel--md slide-up" onClick={e => e.stopPropagation()}>
                 <div className="modal-header modal-header--top">
                     <div>

@@ -50,6 +50,11 @@ export const config = {
     lockoutDurationMs: parseInt(process.env.LOCKOUT_DURATION_MS ?? '900000', 10),  // 15 min
   },
 
+  defaults: {
+    timezone: process.env.DEFAULT_TIMEZONE ?? 'America/Bogota',
+    currency: process.env.DEFAULT_CURRENCY ?? 'COP',
+  },
+
 } as const;
 
 export const APPT_SID_MAP: Record<number, string> = {

@@ -1,11 +1,25 @@
 import { AppointmentStatus } from '@prisma/client';
 import { z } from 'zod';
 
+function isValidIANATimezone(tz: string): boolean {
+  try {
+    Intl.DateTimeFormat(undefined, { timeZone: tz });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+const timezoneSchema = z.string().max(50).optional().refine(
+  tz => !tz || isValidIANATimezone(tz),
+  { message: 'Invalid IANA timezone identifier' }
+);
+
 export const createAppointmentSchema = z.object({
   startAt: z.string().datetime(),
   endAt: z.string().datetime(),
-  timezone: z.string().optional(),
-  price: z.number(),
+  timezone: timezoneSchema,
+  price: z.number().min(0, 'Price must be non-negative'),
   currency: z.string().optional(),
   paid: z.boolean().default(false),
   meetingUrl: z.string().url('meetingUrl must be a valid URL').max(500).or(z.literal('')).nullable().optional(),
@@ -21,8 +35,8 @@ export const updateAppointmentSchema = z
   .object({
     startAt: z.string().datetime().optional(),
     endAt: z.string().datetime().optional(),
-    timezone: z.string().optional(),
-    price: z.number().optional(),
+    timezone: timezoneSchema,
+    price: z.number().min(0, 'Price must be non-negative').optional(),
     currency: z.string().optional(),
     paid: z.boolean().optional(),
     meetingUrl: z.string().url('meetingUrl must be a valid URL').max(500).optional().or(z.literal('')),
@@ -52,7 +66,7 @@ export const listAppointmentsSchema = z.object({
   paid: z.enum([ 'true', 'false' ]).transform(v => v === 'true').optional(),
   page: z.coerce.number().int().min(1).default(1),
   pageSize: z.coerce.number().int().min(1).max(100).default(20),
-  orderBy: z.enum([ 'startAt', 'createdAt', 'status', 'price', 'locationId', 'typeId', 'patientName' ]).default('startAt'),
+  orderBy: z.enum([ 'startAt', 'createdAt', 'status', 'price', 'locationId', 'typeId' ]).default('startAt'),
   order: z.enum([ 'asc', 'desc' ]).default('asc'),
 });
 

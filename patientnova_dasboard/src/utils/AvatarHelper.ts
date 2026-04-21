@@ -23,6 +23,7 @@ function getAvatarColor(id: string) {
 
 /** Resize an image File to a JPEG base64 data-URL at most maxSide×maxSide px. */
 async function resizeToBase64(file: File, maxSide = 256): Promise<string> {
+    if (typeof window === 'undefined') throw new Error("resizeToBase64 requires a browser environment");
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.onerror = reject;

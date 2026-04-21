@@ -24,19 +24,32 @@ notifyRouter.post(
       await patientService.verifyOwnership(req.body.patientId, req.user!.id);
     }
 
-    const result = await sendWhatsApp(req.body);
-    await reminderRepository.create({
+    // Create reminder record FIRST to ensure audit trail even if server crashes after send
+    const reminder = await reminderRepository.create({
       channel: Channel.WHATSAPP,
       contentSid: req.body.contentSid,
       contentVariables: req.body.contentVariables,
-      messageId: result.messageSid,
       sendMode: ReminderMode.IMMEDIATE,
       patientId: req.body.patientId,
       sendAt: new Date(),
-      status: ReminderStatus.SENT,
+      status: ReminderStatus.PENDING,
       to: req.body.to,
     }, req.user!.id);
-    ok(res, result, 201);
+
+    try {
+      const result = await sendWhatsApp(req.body);
+      await reminderRepository.update(reminder.id, {
+        status: ReminderStatus.SENT,
+        messageId: result.messageSid ?? undefined,
+      }, req.user!.id);
+      ok(res, result, 201);
+    } catch (err) {
+      await reminderRepository.update(reminder.id, {
+        status: ReminderStatus.FAILED,
+        error: err instanceof Error ? err.message : 'Unknown send error',
+      }, req.user!.id);
+      throw err;
+    }
   })
 );
 
@@ -52,17 +65,30 @@ notifyRouter.post(
       await patientService.verifyOwnership(req.body.patientId, req.user!.id);
     }
 
-    const result = await sendSms(req.body);
-    await reminderRepository.create({
+    // Create reminder record FIRST to ensure audit trail even if server crashes after send
+    const reminder = await reminderRepository.create({
       channel: Channel.SMS,
       body: req.body.body,
-      messageId: result.messageSid,
       sendMode: ReminderMode.IMMEDIATE,
       patientId: req.body.patientId,
       sendAt: new Date(),
-      status: ReminderStatus.SENT,
+      status: ReminderStatus.PENDING,
       to: req.body.to,
     }, req.user!.id);
-    ok(res, result, 201);
+
+    try {
+      const result = await sendSms(req.body);
+      await reminderRepository.update(reminder.id, {
+        status: ReminderStatus.SENT,
+        messageId: result.messageSid ?? undefined,
+      }, req.user!.id);
+      ok(res, result, 201);
+    } catch (err) {
+      await reminderRepository.update(reminder.id, {
+        status: ReminderStatus.FAILED,
+        error: err instanceof Error ? err.message : 'Unknown send error',
+      }, req.user!.id);
+      throw err;
+    }
   })
 );

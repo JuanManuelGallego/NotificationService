@@ -2,10 +2,12 @@ import { useAuthContext } from "@/src/app/AuthContext";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
+import { useFocusTrap } from "@/src/hooks/useFocusTrap";
 
 export function LoginModal({ onClose }: { onClose: () => void }) {
     const { login, loading, error } = useAuthContext();
     const router = useRouter();
+    const { ref: trapRef, handleKeyDown: trapKeyDown } = useFocusTrap<HTMLDivElement>();
 
     const [ email, setEmail ] = useState("");
     const [ password, setPassword ] = useState("");
@@ -28,7 +30,7 @@ export function LoginModal({ onClose }: { onClose: () => void }) {
     }, [ onClose ]);
 
     return (
-        <div className="modal-overlay" onClick={onClose} role="dialog" aria-modal="true">
+        <div className="modal-overlay" onClick={onClose} role="dialog" aria-modal="true" aria-label="Iniciar sesión" ref={trapRef} onKeyDown={trapKeyDown}>
             <div
                 className="modal-panel modal-panel--sm fade-in"
                 onClick={(e) => e.stopPropagation()}

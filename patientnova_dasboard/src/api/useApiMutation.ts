@@ -1,10 +1,11 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { ApiResponse } from "../types/API";
 import { fetchWithAuth } from "./fetchWithAuth";
 
 /**
  * Generic hook for data mutations (POST, PATCH, PUT, DELETE).
  * Call `mutate(url, body?)` to execute the request.
+ * Prevents double-submission — concurrent calls while loading are ignored.
  */
 export function useApiMutation<TOutput = void>(
     method: "POST" | "PATCH" | "PUT" | "DELETE",
@@ -12,8 +13,11 @@ export function useApiMutation<TOutput = void>(
 ) {
     const [ loading, setLoading ] = useState(false);
     const [ error, setError ] = useState<string | null>(null);
+    const inflight = useRef(false);
 
     const mutate = useCallback(async (url: string, body?: unknown): Promise<TOutput> => {
+        if (inflight.current) throw new Error("Request already in progress");
+        inflight.current = true;
         setLoading(true);
         setError(null);
         try {
@@ -31,6 +35,7 @@ export function useApiMutation<TOutput = void>(
             setError(msg);
             throw err;
         } finally {
+            inflight.current = false;
             setLoading(false);
         }
     }, [ method, errorMessage ]);

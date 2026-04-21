@@ -1,9 +1,18 @@
 import { Router, type Request, type Response } from 'express';
+import rateLimit from 'express-rate-limit';
 import { getMessageStatus } from './twilio/twilioClient.js';
 import { prisma } from './prisma/prismaClient.js';
 import { apiError, ok } from './utils/apiUtils.js';
 
 export const router = Router();
+
+const messageStatusLimit = rateLimit({
+  windowMs: 60_000,
+  max: 30,
+  standardHeaders: true,
+  legacyHeaders: false,
+  handler: (_req, res) => { apiError(res, 'Too many message status requests — please slow down.', 429); },
+});
 
 /**
  * GET /health
@@ -27,10 +36,10 @@ router.get('/health', async (_req: Request, res: Response) => {
  * GET /messages/:messageSid
  * Fetch live delivery status from Twilio for a sent message.
  */
-router.get('/messages/:messageSid', async (req: Request, res: Response) => {
+router.get('/messages/:messageSid', messageStatusLimit, async (req: Request, res: Response) => {
   const messageSid = typeof req.params.messageSid === 'string' ? req.params.messageSid : undefined;
-  if (!messageSid) {
-    apiError(res, 'Missing messageSid parameter', 400);
+  if (!messageSid || !/^(SM|MM)[0-9a-f]{32}$/i.test(messageSid)) {
+    apiError(res, 'Invalid or missing messageSid parameter', 400);
     return;
   }
 

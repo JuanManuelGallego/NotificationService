@@ -52,7 +52,19 @@ function validateReminder(reminder: Reminder): { isValid: boolean; error?: strin
   return { isValid: true };
 }
 
-type TrackedReminder = { dbId: string; messageSid: string };
+type TrackedReminder = { dbId: string; messageSid: string; trackedSince: number; pollFailures: number };
+
+const MAX_TRACKED_REMINDERS = 500;
+const MAX_TRACK_AGE_MS = 30 * 60 * 1000; // 30 minutes
+const MAX_POLL_FAILURES = 5;
+const MAX_SEND_RETRIES = 3;
+const RETRY_DELAYS_MS = [2 * 60_000, 5 * 60_000, 15 * 60_000]; // 2min, 5min, 15min
+
+/** Extract retry count from error field convention: "[retry N/3] ..." */
+function getRetryCount(error: string | null): number {
+  const match = error?.match(/^\[retry (\d+)\/\d+\]/);
+  return match ? parseInt(match[1]!, 10) : 0;
+}
 
 const twilioToPrismaStatus: Partial<Record<string, ReminderStatus>> = {
   queued: ReminderStatus.QUEUED,
@@ -64,7 +76,16 @@ const twilioToPrismaStatus: Partial<Record<string, ReminderStatus>> = {
 
 export async function reminderWorker(sentReminders: TrackedReminder[]): Promise<TrackedReminder[]> {
   let activeReminders: TrackedReminder[] = [];
+  const now = Date.now();
+
   for (const sent of sentReminders) {
+    // Drop entries that have been tracked too long or failed too many polls
+    if (now - sent.trackedSince > MAX_TRACK_AGE_MS || sent.pollFailures >= MAX_POLL_FAILURES) {
+      logger.warn({ dbId: sent.dbId, messageSid: sent.messageSid, age: now - sent.trackedSince, pollFailures: sent.pollFailures }, "Dropping stale tracked reminder");
+      await prisma.reminder.update({ where: { id: sent.dbId }, data: { status: ReminderStatus.FAILED, error: "Status tracking timed out — message may have been delivered" } }).catch(e => logger.error({ e }, "Failed to mark stale reminder"));
+      continue;
+    }
+
     try {
       const message = await getMessageStatus(sent.messageSid);
       const mappedStatus = twilioToPrismaStatus[ message.status ] ?? ReminderStatus.QUEUED;
@@ -77,6 +98,8 @@ export async function reminderWorker(sentReminders: TrackedReminder[]): Promise<
       }
     } catch (error) {
       logger.error({ sent, error }, "Failed to update reminder status");
+      // Keep tracking but increment failure count instead of silently dropping
+      activeReminders.push({ ...sent, pollFailures: sent.pollFailures + 1 });
     }
   }
 
@@ -134,6 +157,7 @@ export async function reminderWorker(sentReminders: TrackedReminder[]): Promise<
             break;
 
           case Channel.EMAIL:
+            logger.warn({ reminderId: reminder.id }, "EMAIL channel is not yet implemented — marking as failed");
             result = {
               success: false,
               error: "EMAIL channel not yet implemented",
@@ -151,24 +175,47 @@ export async function reminderWorker(sentReminders: TrackedReminder[]): Promise<
 
         if (result.success) {
           logger.info({ reminderId: reminder.id, messageSid: result.messageSid }, "Reminder sent successfully");
-          if (result.messageSid) activeReminders.push({ dbId: reminder.id, messageSid: result.messageSid });
+          if (result.messageSid && activeReminders.length < MAX_TRACKED_REMINDERS) {
+            activeReminders.push({ dbId: reminder.id, messageSid: result.messageSid, trackedSince: Date.now(), pollFailures: 0 });
+          }
           await prisma.reminder.update({
             where: { id: reminder.id },
-            data: { status: ReminderStatus.QUEUED, messageId: result.messageSid ?? "" },
+            data: { status: ReminderStatus.QUEUED, messageId: result.messageSid ?? null },
           });
         } else {
-          logger.error({ reminderId: reminder.id, error: result.error }, "Failed to send reminder");
-          await prisma.reminder.update({
-            where: { id: reminder.id },
-            data: { status: ReminderStatus.FAILED, error: result.error ?? null },
-          });
+          const retryCount = getRetryCount(reminder.error) + 1;
+          if (retryCount <= MAX_SEND_RETRIES) {
+            const delayMs = RETRY_DELAYS_MS[retryCount - 1] ?? RETRY_DELAYS_MS[RETRY_DELAYS_MS.length - 1]!;
+            logger.warn({ reminderId: reminder.id, retryCount, delayMs }, "Retrying failed reminder");
+            await prisma.reminder.update({
+              where: { id: reminder.id },
+              data: { status: ReminderStatus.PENDING, sendAt: new Date(Date.now() + delayMs), error: `[retry ${retryCount}/${MAX_SEND_RETRIES}] ${result.error ?? 'Unknown'}` },
+            });
+          } else {
+            logger.error({ reminderId: reminder.id, error: result.error }, "Reminder permanently failed after retries");
+            await prisma.reminder.update({
+              where: { id: reminder.id },
+              data: { status: ReminderStatus.FAILED, error: result.error ?? null },
+            });
+          }
         }
       } catch (error) {
-        logger.error({ reminderId: reminder.id, error }, "Error processing reminder");
-        await prisma.reminder.update({
-          where: { id: reminder.id },
-          data: { status: ReminderStatus.FAILED, error: error instanceof Error ? error.message : "Unknown error" },
-        });
+        const retryCount = getRetryCount(reminder.error) + 1;
+        const errMsg = error instanceof Error ? error.message : "Unknown error";
+        if (retryCount <= MAX_SEND_RETRIES) {
+          const delayMs = RETRY_DELAYS_MS[retryCount - 1] ?? RETRY_DELAYS_MS[RETRY_DELAYS_MS.length - 1]!;
+          logger.warn({ reminderId: reminder.id, retryCount, delayMs }, "Retrying failed reminder (exception)");
+          await prisma.reminder.update({
+            where: { id: reminder.id },
+            data: { status: ReminderStatus.PENDING, sendAt: new Date(Date.now() + delayMs), error: `[retry ${retryCount}/${MAX_SEND_RETRIES}] ${errMsg}` },
+          });
+        } else {
+          logger.error({ reminderId: reminder.id, error }, "Reminder permanently failed after retries");
+          await prisma.reminder.update({
+            where: { id: reminder.id },
+            data: { status: ReminderStatus.FAILED, error: errMsg },
+          });
+        }
       }
     }
   } catch (error) {
@@ -324,6 +371,7 @@ export async function dailyReminderWorker(): Promise<void> {
             break;
 
           case Channel.EMAIL:
+            logger.warn({ userId: user.id }, "EMAIL channel is not yet implemented for daily reminders");
             result = {
               success: false,
               error: "EMAIL channel not yet implemented",
@@ -357,9 +405,13 @@ export function initializeSchedulers(): void {
   logger.info("Initializing reminder scheduler...");
   let sentReminders: TrackedReminder[] = [];
   schedulerTask = cron.schedule("* * * * *", async () => {
-    sentReminders = await reminderWorker(sentReminders);
-    await appointmentWorker();
-    await dailyReminderWorker();
+    try {
+      sentReminders = await reminderWorker(sentReminders);
+      await appointmentWorker();
+      await dailyReminderWorker();
+    } catch (err) {
+      logger.error({ err }, "Scheduler cycle failed — will retry next minute");
+    }
   });
 
   logger.info("Schedulers initialized - running every minute");

@@ -3,6 +3,7 @@ import { useUpdatePatient } from "@/src/api/useUpdatePatient";
 import { Patient, PatientStatus, PATIENT_STATUS_CONFIG } from "@/src/types/Patient";
 import { validateEmail, validatePhoneNumber } from "@/src/utils/DataValidator";
 import { useState } from "react";
+import { useFocusTrap } from "@/src/hooks/useFocusTrap";
 import { RequiredField } from "../Info/Required";
 import { DateTimePicker } from "../DateTimePicker";
 import { CountryCodeInput } from "../CountryCodeInput";
@@ -21,6 +22,7 @@ export function PatientModal({
   const isEdit = !!patient;
   const { createPatient } = useCreatePatient();
   const { updatePatient } = useUpdatePatient();
+  const { ref: trapRef, handleKeyDown: trapKeyDown } = useFocusTrap<HTMLDivElement>();
   const [ saving, setSaving ] = useState(false);
   const [ error, setError ] = useState<string | null>(null);
   const [ form, setForm ] = useState({
@@ -78,7 +80,7 @@ export function PatientModal({
   }
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
+    <div className="modal-overlay" onClick={onClose} role="dialog" aria-modal="true" aria-label={isEdit ? "Editar Paciente" : "Nuevo Paciente"} ref={trapRef} onKeyDown={trapKeyDown}>
       <div className="modal-panel modal-panel--md" onClick={e => e.stopPropagation()}>
         <div className="modal-header">
           <div>

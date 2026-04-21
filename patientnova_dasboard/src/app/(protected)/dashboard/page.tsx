@@ -21,9 +21,9 @@ import { useAuthContext } from "../../AuthContext";
 import { ReminderModal } from "@/src/components/Modals/ReminderModal";
 
 export default function DashboardPage() {
-  const { stats: patientStats } = useFetchPatientsStats();
-  const { stats: apptStats } = useFetchAppointmentsStats();
-  const { stats: reminderStats } = useFetchRemindersStats();
+  const { stats: patientStats, loading: loadingPatientStats } = useFetchPatientsStats();
+  const { stats: apptStats, loading: loadingApptStats } = useFetchAppointmentsStats();
+  const { stats: reminderStats, loading: loadingReminderStats } = useFetchRemindersStats();
   const { user } = useAuthContext();
 
   const [ showApptModal, setShowApptModal ] = useState(false);
@@ -54,6 +54,7 @@ export default function DashboardPage() {
   }), []);
   const { reminders: activeReminders, loading: loadingReminders } = useFetchReminders(reminderFilters);
 
+  const statsLoading = loadingPatientStats || loadingApptStats || loadingReminderStats;
   const pendingReminders = (reminderStats?.byStatus[ ReminderStatus.PENDING ] ?? 0) + (reminderStats?.byStatus[ ReminderStatus.QUEUED ] ?? 0);
 
   return (
@@ -76,11 +77,22 @@ export default function DashboardPage() {
         </div>
       </div>
       <div className="stats-grid stats-grid--5 fade-in">
-        <StatCard label="Citas Hoy" value={apptStats?.todayCount ?? 0} sub="programadas" accent="var(--c-brand-accent)" />
-        <StatCard label="Pacientes" value={patientStats?.total ?? 0} sub={`${patientStats?.byStatus[ PatientStatus.ACTIVE ] ?? 0} activos`} accent="var(--c-brand)" />
-        <StatCard label="Recordatorios" value={pendingReminders} sub="por enviar" accent="var(--c-link)" />
-        <StatCard label="Sin Pagar" value={apptStats?.unpaidCount ?? 0} sub={`$ ${(apptStats?.unpaidRevenue ?? 0).toLocaleString("es-ES")}`} accent="var(--c-error)" />
-        <StatCard label="Ingresos" value={`$ ${(apptStats?.paidRevenue ?? 0).toLocaleString("es-ES")}`} sub="total cobrado" accent="var(--c-success)" />
+        {statsLoading ? (
+          [1, 2, 3, 4, 5].map(i => (
+            <div key={i} className="stat-card" style={{ minHeight: 90 }}>
+              <div className="dash-skeleton-row"><div className="skeleton-bar" style={{ width: "60%" }} /></div>
+              <div className="dash-skeleton-row"><div className="skeleton-bar" style={{ width: "40%" }} /></div>
+            </div>
+          ))
+        ) : (
+          <>
+            <StatCard label="Citas Hoy" value={apptStats?.todayCount ?? 0} sub="programadas" accent="var(--c-brand-accent)" />
+            <StatCard label="Pacientes" value={patientStats?.total ?? 0} sub={`${patientStats?.byStatus[ PatientStatus.ACTIVE ] ?? 0} activos`} accent="var(--c-brand)" />
+            <StatCard label="Recordatorios" value={pendingReminders} sub="por enviar" accent="var(--c-link)" />
+            <StatCard label="Sin Pagar" value={apptStats?.unpaidCount ?? 0} sub={`$ ${(apptStats?.unpaidRevenue ?? 0).toLocaleString("es-ES")}`} accent="var(--c-error)" />
+            <StatCard label="Ingresos" value={`$ ${(apptStats?.paidRevenue ?? 0).toLocaleString("es-ES")}`} sub="total cobrado" accent="var(--c-success)" />
+          </>
+        )}
       </div>
       <div className="dash-grid fade-in">
         <div className="dash-card">
@@ -98,7 +110,7 @@ export default function DashboardPage() {
               </div>
             ) : todayAppts.length === 0 ? (
               <div className="dash-empty">
-                <span className="dash-empty__icon">🗓️</span>
+                <span className="dash-empty__icon" role="img" aria-label="calendario">🗓️</span>
                 <span className="dash-empty__text">No hay citas para hoy</span>
               </div>
             ) : (
@@ -141,7 +153,7 @@ export default function DashboardPage() {
               </div>
             ) : activeReminders.length === 0 ? (
               <div className="dash-empty">
-                <span className="dash-empty__icon">✅</span>
+                <span className="dash-empty__icon" role="img" aria-label="completado">✅</span>
                 <span className="dash-empty__text">No hay recordatorios pendientes</span>
               </div>
             ) : (
@@ -149,7 +161,7 @@ export default function DashboardPage() {
                 {activeReminders.map(r => (
                   <Link key={r.id} href="/reminders" className="dash-list-item" style={{ textDecoration: "none", color: "inherit" }}>
                     <div className="dash-list-item__left">
-                      <span className="dash-channel-icon">{CHANNEL_CFG[ r.channel ].icon}</span>
+                      <span className="dash-channel-icon" role="img" aria-label={CHANNEL_CFG[ r.channel ].icon}>{CHANNEL_CFG[ r.channel ].icon}</span>
                       <div>
                         <div className="dash-list-item__name">{r.patient?.name ?? "—"} {r.patient?.lastName ?? ""}</div>
                         <div className="dash-list-item__meta">{r.to} · {fmtRelative(r.sendAt)}</div>
@@ -177,7 +189,7 @@ export default function DashboardPage() {
             { href: "/settings", icon: "⚙️", label: "Configuración", desc: "Preferencias", accent: "var(--c-gray-500)" },
           ].map(item => (
             <Link key={item.href} href={item.href} className="dash-nav-card" style={{ textDecoration: "none", borderLeft: `4px solid ${item.accent}` }}>
-              <span className="dash-nav-card__icon">{item.icon}</span>
+              <span className="dash-nav-card__icon" role="img" aria-label={item.label}>{item.icon}</span>
               <div>
                 <div className="dash-nav-card__label">{item.label}</div>
                 <div className="dash-nav-card__desc">{item.desc}</div>

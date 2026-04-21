@@ -117,47 +117,62 @@ export const medicalRecordRepository = {
 
     logger.info({ id, fields: Object.keys(dto) }, 'Updating medical record');
 
-    return prisma.medicalRecord.update({
-      where: { id },
-      data: {
-        ...(dto.name !== undefined && { name: dto.name }),
-        ...(dto.nationalId !== undefined && { nationalId: dto.nationalId }),
-        ...(dto.sex !== undefined && { sex: dto.sex }),
-        ...(dto.age !== undefined && { age: dto.age }),
-        ...(dto.birthDate !== undefined && { birthDate: dto.birthDate }),
-        ...(dto.birthPlace !== undefined && { birthPlace: dto.birthPlace }),
-        ...(dto.consultationReason !== undefined && { consultationReason: dto.consultationReason }),
-        ...(dto.earlyDevelopment !== undefined && { earlyDevelopment: dto.earlyDevelopment }),
-        ...(dto.schoolAndWork !== undefined && { schoolAndWork: dto.schoolAndWork }),
-        ...(dto.lifestyleHabits !== undefined && { lifestyleHabits: dto.lifestyleHabits }),
-        ...(dto.traumaticEvents !== undefined && { traumaticEvents: dto.traumaticEvents }),
-        ...(dto.emotionalConsiderations !== undefined && { emotionalConsiderations: dto.emotionalConsiderations }),
-        ...(dto.physicalConsiderations !== undefined && { physicalConsiderations: dto.physicalConsiderations }),
-        ...(dto.mentalHistory !== undefined && { mentalHistory: dto.mentalHistory }),
-        ...(dto.objective !== undefined && { objective: dto.objective }),
-        ...(dto.familyMembers?.length && {
-          familyMembers: {
-            deleteMany: {},
-            create: dto.familyMembers.map(({ name, sex, age, relationship, relation }) => ({
+    return prisma.$transaction(async (tx) => {
+      // Handle family members: delete removed ones, upsert existing/new
+      if (dto.familyMembers !== undefined) {
+        await tx.familyMember.deleteMany({ where: { medicalRecordId: id } });
+        if (dto.familyMembers.length > 0) {
+          await tx.familyMember.createMany({
+            data: dto.familyMembers.map(({ name, sex, age, relationship, relation }) => ({
+              medicalRecordId: id,
               name: name ?? null,
               age: age ?? null,
               relation: relation ?? null,
               sex: sex ?? null,
               relationship: relationship ?? null,
             })),
-          },
-        }),
-        ...(dto.evolutionNotes?.length && {
-          evolutionNotes: {
-            deleteMany: {},
-            create: dto.evolutionNotes.map(({ date, text }) => ({ date, text: text ?? null })),
-          },
-        }),
-      },
-      include: {
-        familyMembers: true,
-        evolutionNotes: { orderBy: { date: 'desc' } },
-      },
+          });
+        }
+      }
+
+      // Handle evolution notes: delete removed ones, upsert existing/new
+      if (dto.evolutionNotes !== undefined) {
+        await tx.evolutionNote.deleteMany({ where: { medicalRecordId: id } });
+        if (dto.evolutionNotes.length > 0) {
+          await tx.evolutionNote.createMany({
+            data: dto.evolutionNotes.map(({ date, text }) => ({
+              medicalRecordId: id,
+              date,
+              text: text ?? null,
+            })),
+          });
+        }
+      }
+
+      return tx.medicalRecord.update({
+        where: { id },
+        data: {
+          ...(dto.name !== undefined && { name: dto.name }),
+          ...(dto.nationalId !== undefined && { nationalId: dto.nationalId }),
+          ...(dto.sex !== undefined && { sex: dto.sex }),
+          ...(dto.age !== undefined && { age: dto.age }),
+          ...(dto.birthDate !== undefined && { birthDate: dto.birthDate }),
+          ...(dto.birthPlace !== undefined && { birthPlace: dto.birthPlace }),
+          ...(dto.consultationReason !== undefined && { consultationReason: dto.consultationReason }),
+          ...(dto.earlyDevelopment !== undefined && { earlyDevelopment: dto.earlyDevelopment }),
+          ...(dto.schoolAndWork !== undefined && { schoolAndWork: dto.schoolAndWork }),
+          ...(dto.lifestyleHabits !== undefined && { lifestyleHabits: dto.lifestyleHabits }),
+          ...(dto.traumaticEvents !== undefined && { traumaticEvents: dto.traumaticEvents }),
+          ...(dto.emotionalConsiderations !== undefined && { emotionalConsiderations: dto.emotionalConsiderations }),
+          ...(dto.physicalConsiderations !== undefined && { physicalConsiderations: dto.physicalConsiderations }),
+          ...(dto.mentalHistory !== undefined && { mentalHistory: dto.mentalHistory }),
+          ...(dto.objective !== undefined && { objective: dto.objective }),
+        },
+        include: {
+          familyMembers: true,
+          evolutionNotes: { orderBy: { date: 'desc' } },
+        },
+      });
     });
   },
 

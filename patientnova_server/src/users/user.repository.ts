@@ -7,13 +7,13 @@ import { userInclude } from '../utils/types.js';
 
 export const userRepository = {
     async create(dto: CreateUserDto) {
-        const existing = await prisma.user.findUnique({ where: { email: dto.email }, select: { id: true } });
+        const existing = await prisma.user.findUnique({ where: { email: dto.email.toLowerCase() }, select: { id: true } });
         if (existing) throw new UserEmailConflictError(dto.email);
 
         const passwordHash = await bcrypt.hash(dto.password, config.auth.bcryptRounds);
         return prisma.user.create({
             data: {
-                email: dto.email,
+                email: dto.email.toLowerCase(),
                 passwordHash,
                 role: dto.role,
                 status: dto.status,
@@ -26,7 +26,7 @@ export const userRepository = {
                 whatsappNumber: dto.whatsappNumber ?? null,
                 reminderActive: dto.reminderActive ?? false,
                 reminderChannel: dto.reminderChannel ?? null,
-                timezone: dto.timezone ?? 'America/Bogota',
+                timezone: dto.timezone ?? config.defaults.timezone,
             },
             select: userInclude,
         });

@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { useFocusTrap } from "@/src/hooks/useFocusTrap";
 
 interface ConfirmDialogProps {
     icon: string;
@@ -25,8 +26,9 @@ export function ConfirmDialog({
     nested = false,
     onClose, onConfirm,
 }: ConfirmDialogProps) {
+    const { ref: trapRef, handleKeyDown: trapKeyDown } = useFocusTrap<HTMLDivElement>();
     return (
-        <div className={`modal-overlay${nested ? " modal-overlay--nested" : ""}`} onClick={onClose}>
+        <div className={`modal-overlay${nested ? " modal-overlay--nested" : ""}`} onClick={onClose} role="alertdialog" aria-modal="true" aria-label={title} ref={trapRef} onKeyDown={trapKeyDown}>
             <div className="modal-panel modal-panel--sm" onClick={e => e.stopPropagation()}>
                 <div className="modal-confirm">
                     <div className="modal-confirm__icon">{icon}</div>

@@ -13,7 +13,7 @@ async function seedAdmin() {
     return;
   }
 
-  const passwordHash = await bcrypt.hash(password, 12);
+  const passwordHash = await bcrypt.hash(password, config.auth.bcryptRounds);
   await prisma.user.create({
     data: {
       email,

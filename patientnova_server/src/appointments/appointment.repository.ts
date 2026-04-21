@@ -6,10 +6,29 @@ import {
   type ListAppointmentsQuery,
   type AppointmentStatsQuery,
 } from './appointment.schemas.js';
-import { AppointmentPatientNotFoundError, AppointmentReminderNotFoundError, AppointmentNotFoundError } from '../utils/errors.js';
+import { AppointmentPatientNotFoundError, AppointmentReminderNotFoundError, AppointmentNotFoundError, AppointmentConflictError } from '../utils/errors.js';
 import { paginate, type Paginated } from '../utils/pagination.js';
+import { config } from '../utils/config.js';
 import { appointmentInclude, type AppointmentWithRelations, type AppointmentStats } from '../utils/types.js';
 import { getTodayBoundsInTz } from '../utils/timeUtils.js';
+
+const ACTIVE_STATUSES = [AppointmentStatus.SCHEDULED, AppointmentStatus.CONFIRMED];
+
+async function checkConflict(patientId: string, startAt: string | Date, endAt: string | Date, excludeId?: string): Promise<void> {
+  const conflict = await prisma.appointment.findFirst({
+    where: {
+      patientId,
+      status: { in: ACTIVE_STATUSES },
+      ...(excludeId && { NOT: { id: excludeId } }),
+      startAt: { lt: new Date(endAt) },
+      endAt: { gt: new Date(startAt) },
+    },
+    select: { startAt: true, endAt: true },
+  });
+  if (conflict) {
+    throw new AppointmentConflictError(conflict.startAt.toISOString(), conflict.endAt.toISOString());
+  }
+}
 
 export const appointmentRepository = {
   async create(dto: CreateAppointmentDto, userId: string): Promise<AppointmentWithRelations> {
@@ -21,13 +40,15 @@ export const appointmentRepository = {
       if (!reminder) throw new AppointmentReminderNotFoundError(dto.reminderId);
     }
 
+    await checkConflict(dto.patientId, dto.startAt, dto.endAt);
+
     return prisma.appointment.create({
       data: {
         startAt: dto.startAt,
         endAt: dto.endAt,
-        timezone: dto.timezone || 'CST',
+        timezone: dto.timezone || config.defaults.timezone,
         price: dto.price,
-        currency: dto.currency || 'COP',
+        currency: dto.currency || config.defaults.currency,
         paid: dto.paid,
         locationId: dto.locationId,
         meetingUrl: dto.meetingUrl || null,
@@ -107,11 +128,18 @@ export const appointmentRepository = {
   },
 
   async update(id: string, dto: UpdateAppointmentDto, userId: string): Promise<AppointmentWithRelations> {
-    await appointmentRepository.findById(id, userId);
+    const existing = await appointmentRepository.findById(id, userId);
 
     if (dto.reminderId) {
       const reminder = await prisma.reminder.findUnique({ where: { id: dto.reminderId } });
       if (!reminder) throw new AppointmentReminderNotFoundError(dto.reminderId);
+    }
+
+    // Check for conflicts when time changes
+    if (dto.startAt !== undefined || dto.endAt !== undefined) {
+      const newStart = dto.startAt ?? existing.startAt;
+      const newEnd = dto.endAt ?? existing.endAt;
+      await checkConflict(existing.patientId, newStart, newEnd, id);
     }
 
     return prisma.appointment.update({

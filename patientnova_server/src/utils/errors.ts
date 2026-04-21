@@ -111,6 +111,12 @@ export class AppointmentStatusTransitionError extends ApiError {
   }
 }
 
+export class AppointmentConflictError extends ApiError {
+  constructor(startAt: string, endAt: string) {
+    super(`Appointment conflicts with an existing appointment between ${startAt} and ${endAt}`, 409)
+  }
+}
+
 export class ReminderSendAtInPastError extends ApiError {
   constructor() {
     super('Scheduled reminders must have a sendAt time in the future', 422)

@@ -108,7 +108,7 @@ export default function LandingPage() {
           <div className="landing-features-grid">
             {content.features.items.map((f, i) => (
               <div key={i} className="landing-feature-card">
-                <span className="landing-feature-card__icon">{f.icon}</span>
+                <span className="landing-feature-card__icon" role="img" aria-label={f.title}>{f.icon}</span>
                 <h3 className="landing-feature-card__title">{f.title}</h3>
                 <p className="landing-feature-card__desc">{f.desc}</p>
               </div>
@@ -137,7 +137,7 @@ export default function LandingPage() {
           <h2 className="landing-cta-banner__title">¿Listo para optimizar tu práctica clínica?</h2>
           <p className="landing-cta-banner__subtitle">Únete a los profesionales de la salud que confían en Patient Nova.</p>
           <p className="landing-cta-banner__subtitle">
-            Contacta <a href="mailto:juan.gallego.developer@gmail.com" style={{ color: "white" }}> juan.gallego.developer@gmail.com</a> para iniciar tu registro.
+            Contacta <a href={`mailto:${process.env.NEXT_PUBLIC_CONTACT_EMAIL ?? ""}`} style={{ color: "white" }}> {process.env.NEXT_PUBLIC_CONTACT_EMAIL ?? "soporte"}</a> para iniciar tu registro.
           </p>
         </div>
       </section>
