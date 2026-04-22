@@ -17,16 +17,24 @@ export const NAV_ITEMS = [
     { id: "settings", path: "/settings", icon: "⚙️", label: "Configuración" },
 ];
 
-export default function Sidebar() {
+interface SidebarProps {
+    isOpen: boolean;
+    onClose: () => void;
+}
+
+export default function Sidebar({ isOpen, onClose }: SidebarProps) {
     const pathname = usePathname();
     const router = useRouter();
     const { user, logout } = useAuthContext();
 
     return (
-        <aside className="sidebar">
+        <aside
+            className={`sidebar ${isOpen ? "sidebar--open" : ""}`}
+            aria-label="Navegación principal"
+        >
             <div style={{ padding: "28px 24px 24px" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                    <Image src="/favicon.ico" alt="Patient Nova" width={36} height={36} style={{ borderRadius: "var(--r-lg)" }} />
+                    <Image src="/favicon.ico" alt="Patient Nova" width={36} height={36} sizes="36px" style={{ borderRadius: "var(--r-lg)" }} />
                     <div>
                         <div style={{ fontSize: 15, fontWeight: 700, color: "var(--c-white)", letterSpacing: "-0.01em" }}>Patient Nova</div>
                         <div style={{ fontSize: 11, color: "var(--c-brand-sub)", fontWeight: 500 }}>Gestión de pacientes</div>
@@ -38,7 +46,12 @@ export default function Sidebar() {
                 {NAV_ITEMS.map(item => {
                     const isActive = pathname === item.path;
                     return (
-                        <Link key={item.id} href={item.path} style={{ textDecoration: 'none' }}>
+                        <Link
+                            key={item.id}
+                            href={item.path}
+                            style={{ textDecoration: 'none' }}
+                            onClick={onClose}
+                        >
                             <div className={`nav-item ${isActive ? 'active' : ''}`}>
                                 <span>{item.icon}</span>
                                 {item.label}
@@ -58,7 +71,7 @@ export default function Sidebar() {
                         overflow: "hidden",
                     }}>
                         {user?.avatarUrl ?
-                            <Image src={user.avatarUrl} alt={user.displayName} width={36} height={36} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                            <Image src={user.avatarUrl} alt={user.displayName} width={36} height={36} sizes="36px" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                             : user ? (
                                 `${user.firstName[ 0 ]}${user.lastName[ 0 ]}`.toUpperCase()
                             ) : "?"}

@@ -5,20 +5,47 @@
   display: flex;
   min-height: 100vh;
   background: var(--c-page-bg);
+  position: relative;
 }
 
-.page-main {
-  margin-left: var(--sidebar-w);
+/* responsive: content wrapper takes full width; margin adjusts on lg+ */
+.page-content-wrapper {
   flex: 1;
-  padding: 36px 40px;
-  max-width: calc(100% - var(--sidebar-w));
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
 }
 
+/* responsive: mobile-first — no margin; lg+ shifts for fixed sidebar */
+.page-main {
+  flex: 1;
+  padding: 20px 16px;
+}
+
+@media (min-width: 1024px) {
+  .page-content-wrapper {
+    margin-left: var(--sidebar-w);
+  }
+  .page-main {
+    padding: 36px 40px;
+  }
+}
+
+/* responsive: page header stacks on mobile, row on md+ */
 .page-header {
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  margin-bottom: 36px;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+@media (min-width: 768px) {
+  .page-header {
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 36px;
+  }
 }
 
 .page-header__actions {
@@ -27,11 +54,17 @@
 }
 
 .page-title {
-  font-size: 30px;
+  font-size: 24px;
   font-weight: 700;
   color: var(--c-gray-900);
   letter-spacing: -0.02em;
   margin-bottom: 6px;
+}
+
+@media (min-width: 768px) {
+  .page-title {
+    font-size: 30px;
+  }
 }
 
 .page-subtitle {
@@ -40,8 +73,65 @@
 }
 
 /* ================================================================
+   Top Navbar
+   ================================================================ */
+/* responsive: navbar z-index below backdrop so sidebar overlay covers it */
+.top-navbar {
+  position: sticky;
+  top: 0;
+  z-index: calc(var(--z-sidebar) - 2);
+  display: flex;
+  align-items: center;
+  height: var(--navbar-h);
+  padding: 0 16px;
+  background: var(--c-surface);
+  border-bottom: 1px solid var(--c-gray-200);
+}
+
+@media (min-width: 1024px) {
+  .top-navbar {
+    display: none;
+  }
+}
+
+.navbar-hamburger {
+  background: none;
+  border: none;
+  font-size: 22px;
+  cursor: pointer;
+  padding: 6px;
+  color: var(--c-gray-700);
+  line-height: 1;
+  border-radius: var(--r-md);
+  transition: background 0.15s;
+}
+
+.navbar-hamburger:hover {
+  background: var(--c-gray-100);
+}
+
+.navbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: 12px;
+}
+
+.navbar-brand__text {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--c-brand);
+  letter-spacing: -0.01em;
+}
+
+.navbar-spacer {
+  flex: 1;
+}
+
+/* ================================================================
    Sidebar
    ================================================================ */
+/* responsive: hidden off-screen on mobile, slides in when open */
 .sidebar {
   width: var(--sidebar-w);
   background: var(--c-brand);
@@ -49,9 +139,30 @@
   flex-direction: column;
   position: fixed;
   top: 0;
-  left: 0;
   bottom: 0;
   z-index: var(--z-sidebar);
+  transition: transform 0.25s ease;
+  left: 0;
+  transform: translateX(-100%);
+}
+
+.sidebar--open {
+  transform: translateX(0);
+}
+
+@media (min-width: 1024px) {
+  .sidebar {
+    transform: translateX(0);
+  }
+}
+
+/* responsive: semi-transparent backdrop for mobile sidebar overlay */
+.sidebar-backdrop {
+  position: fixed;
+  inset: 0;
+  background: var(--c-backdrop);
+  z-index: calc(var(--z-sidebar) - 1);
+  animation: fadeIn 0.2s ease;
 }
 
 .nav-item {

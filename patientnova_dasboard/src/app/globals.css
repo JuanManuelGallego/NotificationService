@@ -19,13 +19,20 @@
   padding: 24px;
 }
 
+/* responsive: login card padding adjusts on mobile */
 .login-card {
   width: 100%;
   max-width: 420px;
   background: var(--c-surface);
   border-radius: var(--r-4xl);
   box-shadow: var(--shadow-modal);
-  padding: 40px;
+  padding: 28px 24px;
+}
+
+@media (min-width: 640px) {
+  .login-card {
+    padding: 40px;
+  }
 }
 
 .login-card__header {
@@ -515,10 +522,17 @@
   font-size: 13px;
 }
 
+/* responsive: form grid stacks on mobile, 2 cols on md+ */
 .form-grid-2 {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr;
   gap: 14px;
+}
+
+@media (min-width: 768px) {
+  .form-grid-2 {
+    grid-template-columns: 1fr 1fr;
+  }
 }
 
 .form-stack {
@@ -530,15 +544,25 @@
 /* ================================================================
    Filter Bar
    ================================================================ */
+/* responsive: filter bar wraps and stacks on mobile */
 .filter-bar {
   background: var(--c-surface);
   border-radius: var(--r-3xl);
-  padding: 18px 24px;
+  padding: 14px 16px;
   display: flex;
-  align-items: center;
-  gap: 16px;
+  flex-direction: column;
+  gap: 12px;
   margin-bottom: 20px;
   box-shadow: var(--shadow-card);
+}
+
+@media (min-width: 768px) {
+  .filter-bar {
+    flex-direction: row;
+    align-items: center;
+    gap: 16px;
+    padding: 18px 24px;
+  }
 }
 
 .filter-bar--wrap {
@@ -548,6 +572,7 @@
 
 .filter-bar .form-input {
   flex: 1;
+  min-width: 0;
 }
 
 .filter-bar--wrap .form-input {
@@ -573,9 +598,11 @@
   padding: 2px;
 }
 
+/* responsive: filter chips wrap on mobile */
 .filter-chips {
   display: flex;
   gap: 8px;
+  flex-wrap: wrap;
 }
 
 .filter-chips--wrap {
@@ -604,6 +631,7 @@
 /* ================================================================
    Tab Navigation
    ================================================================ */
+/* responsive: tab nav scrolls horizontally on mobile */
 .tab-nav {
   display: flex;
   gap: 3px;
@@ -611,7 +639,15 @@
   border-radius: var(--r-xl);
   padding: 4px;
   width: fit-content;
+  max-width: 100%;
   border: 1px solid var(--c-gray-200);
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.tab-nav::-webkit-scrollbar {
+  display: none;
 }
 
 .tab-nav .filter-chip {
@@ -721,24 +757,53 @@
   z-index: var(--z-modal-nested);
 }
 
+/* responsive: modal panels full-width on mobile, sized on md+ */
 .modal-panel {
   background: var(--c-surface);
   border-radius: var(--r-4xl);
-  padding: 36px;
-  max-width: calc(100vw - 40px);
+  padding: 24px;
+  width: calc(100vw - 32px);
+  max-height: 90dvh;
+  overflow-y: auto;
   box-shadow: var(--shadow-modal);
 }
 
+@media (min-width: 768px) {
+  .modal-panel {
+    padding: 36px;
+    width: auto;
+    max-width: calc(100vw - 40px);
+  }
+}
+
 .modal-panel--sm {
-  width: 440px;
+  width: calc(100vw - 32px);
+}
+
+@media (min-width: 768px) {
+  .modal-panel--sm {
+    width: 440px;
+  }
 }
 
 .modal-panel--md {
-  width: 560px;
+  width: calc(100vw - 32px);
+}
+
+@media (min-width: 768px) {
+  .modal-panel--md {
+    width: 560px;
+  }
 }
 
 .modal-panel--lg {
-  width: 580px;
+  width: calc(100vw - 32px);
+}
+
+@media (min-width: 768px) {
+  .modal-panel--lg {
+    width: 580px;
+  }
 }
 
 .modal-header {
@@ -753,22 +818,37 @@
   margin-bottom: 24px;
 }
 
+/* responsive: modal title scales on mobile */
 .modal-title {
-  font-size: 22px;
+  font-size: 18px;
   font-weight: 700;
   color: var(--c-gray-900);
   margin: 0;
+}
+
+@media (min-width: 768px) {
+  .modal-title {
+    font-size: 22px;
+  }
 }
 
 .modal-title--sm {
   font-size: 20px;
 }
 
+/* responsive: modal footer wraps on mobile */
 .modal-footer {
   display: flex;
-  justify-content: flex-end;
+  flex-direction: column-reverse;
   gap: 10px;
   margin-top: 28px;
+}
+
+@media (min-width: 640px) {
+  .modal-footer {
+    flex-direction: row;
+    justify-content: flex-end;
+  }
 }
 
 .modal-confirm {
@@ -787,9 +867,17 @@
   margin: 0;
 }
 
+/* responsive: confirm action buttons stack on mobile */
 .modal-confirm__actions {
   display: flex;
+  flex-direction: column-reverse;
   gap: 10px;
+}
+
+@media (min-width: 640px) {
+  .modal-confirm__actions {
+    flex-direction: row;
+  }
 }
 
 .modal-footer--stretch {
@@ -813,14 +901,22 @@
   backdrop-filter: blur(3px);
 }
 
+/* responsive: drawer full-width on mobile, capped at 420px on sm+ */
 .drawer-panel {
-  width: 420px;
+  width: 100%;
   background: var(--c-surface);
   height: 100%;
+  max-height: 100dvh;
   overflow-y: auto;
   box-shadow: var(--shadow-drawer);
   display: flex;
   flex-direction: column;
+}
+
+@media (min-width: 640px) {
+  .drawer-panel {
+    width: 420px;
+  }
 }
 
 .drawer-body {
@@ -831,11 +927,24 @@
   flex: 1;
 }
 
+/* responsive: drawer footer wraps buttons on mobile */
 .drawer-footer {
   padding: 16px 24px;
   border-top: 1px solid var(--c-gray-100);
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
+}
+
+.drawer-footer > * {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+@media (min-width: 640px) {
+  .drawer-footer > * {
+    flex: 0 0 auto;
+  }
 }
 
 .drawer-header {
@@ -906,6 +1015,12 @@
 /* ================================================================
    Data Table
    ================================================================ */
+/* responsive: horizontal scroll wrapper for narrow viewports */
+.table-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
 .table-card {
   background: var(--c-surface);
   border-radius: var(--r-3xl);
@@ -940,13 +1055,23 @@ tr:hover td {
   padding: 14px 20px;
 }
 
+/* responsive: table footer wraps on mobile */
 .table-footer {
-  padding: 12px 20px;
+  padding: 12px 16px;
   border-top: 1px solid var(--c-gray-100);
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
+  gap: 10px;
   align-items: center;
   background: var(--c-input-bg);
+}
+
+@media (min-width: 768px) {
+  .table-footer {
+    flex-direction: row;
+    justify-content: space-between;
+    padding: 12px 20px;
+  }
 }
 
 .table-row {
@@ -1082,29 +1207,50 @@ tr:hover td {
 /* ================================================================
    Stat Card
    ================================================================ */
+/* responsive: stat card adjusts padding on mobile */
 .stat-card {
   background: var(--c-surface);
   border-radius: var(--r-3xl);
-  padding: 24px 28px;
+  padding: 18px 20px;
   box-shadow: var(--shadow-card-lg);
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
+}
+
+@media (min-width: 768px) {
+  .stat-card {
+    padding: 24px 28px;
+    gap: 6px;
+  }
 }
 
 .stat-card__label {
-  font-size: 13px;
+  font-size: 12px;
   color: var(--c-gray-500);
   font-weight: 500;
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
 
+@media (min-width: 768px) {
+  .stat-card__label {
+    font-size: 13px;
+  }
+}
+
+/* responsive: stat value scales down on mobile */
 .stat-card__value {
-  font-size: 36px;
+  font-size: 28px;
   font-weight: 700;
   color: var(--c-gray-900);
   line-height: 1;
+}
+
+@media (min-width: 768px) {
+  .stat-card__value {
+    font-size: 36px;
+  }
 }
 
 .stat-card__sub {
@@ -1112,20 +1258,49 @@ tr:hover td {
   color: var(--c-gray-400);
 }
 
-/* ================================================================
-   Stats Grid
-   ================================================================ */
+/* responsive: stats grid — 1 col mobile → 2 cols sm → 4 cols lg */
 .stats-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 20px;
-  margin-bottom: 36px;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  margin-bottom: 24px;
 }
 
+@media (min-width: 640px) {
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .stats-grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+    margin-bottom: 36px;
+  }
+}
+
+/* responsive: 5-col stats variant — 2 cols mobile → 3 cols md → 5 cols lg */
 .stats-grid--5 {
-  grid-template-columns: repeat(5, 1fr);
-  gap: 16px;
-  margin-bottom: 32px;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+@media (min-width: 768px) {
+  .stats-grid--5 {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .stats-grid--5 {
+    grid-template-columns: repeat(5, 1fr);
+    gap: 16px;
+    margin-bottom: 32px;
+  }
 }
 
 /* ================================================================
@@ -1182,10 +1357,13 @@ tr:hover td {
 /* ================================================================
    Pagination
    ================================================================ */
+/* responsive: pagination wraps on narrow screens */
 .pagination {
   display: flex;
   align-items: center;
   gap: 6px;
+  flex-wrap: wrap;
+  justify-content: center;
 }
 
 .pagination-btn {
@@ -1383,11 +1561,13 @@ tr:hover td {
   color: var(--c-gray-900);
 }
 
+/* responsive: calendar headers match grid min-width */
 .cal-day-headers {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   background: var(--c-gray-50);
   border-bottom: 1px solid var(--c-gray-100);
+  min-width: 700px;
 }
 
 .cal-day-header {
@@ -1399,19 +1579,29 @@ tr:hover td {
   letter-spacing: 0.05em;
 }
 
+/* responsive: calendar grid scrolls horizontally on mobile */
 .cal-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
+  min-width: 700px;
 }
 
+/* responsive: calendar cells smaller on mobile */
 .cal-cell {
-  min-height: 140px;
-  padding: 8px 10px;
+  min-height: 100px;
+  padding: 6px 8px;
   border-right: 1px solid var(--c-gray-100);
   border-bottom: 1px solid var(--c-gray-100);
   background: var(--c-white);
   cursor: pointer;
   transition: background 0.1s;
+}
+
+@media (min-width: 768px) {
+  .cal-cell {
+    min-height: 140px;
+    padding: 8px 10px;
+  }
 }
 
 .cal-cell:hover {
@@ -1851,16 +2041,27 @@ tr:hover td {
 /* ================================================================
    Dashboard – Home Page
    ================================================================ */
+/* responsive: dashboard welcome stacks on mobile */
 .dash-welcome {
   background: linear-gradient(135deg, var(--c-brand) 0%, #2d5a8e 100%);
   border-radius: var(--r-3xl);
-  padding: 28px 32px;
-  margin-bottom: 32px;
+  padding: 20px;
+  margin-bottom: 24px;
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 24px;
+  flex-direction: column;
+  gap: 16px;
   box-shadow: 0 4px 20px rgba(30, 58, 95, 0.2);
+}
+
+@media (min-width: 768px) {
+  .dash-welcome {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    padding: 28px 32px;
+    margin-bottom: 32px;
+  }
 }
 
 .dash-welcome__text {
@@ -1887,10 +2088,12 @@ tr:hover td {
   font-weight: 600;
 }
 
+/* responsive: welcome actions wrap on mobile */
 .dash-welcome__actions {
   display: flex;
   gap: 10px;
   flex-shrink: 0;
+  flex-wrap: wrap;
 }
 
 .dash-welcome__actions .btn-secondary {
@@ -1903,12 +2106,20 @@ tr:hover td {
   background: rgba(255, 255, 255, 0.2);
 }
 
-/* Two-column card grid */
+/* responsive: dashboard grid — 1 col mobile → 2 cols lg */
 .dash-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 24px;
-  margin-bottom: 36px;
+  grid-template-columns: 1fr;
+  gap: 20px;
+  margin-bottom: 24px;
+}
+
+@media (min-width: 1024px) {
+  .dash-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-bottom: 36px;
+  }
 }
 
 /* Dashboard card */
@@ -1981,10 +2192,16 @@ tr:hover td {
   background: var(--c-gray-50);
 }
 
+/* responsive: text wrapper truncates on narrow screens */
 .dash-list-item__left {
   display: flex;
   align-items: center;
   gap: 12px;
+  min-width: 0;
+  flex: 1;
+}
+
+.dash-list-item__left > :last-child {
   min-width: 0;
 }
 
@@ -2072,10 +2289,25 @@ tr:hover td {
   letter-spacing: -0.01em;
 }
 
+/* responsive: quick nav grid — 1 col mobile → 2 cols sm → 3 cols lg */
 .dash-nav-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+@media (min-width: 640px) {
+  .dash-nav-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .dash-nav-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
 }
 
 .dash-nav-card {
@@ -2127,14 +2359,21 @@ tr:hover td {
   border-bottom: 1px solid var(--c-gray-200);
 }
 
+/* responsive: landing nav inner padding */
 .landing-nav__inner {
   max-width: 1120px;
   margin: 0 auto;
-  padding: 0 32px;
+  padding: 0 20px;
   height: 64px;
   display: flex;
   align-items: center;
   justify-content: space-between;
+}
+
+@media (min-width: 768px) {
+  .landing-nav__inner {
+    padding: 0 32px;
+  }
 }
 
 .landing-nav__brand {
@@ -2174,18 +2413,31 @@ tr:hover td {
   background: var(--c-gray-200);
 }
 
-/* Container */
+/* responsive: landing container padding */
 .landing-container {
   max-width: 1120px;
   margin: 0 auto;
-  padding: 0 32px;
+  padding: 0 20px;
+}
+
+@media (min-width: 768px) {
+  .landing-container {
+    padding: 0 32px;
+  }
 }
 
 /* Hero */
+/* responsive: landing hero spacing */
 .landing-hero {
   background: linear-gradient(145deg, var(--c-brand) 0%, #0d2240 100%);
-  padding: 108px 0 120px;
+  padding: 64px 0 72px;
   text-align: center;
+}
+
+@media (min-width: 768px) {
+  .landing-hero {
+    padding: 108px 0 120px;
+  }
 }
 
 .landing-hero__badge {
@@ -2202,14 +2454,21 @@ tr:hover td {
   margin-bottom: 32px;
 }
 
+/* responsive: landing hero — smaller text on mobile */
 .landing-hero__title {
-  font-size: 54px;
+  font-size: 32px;
   font-weight: 700;
   color: var(--c-white);
   line-height: 1.12;
   letter-spacing: -0.025em;
   max-width: 740px;
   margin: 0 auto 20px;
+}
+
+@media (min-width: 768px) {
+  .landing-hero__title {
+    font-size: 54px;
+  }
 }
 
 .landing-hero__subtitle {
@@ -2227,10 +2486,16 @@ tr:hover td {
   letter-spacing: -0.01em;
 }
 
-/* Sections */
+/* responsive: landing section padding */
 .landing-section {
-  padding: 96px 0;
+  padding: 56px 0;
   background: var(--c-page-bg);
+}
+
+@media (min-width: 768px) {
+  .landing-section {
+    padding: 96px 0;
+  }
 }
 
 .landing-section--white {
@@ -2242,13 +2507,20 @@ tr:hover td {
   margin-bottom: 60px;
 }
 
+/* responsive: landing section title */
 .landing-section-title {
-  font-size: 36px;
+  font-size: 26px;
   font-weight: 700;
   color: var(--c-gray-900);
   letter-spacing: -0.025em;
   margin-bottom: 14px;
   line-height: 1.2;
+}
+
+@media (min-width: 768px) {
+  .landing-section-title {
+    font-size: 36px;
+  }
 }
 
 .landing-section-subtitle {
@@ -2259,20 +2531,33 @@ tr:hover td {
   line-height: 1.65;
 }
 
-/* Feature cards */
+/* responsive: landing features grid — 1 col mobile → 2 cols md */
 .landing-features-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: 1fr;
   gap: 20px;
 }
 
+@media (min-width: 768px) {
+  .landing-features-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* responsive: landing feature card padding */
 .landing-feature-card {
   background: var(--c-surface);
   border-radius: var(--r-3xl);
-  padding: 36px 32px;
+  padding: 24px 20px;
   box-shadow: var(--shadow-card-lg);
   border: 1px solid var(--c-gray-100);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+@media (min-width: 768px) {
+  .landing-feature-card {
+    padding: 36px 32px;
+  }
 }
 
 .landing-feature-card:hover {
@@ -2300,11 +2585,18 @@ tr:hover td {
   line-height: 1.65;
 }
 
-/* How it works */
+/* responsive: landing steps — 1 col mobile → 3 cols md */
 .landing-steps {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 40px;
+  grid-template-columns: 1fr;
+  gap: 32px;
+}
+
+@media (min-width: 768px) {
+  .landing-steps {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 40px;
+  }
 }
 
 .landing-step {
@@ -2337,20 +2629,33 @@ tr:hover td {
   line-height: 1.65;
 }
 
-/* CTA Banner */
+/* responsive: CTA banner padding */
 .landing-cta-banner {
   background: linear-gradient(145deg, var(--c-brand) 0%, #0d2240 100%);
-  padding: 88px 0;
+  padding: 56px 0;
   text-align: center;
 }
 
+@media (min-width: 768px) {
+  .landing-cta-banner {
+    padding: 88px 0;
+  }
+}
+
+/* responsive: CTA banner title */
 .landing-cta-banner__title {
-  font-size: 38px;
+  font-size: 26px;
   font-weight: 700;
   color: var(--c-white);
   margin-bottom: 14px;
   letter-spacing: -0.025em;
   line-height: 1.2;
+}
+
+@media (min-width: 768px) {
+  .landing-cta-banner__title {
+    font-size: 38px;
+  }
 }
 
 .landing-cta-banner__subtitle {
@@ -2408,58 +2713,6 @@ tr:hover td {
 }
 
 /* Landing login modal override: wider title */
-.landing-modal-title {
-  font-size: 20px;
-  font-weight: 700;
-  color: var(--c-gray-900);
-  letter-spacing: -0.01em;
-}
-
-.landing-modal-subtitle {
-  font-size: 13px;
-  color: var(--c-gray-400);
-  margin-top: 3px;
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-  .landing-hero__title {
-    font-size: 36px;
-  }
-
-  .landing-hero {
-    padding: 72px 0 80px;
-  }
-
-  .landing-features-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .landing-steps {
-    grid-template-columns: 1fr;
-    gap: 32px;
-  }
-
-  .landing-section-title {
-    font-size: 28px;
-  }
-
-  .landing-cta-banner__title {
-    font-size: 28px;
-  }
-
-  .landing-nav__inner {
-    padding: 0 20px;
-  }
-
-  .landing-container {
-    padding: 0 20px;
-  }
-
-  .landing-section {
-    padding: 64px 0;
-  }
-}
 .location-card {
   background: var(--c-surface);
   border-radius: var(--r-3xl);

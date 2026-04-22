@@ -6,6 +6,11 @@ import esEs from 'antd/locale/es_ES';
 dayjs.locale('es');
 import { antThemeConfig } from "@/src/styles/theme";
 
+// responsive: popup uses full viewport width on mobile to prevent clipping
+const mobilePopupStyle: React.CSSProperties = {
+    maxWidth: "100vw",
+};
+
 export function DateTimePicker({
     date,
     onChanged,
@@ -48,6 +53,7 @@ export function DateTimePicker({
                     };
                 } : undefined}
                 style={{ width: "100%" }}
+                popupStyle={mobilePopupStyle}
             />
         </ConfigProvider>
     );

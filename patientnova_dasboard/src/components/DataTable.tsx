@@ -64,28 +64,31 @@ export function DataTable<T,>({
 }: DataTableProps<T>) {
     return (
         <div className="table-card">
-            <table className="table-full">
-                <thead>
-                    <tr style={{ background: "var(--c-gray-50)" }}>
-                        {columns.map(h => (
-                            <th key={h} className="th">{h}</th>
-                        ))}
-                    </tr>
-                </thead>
-                <tbody>
-                    {loading && Array.from({ length: skeletonCount }).map((_, i) => (
-                        <SkeletonRow key={i} />
-                    ))}
-                    {!loading && rows.map((row, i) => renderRow(row, i))}
-                    {!loading && rows.length === 0 && emptyState && (
-                        <tr>
-                            <td colSpan={columns.length} style={{ padding: 56, textAlign: "center" }}>
-                                {emptyState}
-                            </td>
+            {/* responsive: horizontal scroll wrapper for narrow viewports */}
+            <div className="table-scroll">
+                <table className="table-full">
+                    <thead>
+                        <tr style={{ background: "var(--c-gray-50)" }}>
+                            {columns.map(h => (
+                                <th key={h} className="th">{h}</th>
+                            ))}
                         </tr>
-                    )}
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        {loading && Array.from({ length: skeletonCount }).map((_, i) => (
+                            <SkeletonRow key={i} />
+                        ))}
+                        {!loading && rows.map((row, i) => renderRow(row, i))}
+                        {!loading && rows.length === 0 && emptyState && (
+                            <tr>
+                                <td colSpan={columns.length} style={{ padding: 56, textAlign: "center" }}>
+                                    {emptyState}
+                                </td>
+                            </tr>
+                        )}
+                    </tbody>
+                </table>
+            </div>
             {!loading && rows.length > 0 && footer && (
                 <div className="table-footer">
                     {footer}

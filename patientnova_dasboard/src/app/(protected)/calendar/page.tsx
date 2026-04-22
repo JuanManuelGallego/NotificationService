@@ -121,6 +121,8 @@ export default function CalendarPage() {
             <button onClick={nextMonth} className="btn-secondary" style={{ padding: "7px 14px", fontSize: 16 }}>&#8250;</button>
           </div>
 
+          {/* responsive: horizontal scroll wrapper for calendar on narrow viewports */}
+          <div className="table-scroll">
           <div className="cal-day-headers">
             {DAY_NAMES_ES.map(d => (
               <div key={d} className="cal-day-header">{d}</div>
@@ -214,6 +216,7 @@ export default function CalendarPage() {
               })}
             </div>
           )}
+          </div>{/* end table-scroll */}
         </div>
       </PageLayout>
       {selectedDay && (
