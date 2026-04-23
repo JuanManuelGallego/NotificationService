@@ -14,7 +14,7 @@ function makeValidator<T extends z.ZodTypeAny>(
   const result = schema.safeParse(req[ target ]);
 
   if (!result.success) {
-    const errors = result.error.errors.map(
+    const errors = result.error.issues.map(
       (e) => `${e.path.join('.') || target}: ${e.message}`
     );
     apiError(res, errors.join('; '), 400);

@@ -7,9 +7,9 @@ export const createPatientSchema = z.object({
   lastName: z.string().min(1, 'lastName is required').max(100),
   whatsappNumber: e164OrEmpty,
   smsNumber: e164OrEmpty,
-  email: z.string().email('Must be a valid email address').nullish(),
+  email: z.email('Must be a valid email address').nullish(),
   notes: z.string().max(500).nullish(),
-  status: z.nativeEnum(PatientStatus).default(PatientStatus.ACTIVE),
+  status: z.enum(PatientStatus).default(PatientStatus.ACTIVE),
 });
 
 export const updatePatientSchema = z.object({
@@ -17,9 +17,9 @@ export const updatePatientSchema = z.object({
   lastName: z.string().min(1).max(100).optional(),
   whatsappNumber: e164OrEmpty,
   smsNumber: e164OrEmpty,
-  email: z.string().email('Must be a valid email address').nullish(),
+  email: z.email('Must be a valid email address').nullish(),
   notes: z.string().max(500).nullish(),
-  status: z.nativeEnum(PatientStatus).optional(),
+  status: z.enum(PatientStatus).optional(),
 }).refine(
   (data) => Object.keys(data).length > 0,
   { message: 'At least one field must be provided for update' }
@@ -27,15 +27,15 @@ export const updatePatientSchema = z.object({
 
 export const listPatientsSchema = z.object({
   status: z.union([
-    z.nativeEnum(PatientStatus),
-    z.array(z.nativeEnum(PatientStatus))
+    z.enum(PatientStatus),
+    z.array(z.enum(PatientStatus))
   ]).optional(),
   search: z.string().trim().max(100).optional().transform(v => v === "" ? undefined : v), page: z.coerce.number().int().positive().default(1),
   pageSize: z.coerce.number().int().min(1).max(100).default(20),
   orderBy: z.enum([ 'name', 'lastName', 'email', 'createdAt', 'updatedAt' ]).default('createdAt'),
   order: z.enum([ 'asc', 'desc' ]).default('desc'),
-  from: z.string().datetime().optional(),
-  to: z.string().datetime().optional(),
+  from: z.iso.datetime().optional(),
+  to: z.iso.datetime().optional(),
 });
 
 export type CreatePatientDto = z.infer<typeof createPatientSchema>;

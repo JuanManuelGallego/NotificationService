@@ -17,16 +17,16 @@ const contentVariablesSchema = z
 
 export const createReminderSchema = z
   .object({
-    channel: z.nativeEnum(Channel),
+    channel: z.enum(Channel),
     to: e164,
-    sendMode: z.nativeEnum(ReminderMode),
+    sendMode: z.enum(ReminderMode),
     contentSid: z.string().optional(),
     contentVariables: contentVariablesSchema,
     sendAt: futureDate,
-    status: z.nativeEnum(ReminderStatus).optional().default(ReminderStatus.PENDING),
+    status: z.enum(ReminderStatus).optional().default(ReminderStatus.PENDING),
     messageId: z.string().optional(),
-    patientId: z.string().uuid(),
-    appointmentId: z.string().uuid().optional(),
+    patientId: z.uuid(),
+    appointmentId: z.uuid().optional(),
     body: z.string().max(500).optional(),
   })
   .refine(
@@ -36,12 +36,12 @@ export const createReminderSchema = z
 
 export const updateReminderSchema = z
   .object({
-    channel: z.nativeEnum(Channel).optional(),
+    channel: z.enum(Channel).optional(),
     contentVariables: contentVariablesSchema,
     contentSid: z.string().nullish().optional(),
-    status: z.nativeEnum(ReminderStatus).optional(),
+    status: z.enum(ReminderStatus).optional(),
     error: z.string().max(1000).optional(),
-    sendMode: z.nativeEnum(ReminderMode).optional(),
+    sendMode: z.enum(ReminderMode).optional(),
     sendAt: futureDate.optional(),
     messageId: z.string().optional(),
     body: z.string().max(500).optional(),
@@ -53,13 +53,13 @@ export const updateReminderSchema = z
 
 export const listRemindersSchema = z.object({
   status: z.union([
-    z.nativeEnum(ReminderStatus),
-    z.array(z.nativeEnum(ReminderStatus))
+    z.enum(ReminderStatus),
+    z.array(z.enum(ReminderStatus))
   ]).optional(),
   search: z.string().optional(),
-  patientId: z.string().uuid().optional(),
-  dateFrom: z.string().datetime().optional(),
-  dateTo: z.string().datetime().optional(),
+  patientId: z.uuid().optional(),
+  dateFrom: z.iso.datetime().optional(),
+  dateTo: z.iso.datetime().optional(),
   page: z.coerce.number().int().min(1).default(1),
   pageSize: z.coerce.number().int().min(1).max(100).default(20),
   orderBy: z.enum([ 'sendAt', 'createdAt', 'status', 'updatedAt' ]).default('sendAt'),
@@ -67,12 +67,12 @@ export const listRemindersSchema = z.object({
 });
 
 export const reminderStatsSchema = z.object({
-  patientId: z.string().uuid().optional(),
-  dateFrom: z.string().datetime().optional(),
-  dateTo: z.string().datetime().optional(),
+  patientId: z.uuid().optional(),
+  dateFrom: z.iso.datetime().optional(),
+  dateTo: z.iso.datetime().optional(),
 });
 
-export type CreateReminderDto= z.infer<typeof createReminderSchema>;
+export type CreateReminderDto = z.infer<typeof createReminderSchema>;
 export type UpdateReminderDto = z.infer<typeof updateReminderSchema>;
 export type ListRemindersQuery = z.infer<typeof listRemindersSchema>;
 export type ReminderStatsQuery = z.infer<typeof reminderStatsSchema>;

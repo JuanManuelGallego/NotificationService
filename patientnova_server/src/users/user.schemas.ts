@@ -20,7 +20,7 @@ export const updateUserSchema = z.object({
     phoneNumber: e164OrEmpty,
     whatsappNumber: e164OrEmpty,
     reminderActive: z.boolean().optional(),
-    reminderChannel: z.nativeEnum(Channel).optional(),
+    reminderChannel: z.enum(Channel).optional(),
     timezone: z.string().max(50).optional().refine(
         tz => !tz || isValidIANATimezone(tz),
         { message: 'Invalid IANA timezone identifier' }
@@ -29,8 +29,8 @@ export const updateUserSchema = z.object({
 
 export const superAdminUpdateUserSchema = z.object({
     email: z.string().email().optional(),
-    role: z.nativeEnum(AdminRole).optional(),
-    status: z.nativeEnum(AdminStatus).optional(),
+    role: z.enum(AdminRole).optional(),
+    status: z.enum(AdminStatus).optional(),
     firstName: z.string().min(1).max(100).optional(),
     lastName: z.string().min(1).max(100).optional(),
     displayName: z.string().min(1).max(100).optional(),
@@ -39,7 +39,7 @@ export const superAdminUpdateUserSchema = z.object({
     phoneNumber: e164OrEmpty,
     whatsappNumber: e164OrEmpty,
     reminderActive: z.boolean().optional(),
-    reminderChannel: z.nativeEnum(Channel).optional(),
+    reminderChannel: z.enum(Channel).optional(),
     timezone: z.string().max(50).optional().refine(
         tz => !tz || isValidIANATimezone(tz),
         { message: 'Invalid IANA timezone identifier' }
@@ -52,10 +52,10 @@ export const changePasswordSchema = z.object({
 });
 
 export const createUserSchema = z.object({
-    email: z.string().email(),
+    email: z.email(),
     password: strongPassword,
-    role: z.nativeEnum(AdminRole),
-    status: z.nativeEnum(AdminStatus),
+    role: z.enum(AdminRole),
+    status: z.enum(AdminStatus),
     firstName: z.string().min(1).max(100),
     lastName: z.string().min(1).max(100),
     displayName: z.string().min(1).max(100).optional(),
@@ -64,7 +64,7 @@ export const createUserSchema = z.object({
     phoneNumber: e164OrEmpty,
     whatsappNumber: e164OrEmpty,
     reminderActive: z.boolean().optional(),
-    reminderChannel: z.nativeEnum(Channel).optional(),
+    reminderChannel: z.enum(Channel).optional(),
     timezone: z.string().max(50).optional().refine(
         tz => !tz || isValidIANATimezone(tz),
         { message: 'Invalid IANA timezone identifier' }

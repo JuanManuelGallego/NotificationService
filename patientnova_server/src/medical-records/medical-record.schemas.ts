@@ -3,14 +3,14 @@ import { z } from 'zod';
 
 const familyMemberSchema = z.object({
   name: z.string().optional(),
-  sex: z.nativeEnum(Sex).optional().catch(() => undefined),
+  sex: z.enum(Sex).optional().catch(() => undefined),
   age: z.string().optional(),
-  relationship: z.nativeEnum(Relationship).optional(),
+  relationship: z.enum(Relationship).optional(),
   relation: z.string().optional(),
 });
 
 const evolutionNoteSchema = z.object({
-  date: z.string().datetime().catch(() => new Date().toISOString()).default(() => new Date().toISOString()),
+  date: z.iso.datetime().catch(() => new Date().toISOString()).default(() => new Date().toISOString()),
   text: z.string().optional(),
 });
 
@@ -18,9 +18,9 @@ const medicalRecordBaseSchema = z.object({
   // Personal data
   name: z.string().optional(),
   nationalId: z.string().optional(),
-  sex: z.nativeEnum(Sex).optional().catch(() => undefined),
+  sex: z.enum(Sex).optional().catch(() => undefined),
   age: z.string().optional(),
-  birthDate: z.string().datetime().optional().catch(() => undefined),
+  birthDate: z.iso.datetime().optional().catch(() => undefined),
   birthPlace: z.string().optional(),
 
   // Clinical history
@@ -40,7 +40,7 @@ const medicalRecordBaseSchema = z.object({
 });
 
 export const createMedicalRecordSchema = medicalRecordBaseSchema.extend({
-  patientId: z.string().uuid('patientId must be a valid UUID'),
+  patientId: z.uuid('patientId must be a valid UUID'),
 });
 
 export const updateMedicalRecordSchema = medicalRecordBaseSchema
@@ -50,7 +50,7 @@ export const updateMedicalRecordSchema = medicalRecordBaseSchema
   });
 
 export const listMedicalRecordsSchema = z.object({
-  patientId: z.string().uuid().optional(),
+  patientId: z.uuid().optional(),
   search: z.string().trim().max(200).optional().transform((v) => v === '' ? undefined : v),
   page: z.coerce.number().int().positive().default(1),
   pageSize: z.coerce.number().int().min(1).max(100).default(20),
@@ -58,7 +58,7 @@ export const listMedicalRecordsSchema = z.object({
   order: z.enum([ 'asc', 'desc' ]).default('desc'),
 });
 
-export type CreateMedicalRecordDto= z.infer<typeof createMedicalRecordSchema>;
+export type CreateMedicalRecordDto = z.infer<typeof createMedicalRecordSchema>;
 export type UpdateMedicalRecordDto = z.infer<typeof updateMedicalRecordSchema>;
 export type ListMedicalRecordsQuery = z.infer<typeof listMedicalRecordsSchema>;
 export type FamilyMemberDto = z.infer<typeof familyMemberSchema>;

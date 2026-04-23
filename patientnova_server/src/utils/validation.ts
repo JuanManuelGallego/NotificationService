@@ -15,13 +15,13 @@ export const sendWhatsAppSchema = z
   .object({
     to: e164,
     contentSid: z.string().startsWith('HX'),
-    contentVariables: z.record(z.string())
+    contentVariables: z.record(z.string(), z.string())
       .refine(
         (obj) => Object.keys(obj).length <= 10 && JSON.stringify(obj).length <= 1000,
-        'Content variables too large (max 10 keys, 1000 characters total)'
+        { error: 'Content variables too large (max 10 keys, 1000 characters total)' }
       )
       .optional(),
-    patientId: z.string().uuid().optional(),
+    patientId: z.uuid().optional(),
   });
 
 export const sendSmsSchema = z.object({
@@ -30,7 +30,7 @@ export const sendSmsSchema = z.object({
 });
 
 export const scheduleSchema = z.object({
-  channel: z.nativeEnum(Channel),
+  channel: z.enum(Channel),
   payload: z.union([ sendWhatsAppSchema, sendSmsSchema ]),
   sentAt: futureIso,
 });
