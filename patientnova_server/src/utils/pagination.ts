@@ -1,5 +1,5 @@
 import { prisma } from '../prisma/prismaClient.js';
-import type { Prisma } from '@prisma/client';
+import type { Prisma } from '../../generated/prisma/client.ts';
 
 export interface Paginated<T> {
   data: T[];
@@ -24,6 +24,6 @@ export async function paginate<T>(
   page: number,
   pageSize: number,
 ): Promise<Paginated<T>> {
-  const [data, total] = await prisma.$transaction([dataQuery, countQuery]);
+  const [ data, total ] = await prisma.$transaction([ dataQuery, countQuery ]);
   return buildPaginatedResult(data, total, page, pageSize);
 }

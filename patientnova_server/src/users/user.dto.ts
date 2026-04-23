@@ -1,4 +1,4 @@
-import type { Prisma } from '@prisma/client';
+import type { Prisma } from '../../generated/prisma/client.ts';
 import { userInclude } from '../utils/types.js';
 
 /**
@@ -15,7 +15,7 @@ export type UserResponse = Prisma.UserGetPayload<{ select: typeof userInclude }>
  * Useful in auth handlers that already hold the full user record in memory and want to
  * avoid a second `SELECT` with a `select` clause.
  */
-export function toUserResponse(user: Parameters<typeof _extractFields>[0]): UserResponse {
+export function toUserResponse(user: Parameters<typeof _extractFields>[ 0 ]): UserResponse {
   return _extractFields(user);
 }
 
@@ -46,12 +46,12 @@ function _extractFields(user: {
     displayName: user.displayName,
     avatarUrl: user.avatarUrl,
     jobTitle: user.jobTitle,
-    role: user.role as UserResponse['role'],
-    status: user.status as UserResponse['status'],
+    role: user.role as UserResponse[ 'role' ],
+    status: user.status as UserResponse[ 'status' ],
     timezone: user.timezone,
     lastLoginAt: user.lastLoginAt,
     reminderActive: user.reminderActive,
-    reminderChannel: user.reminderChannel as UserResponse['reminderChannel'],
+    reminderChannel: user.reminderChannel as UserResponse[ 'reminderChannel' ],
     phoneNumber: user.phoneNumber,
     whatsappNumber: user.whatsappNumber,
     createdAt: user.createdAt,

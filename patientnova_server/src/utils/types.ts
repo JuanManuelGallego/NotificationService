@@ -1,5 +1,4 @@
-import type { Patient, Prisma, Reminder } from "@prisma/client";
-import { type Channel } from "@prisma/client";
+import type { Patient, Prisma, Channel } from '../../generated/prisma/client.ts';
 import z from "zod";
 
 export interface SendWhatsAppRequest {
@@ -125,11 +124,11 @@ export const e164OrEmpty = z
   .nullish()
   .or(z.literal(''));
 
-  
- export const strongPassword = z
-      .string()
-      .min(8, 'At least 8 characters')
-      .refine(p => /[A-Z]/.test(p), 'At least one uppercase letter')
-      .refine(p => /[a-z]/.test(p), 'At least one lowercase letter')
-      .refine(p => /[0-9]/.test(p), 'At least one number')
-      .refine(p => /[!@#$%^&*(),.?":{}|<>]/.test(p), 'At least one special character');
+
+export const strongPassword = z
+  .string()
+  .min(8, 'At least 8 characters')
+  .refine(p => /[A-Z]/.test(p), 'At least one uppercase letter')
+  .refine(p => /[a-z]/.test(p), 'At least one lowercase letter')
+  .refine(p => /[0-9]/.test(p), 'At least one number')
+  .refine(p => /[!@#$%^&*(),.?":{}|<>]/.test(p), 'At least one special character');

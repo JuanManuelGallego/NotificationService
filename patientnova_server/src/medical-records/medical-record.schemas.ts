@@ -1,4 +1,4 @@
-import { Relationship, Sex } from '@prisma/client';
+import { Relationship, Sex } from '../../generated/prisma/client.ts';
 import { z } from 'zod';
 
 const familyMemberSchema = z.object({

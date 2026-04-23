@@ -1,8 +1,8 @@
 import { prisma } from '../prisma/prismaClient.js';
-import { type Prisma } from '@prisma/client';
+import { type Prisma } from '../../generated/prisma/client.ts';
 import { PatientNotFoundError, MedicalRecordNotFoundError, MedicalRecordAlreadyExistsError } from '../utils/errors.js';
 import { logger } from '../utils/logger.js';
-import { paginate, type Paginated } from '../utils/pagination.js';
+import { paginate } from '../utils/pagination.js';
 import type { CreateMedicalRecordDto, ListMedicalRecordsQuery, UpdateMedicalRecordDto } from './medical-record.schemas.js';
 
 export const medicalRecordRepository = {
@@ -100,7 +100,7 @@ export const medicalRecordRepository = {
         where,
         skip,
         take: pageSize,
-        orderBy: { [orderBy]: order },
+        orderBy: { [ orderBy ]: order },
         include: {
           familyMembers: true,
           evolutionNotes: { orderBy: { date: 'desc' } },

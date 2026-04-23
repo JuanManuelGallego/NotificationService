@@ -1,7 +1,7 @@
-import type { AppointmentType } from '@prisma/client';
 import { prisma } from '../prisma/prismaClient.js';
 import type { CreateAppointmentTypeDto, UpdateAppointmentTypeDto } from './appointment-type.schemas.js';
 import { AppointmentTypeNotFoundError, AppointmentTypeNameConflictError } from '../utils/errors.js';
+import { type AppointmentType } from '../../generated/prisma/client.ts';
 
 export const appointmentTypeRepository = {
   async create(dto: CreateAppointmentTypeDto, userId: string): Promise<AppointmentType> {

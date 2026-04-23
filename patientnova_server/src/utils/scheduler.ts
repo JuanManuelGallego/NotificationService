@@ -1,5 +1,5 @@
 import cron from "node-cron";
-import { ReminderStatus, Channel, type Reminder, AppointmentStatus, type Appointment } from "@prisma/client";
+import { ReminderStatus, Channel, type Reminder, AppointmentStatus, type Appointment } from '../../generated/prisma/client.ts';
 import { prisma } from "../prisma/prismaClient.js";
 import { logger } from "./logger.js";
 import { getMessageStatus, sendSms, sendWhatsApp } from "../twilio/twilioClient.js";
@@ -58,12 +58,12 @@ const MAX_TRACKED_REMINDERS = 500;
 const MAX_TRACK_AGE_MS = 30 * 60 * 1000; // 30 minutes
 const MAX_POLL_FAILURES = 5;
 const MAX_SEND_RETRIES = 3;
-const RETRY_DELAYS_MS = [2 * 60_000, 5 * 60_000, 15 * 60_000]; // 2min, 5min, 15min
+const RETRY_DELAYS_MS = [ 2 * 60_000, 5 * 60_000, 15 * 60_000 ]; // 2min, 5min, 15min
 
 /** Extract retry count from error field convention: "[retry N/3] ..." */
 function getRetryCount(error: string | null): number {
   const match = error?.match(/^\[retry (\d+)\/\d+\]/);
-  return match ? parseInt(match[1]!, 10) : 0;
+  return match ? parseInt(match[ 1 ]!, 10) : 0;
 }
 
 const twilioToPrismaStatus: Partial<Record<string, ReminderStatus>> = {
@@ -185,7 +185,7 @@ export async function reminderWorker(sentReminders: TrackedReminder[]): Promise<
         } else {
           const retryCount = getRetryCount(reminder.error) + 1;
           if (retryCount <= MAX_SEND_RETRIES) {
-            const delayMs = RETRY_DELAYS_MS[retryCount - 1] ?? RETRY_DELAYS_MS[RETRY_DELAYS_MS.length - 1]!;
+            const delayMs = RETRY_DELAYS_MS[ retryCount - 1 ] ?? RETRY_DELAYS_MS[ RETRY_DELAYS_MS.length - 1 ]!;
             logger.warn({ reminderId: reminder.id, retryCount, delayMs }, "Retrying failed reminder");
             await prisma.reminder.update({
               where: { id: reminder.id },
@@ -203,7 +203,7 @@ export async function reminderWorker(sentReminders: TrackedReminder[]): Promise<
         const retryCount = getRetryCount(reminder.error) + 1;
         const errMsg = error instanceof Error ? error.message : "Unknown error";
         if (retryCount <= MAX_SEND_RETRIES) {
-          const delayMs = RETRY_DELAYS_MS[retryCount - 1] ?? RETRY_DELAYS_MS[RETRY_DELAYS_MS.length - 1]!;
+          const delayMs = RETRY_DELAYS_MS[ retryCount - 1 ] ?? RETRY_DELAYS_MS[ RETRY_DELAYS_MS.length - 1 ]!;
           logger.warn({ reminderId: reminder.id, retryCount, delayMs }, "Retrying failed reminder (exception)");
           await prisma.reminder.update({
             where: { id: reminder.id },

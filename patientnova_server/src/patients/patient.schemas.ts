@@ -1,4 +1,4 @@
-import { PatientStatus } from '@prisma/client';
+import { PatientStatus } from '../../generated/prisma/client.ts';
 import { z } from 'zod';
 import { e164OrEmpty } from '../utils/types.js';
 

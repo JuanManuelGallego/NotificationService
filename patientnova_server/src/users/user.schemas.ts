@@ -1,4 +1,4 @@
-import { AdminRole, AdminStatus, Channel } from '@prisma/client';
+import { AdminRole, AdminStatus, Channel } from '../../generated/prisma/client.ts';
 import { z } from 'zod';
 import { e164OrEmpty, strongPassword } from '../utils/types.js';
 

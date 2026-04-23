@@ -1,4 +1,4 @@
-import type { AppointmentLocation } from '@prisma/client';
+import type { AppointmentLocation } from '../../generated/prisma/client.ts';
 import { prisma } from '../prisma/prismaClient.js';
 import type { CreateLocationDto, UpdateLocationDto } from './location.schemas.js';
 import { LocationNotFoundError, LocationNameConflictError } from '../utils/errors.js';

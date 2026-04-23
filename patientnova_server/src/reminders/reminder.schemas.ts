@@ -1,6 +1,5 @@
 import { z } from 'zod';
-import { Channel } from '@prisma/client';
-import { ReminderMode, ReminderStatus } from '@prisma/client';
+import { Channel, ReminderMode, ReminderStatus } from '../../generated/prisma/client.ts';
 
 // this will break with emails
 const e164 = z

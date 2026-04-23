@@ -1,5 +1,5 @@
 import { Router, type Request, type Response } from 'express';
-import { AppointmentStatus, ReminderStatus, Channel } from '@prisma/client';
+import { AppointmentStatus, ReminderStatus, Channel } from '../../generated/prisma/client.ts';
 import { twilioWebhookAuth } from '../middlewares/twilioWebhookAuth.js';
 import { sendWhatsAppFreeForm } from './twilioClient.js';
 import { prisma } from '../prisma/prismaClient.js';

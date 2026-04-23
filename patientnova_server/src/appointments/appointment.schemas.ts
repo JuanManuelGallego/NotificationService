@@ -1,4 +1,4 @@
-import { AppointmentStatus } from '@prisma/client';
+import { AppointmentStatus } from '../../generated/prisma/client.ts';
 import { z } from 'zod';
 
 function isValidIANATimezone(tz: string): boolean {

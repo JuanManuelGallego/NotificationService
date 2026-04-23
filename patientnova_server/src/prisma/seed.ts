@@ -7,7 +7,7 @@ import {
     AppointmentStatus,
     AdminRole,
     AdminStatus,
-} from '@prisma/client';
+} from '../../generated/prisma/client.ts';
 
 async function seed() {
     console.log('🌱 Seeding database...');

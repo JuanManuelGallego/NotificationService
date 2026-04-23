@@ -1,7 +1,7 @@
 import bcrypt from 'bcrypt';
 import { prisma } from './prismaClient.js';
 import { config } from '../utils/config.js';
-import { AdminRole, AdminStatus } from '@prisma/client';
+import { AdminRole, AdminStatus } from '../../generated/prisma/client.ts';
 
 async function seedAdmin() {
   const email = config.admin.email;

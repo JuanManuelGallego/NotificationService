@@ -1,4 +1,4 @@
-import { AppointmentStatus, Prisma, type Appointment } from '@prisma/client';
+import { AppointmentStatus, Prisma, type Appointment } from '../../generated/prisma/client.ts';
 import { prisma } from '../prisma/prismaClient.js';
 import {
   type CreateAppointmentDto,
@@ -12,7 +12,7 @@ import { config } from '../utils/config.js';
 import { appointmentInclude, type AppointmentWithRelations, type AppointmentStats } from '../utils/types.js';
 import { getTodayBoundsInTz } from '../utils/timeUtils.js';
 
-const ACTIVE_STATUSES = [AppointmentStatus.SCHEDULED, AppointmentStatus.CONFIRMED];
+const ACTIVE_STATUSES = [ AppointmentStatus.SCHEDULED, AppointmentStatus.CONFIRMED ];
 
 async function checkConflict(patientId: string, startAt: string | Date, endAt: string | Date, excludeId?: string): Promise<void> {
   const conflict = await prisma.appointment.findFirst({
@@ -118,7 +118,7 @@ export const appointmentRepository = {
         where,
         skip,
         take: pageSize,
-        orderBy: { [orderBy]: order },
+        orderBy: { [ orderBy ]: order },
         include: appointmentInclude,
       }),
       prisma.appointment.count({ where }),

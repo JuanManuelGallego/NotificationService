@@ -1,4 +1,4 @@
-import { PatientStatus, type Patient, type Prisma } from '@prisma/client';
+import { PatientStatus, type Patient, type Prisma } from '../../generated/prisma/client.ts';
 import { prisma } from '../prisma/prismaClient.js';
 import { PatientEmailConflictError, PatientNotFoundError } from '../utils/errors.js';
 import { paginate, type Paginated } from '../utils/pagination.js';
@@ -94,7 +94,7 @@ export const patientRepository = {
         where,
         skip,
         take: pageSize,
-        orderBy: { [orderBy]: order },
+        orderBy: { [ orderBy ]: order },
         include: {
           appointments: true, reminders: true,
           medicalRecord: { select: { id: true } },

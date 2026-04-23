@@ -1,4 +1,4 @@
-import { Prisma, ReminderStatus, type Reminder, type Channel } from '@prisma/client';
+import { Prisma, ReminderStatus, type Reminder, type Channel } from '../../generated/prisma/client.ts';
 import { prisma } from '../prisma/prismaClient.js';
 import type { CreateReminderDto, UpdateReminderDto, ListRemindersQuery, ReminderStatsQuery } from './reminder.schemas.js';
 import { PatientNotFoundError, ReminderNotFoundError } from '../utils/errors.js';
@@ -71,7 +71,7 @@ export const reminderRepository = {
     };
 
     return paginate(
-      prisma.reminder.findMany({ where, skip, take: pageSize, orderBy: { [orderBy]: order }, include: reminderInclude }),
+      prisma.reminder.findMany({ where, skip, take: pageSize, orderBy: { [ orderBy ]: order }, include: reminderInclude }),
       prisma.reminder.count({ where }),
       page,
       pageSize,

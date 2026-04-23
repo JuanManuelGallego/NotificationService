@@ -1,4 +1,4 @@
-import { ReminderMode } from '@prisma/client';
+import { ReminderMode } from '../../generated/prisma/client.ts';
 import { reminderRepository } from './reminder.repository.js';
 import { ReminderNotCancellableError, ReminderSendAtInPastError } from '../utils/errors.js';
 
@@ -9,7 +9,7 @@ export const reminderService = {
   delete: reminderRepository.delete.bind(reminderRepository),
   getStats: reminderRepository.getStats.bind(reminderRepository),
 
-  async create(dto: Parameters<typeof reminderRepository.create>[0], userId: string) {
+  async create(dto: Parameters<typeof reminderRepository.create>[ 0 ], userId: string) {
     if (dto.sendMode === ReminderMode.SCHEDULED && dto.sendAt && new Date(dto.sendAt) <= new Date()) {
       throw new ReminderSendAtInPastError();
     }

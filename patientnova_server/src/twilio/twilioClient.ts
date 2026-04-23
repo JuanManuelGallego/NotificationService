@@ -1,7 +1,7 @@
 import twilio, { type Twilio } from 'twilio';
 import { config } from '../utils/config.js';
 import { logger } from '../utils/logger.js';
-import { Channel } from '@prisma/client';
+import { Channel } from '../../generated/prisma/client.ts';
 import { type SendWhatsAppRequest, type NotificationResult, type SendSmsRequest, type ScheduleRequest } from '../utils/types.js';
 import { validateE164 } from './twilioValidator.js';
 

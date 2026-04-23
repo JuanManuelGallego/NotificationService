@@ -1,4 +1,4 @@
-import { AppointmentStatus } from '@prisma/client';
+import { AppointmentStatus } from '../../generated/prisma/client.ts';
 import { appointmentRepository } from './appointment.repository.js';
 import { AppointmentStatusTransitionError } from '../utils/errors.js';
 
@@ -11,7 +11,7 @@ const PAYABLE_STATUSES = new Set<AppointmentStatus>([
 ]);
 
 /** Statuses from which an appointment can be confirmed (only freshly scheduled) */
-const CONFIRMABLE_STATUSES = new Set<AppointmentStatus>([AppointmentStatus.SCHEDULED]);
+const CONFIRMABLE_STATUSES = new Set<AppointmentStatus>([ AppointmentStatus.SCHEDULED ]);
 
 /** Statuses from which an appointment can be cancelled (not already cancelled/completed) */
 const CANCELLABLE_STATUSES = new Set<AppointmentStatus>([

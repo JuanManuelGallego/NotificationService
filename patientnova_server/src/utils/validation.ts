@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { Channel } from '@prisma/client';
+import { Channel } from '../../generated/prisma/client.ts';
 
 
 const e164 = z
