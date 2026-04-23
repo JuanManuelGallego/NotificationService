@@ -53,7 +53,7 @@ export function DateTimePicker({
                     };
                 } : undefined}
                 style={{ width: "100%" }}
-                popupStyle={mobilePopupStyle}
+                styles={{ popup: { root: mobilePopupStyle } }}
             />
         </ConfigProvider>
     );

@@ -17,7 +17,7 @@
      // — Module resolution —
     "module": "ESNext",           // was NodeNext; bundler mode doesn't need NodeNext
     "moduleResolution": "bundler", // matches how tsup/esbuild resolves modules
-    "target": "ES2022",
+    "target": "ES2025",
 
     // — Type-check only (tsup handles all emit) —
     "noEmit": true,
