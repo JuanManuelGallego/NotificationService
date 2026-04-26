@@ -105,6 +105,8 @@ export const userInclude = {
   lastName: true,
   displayName: true,
   avatarUrl: true,
+  logo: true,
+  altLogo: true,
   jobTitle: true,
   role: true,
   status: true,

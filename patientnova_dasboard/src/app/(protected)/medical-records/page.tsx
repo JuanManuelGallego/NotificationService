@@ -22,6 +22,7 @@ import { useCreateMedicalRecord } from "@/src/api/useCreateMedicalRecord";
 import { useUpdateMedicalRecord } from "@/src/api/useUpdateMedicalRecord";
 import { LBL_SAVED, LBL_SAVE_ERROR, LBL_LOADING } from "@/src/constants/ui";
 import { downloadMedicalRecordPDF } from "@/src/components/MedicalRecordPDF";
+import { useAuthContext } from "../../AuthContext";
 
 const AUTO_SAVE_DEBOUNCE_MS = 1500;
 
@@ -46,6 +47,7 @@ const createEmptyForm = (): FormValues => ({
 });
 
 function MedicalRecordsPageContent() {
+  const { user } = useAuthContext();
   const { patients, loading, error, fetchPatients } = useFetchPatients();
   const [ selectedPatientId, setSelectedPatientId ] = useQueryState("patientId", parseAsString.withDefault(""));
   const selectedPatient = patients.find((p) => p.id === selectedPatientId);
@@ -124,7 +126,7 @@ function MedicalRecordsPageContent() {
       <PageHeader title="Historias clínicas" subtitle={todayString()} actions={<button
         type="button"
         className="btn-primary"
-        onClick={() => downloadMedicalRecordPDF(form)}
+        onClick={() => downloadMedicalRecordPDF(user, form)}
       >
         Descargar PDF
       </button>} />

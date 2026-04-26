@@ -21,6 +21,8 @@ export const userRepository = {
                 lastName: dto.lastName ?? null,
                 displayName: dto.displayName ?? null,
                 avatarUrl: dto.avatarUrl ?? null,
+                logo: dto.logo ?? null,
+                altLogo: dto.altLogo ?? null,
                 jobTitle: dto.jobTitle ?? null,
                 phoneNumber: dto.phoneNumber ?? null,
                 whatsappNumber: dto.whatsappNumber ?? null,

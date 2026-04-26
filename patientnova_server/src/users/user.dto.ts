@@ -26,6 +26,8 @@ function _extractFields(user: {
   lastName: string | null;
   displayName: string | null;
   avatarUrl: string | null;
+  logo: string | null;
+  altLogo: string | null;
   jobTitle: string | null;
   role: string;
   status: string;
@@ -45,6 +47,8 @@ function _extractFields(user: {
     lastName: user.lastName,
     displayName: user.displayName,
     avatarUrl: user.avatarUrl,
+    logo: user.logo,
+    altLogo: user.altLogo,
     jobTitle: user.jobTitle,
     role: user.role as UserResponse[ 'role' ],
     status: user.status as UserResponse[ 'status' ],

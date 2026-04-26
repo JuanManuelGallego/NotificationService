@@ -3,8 +3,7 @@ import { Document, Image, Page, Text, View, pdf } from "@react-pdf/renderer";
 import { FormValues, RELATIONSHIP_CFG, SEX_CFG } from "@/src/types/MedicalRecord";
 import { fmtDate, todayString } from "@/src/utils/TimeUtils";
 import { S } from "../styles/medicalRecordsPDFStyle";
-import logo from "../../LogoPNG-02.png"
-import icon from "../../LogoPNG-26.png"
+import { User } from "../types/User";
 
 const val = (v?: string, fallback = "—") => (v?.trim() ? v.trim() : fallback);
 
@@ -42,14 +41,16 @@ function Field({
 
 function PageLayout({
   children,
+  user
 }: {
   children: React.ReactNode;
+  user: User | null;
 }) {
   return (
     <Page size="A4" style={S.page}>
       <View style={S.body}>{children}</View>
       <View style={S.footer} fixed>
-        <Image src={logo.src} style={S.headerLogo} />
+        <Image src={user?.logo} style={S.headerLogo} />
         <Text style={S.footerText}>
           Generado el {todayString()} · {AUTHOR}
         </Text>
@@ -135,7 +136,7 @@ function EvolitonNotes(form: FormValues) {
   )
 }
 
-export function MedicalRecordPDF({ form }: { form: FormValues }) {
+export function MedicalRecordPDF({ form, user }: { form: FormValues; user: User | null }) {
   return (
     <Document
       title={`Historia Clínica — ${val(form.name, "Paciente")}`}
@@ -144,11 +145,11 @@ export function MedicalRecordPDF({ form }: { form: FormValues }) {
       subject="Historia Clínica Psicológica"
       language="es"
     >
-      <PageLayout>
+      <PageLayout user={user}>
         <View>
           <View style={S.headerTop}>
             <Text style={S.headerTitle}>Historia Clinica</Text>
-            <Image src={icon.src} style={S.headerLogo} />
+            <Image src={user?.altLogo} style={S.headerLogo} />
           </View>
           <View style={S.row2}>
             <View style={S.col}>
@@ -195,8 +196,8 @@ export function MedicalRecordPDF({ form }: { form: FormValues }) {
   );
 }
 
-export async function downloadMedicalRecordPDF(form: FormValues) {
-  const blob = await pdf(<MedicalRecordPDF form={form} />).toBlob();
+export async function downloadMedicalRecordPDF(user: User | null, form: FormValues) {
+  const blob = await pdf(<MedicalRecordPDF form={form} user={user} />).toBlob();
   const url = URL.createObjectURL(blob);
   const a = Object.assign(document.createElement("a"), {
     href: url,

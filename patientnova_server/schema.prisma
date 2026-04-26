@@ -172,6 +172,8 @@ model User {
   displayName    String?
   avatarUrl      String?
   jobTitle       String?   
+  logo           String?
+  altLogo        String?
 
   phoneNumber    String?  @db.VarChar(20)
   whatsappNumber String?  @db.VarChar(20)

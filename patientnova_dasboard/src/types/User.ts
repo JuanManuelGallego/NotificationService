@@ -7,6 +7,8 @@ export interface User {
     lastName: string;
     displayName: string
     avatarUrl: string
+    logo: string
+    altLogo: string
     jobTitle: string
     role: AdminRole
     status: AdminStatus

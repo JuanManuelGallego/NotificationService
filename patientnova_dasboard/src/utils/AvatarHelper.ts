@@ -21,9 +21,21 @@ function getAvatarColor(id: string) {
     return `hsl(${hues[ idx ]}, 55%, 82%)`;
 }
 
-/** Resize an image File to a JPEG base64 data-URL at most maxSide×maxSide px. */
-async function resizeToBase64(file: File, maxSide = 256): Promise<string> {
-    if (typeof window === 'undefined') throw new Error("resizeToBase64 requires a browser environment");
+type ImageFormat = "image/jpeg" | "image/png" | "image/webp";
+
+/**
+ * Resize an image File to a base64 data-URL at most maxSide×maxSide px.
+ *
+ * @param format - Output format. Defaults to "image/jpeg".
+ *   Use "image/png" or "image/webp" when the source has transparency
+ *   (e.g. logos), otherwise transparent pixels become black on a canvas.
+ */
+async function resizeToBase64(
+    file: File,
+    maxSide = 256,
+    format: ImageFormat = "image/jpeg",
+): Promise<string> {
+    if (typeof window === "undefined") throw new Error("resizeToBase64 requires a browser environment");
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.onerror = reject;
@@ -35,8 +47,18 @@ async function resizeToBase64(file: File, maxSide = 256): Promise<string> {
                 const canvas = document.createElement("canvas");
                 canvas.width = Math.round(img.width * scale);
                 canvas.height = Math.round(img.height * scale);
-                canvas.getContext("2d")!.drawImage(img, 0, 0, canvas.width, canvas.height);
-                resolve(canvas.toDataURL("image/jpeg", 0.85));
+
+                const ctx = canvas.getContext("2d")!;
+
+                // JPEG has no alpha channel — fill white so transparent pixels
+                // don't collapse to black. PNG and WebP preserve alpha natively.
+                if (format === "image/jpeg") {
+                    ctx.fillStyle = "#ffffff";
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                }
+
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                resolve(canvas.toDataURL(format, 0.85));
             };
             img.src = ev.target!.result as string;
         };
@@ -45,3 +67,4 @@ async function resizeToBase64(file: File, maxSide = 256): Promise<string> {
 }
 
 export { getInitials, getAvatarColor, resizeToBase64, getPatientFullName, getUserName };
+export type { ImageFormat };

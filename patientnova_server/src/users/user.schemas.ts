@@ -17,6 +17,8 @@ export const updateUserSchema = z.object({
     displayName: z.string().min(1).max(100).optional(),
     jobTitle: z.string().max(120).optional(),
     avatarUrl: z.string().max(500_000).nullable().optional(), // base64 data URL ≤ ~375 KB raw
+    logo: z.string().max(500_000).nullable().optional(), // base64 data URL ≤ ~375 KB raw
+    altLogo: z.string().max(500_000).nullable().optional(), // base64 data URL ≤ ~375 KB raw
     phoneNumber: e164OrEmpty,
     whatsappNumber: e164OrEmpty,
     reminderActive: z.boolean().optional(),
@@ -35,6 +37,8 @@ export const superAdminUpdateUserSchema = z.object({
     lastName: z.string().min(1).max(100).optional(),
     displayName: z.string().min(1).max(100).optional(),
     avatarUrl: z.string().max(500_000).nullable().optional(), // base64 data URL ≤ ~375 KB raw
+    logo: z.string().max(500_000).nullable().optional(), // base64 data URL ≤ ~375 KB raw
+    altLogo: z.string().max(500_000).nullable().optional(), // base64 data URL ≤ ~375 KB raw
     jobTitle: z.string().max(120).optional(),
     phoneNumber: e164OrEmpty,
     whatsappNumber: e164OrEmpty,
@@ -60,6 +64,8 @@ export const createUserSchema = z.object({
     lastName: z.string().min(1).max(100),
     displayName: z.string().min(1).max(100).optional(),
     avatarUrl: z.string().max(500_000).nullable().optional(), // base64 data URL ≤ ~375 KB raw
+    logo: z.string().max(500_000).nullable().optional(), // base64 data URL ≤ ~375 KB raw
+    altLogo: z.string().max(500_000).nullable().optional(), // base64 data URL ≤ ~375 KB raw
     jobTitle: z.string().max(120).optional(),
     phoneNumber: e164OrEmpty,
     whatsappNumber: e164OrEmpty,
