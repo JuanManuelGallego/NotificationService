@@ -2,8 +2,8 @@
 import { Document, Image, Page, Text, View, pdf } from "@react-pdf/renderer";
 import { FormValues, RELATIONSHIP_CFG, SEX_CFG } from "@/src/types/MedicalRecord";
 import { fmtDate, todayString } from "@/src/utils/TimeUtils";
-import { S } from "../styles/medicalRecordsPDFStyle";
-import { User } from "../types/User";
+import { S } from "../../styles/medicalRecordsPDFStyle";
+import { User } from "../../types/User";
 
 const val = (v?: string, fallback = "—") => (v?.trim() ? v.trim() : fallback);
 
@@ -112,7 +112,7 @@ function Antecedents(form: FormValues) {
   ))
 }
 
-function EvolitonNotes(form: FormValues) {
+function EvolutionNotes(form: FormValues) {
   return !form.evolutionNotes?.length ? (
     <Text style={S.emptyText}>No se han registrado notas de evolución.</Text>
   ) : (
@@ -124,7 +124,7 @@ function EvolitonNotes(form: FormValues) {
           style={[ S.noteCard, i === arr.length - 1 ? S.noteCardLast : {} ]}
         >
           <Text style={S.noteDate}>
-            {note.date ? fmtDate(note.date) : `Nota #${i + 1}`}
+            Nota de evolución — {note.date ? fmtDate(note.date) : `#${i + 1}`}
           </Text>
           <Text style={S.noteText}>{val(note.text, "Sin contenido.")}</Text>
           {i < arr.length - 1 && <View style={S.divider} />}
@@ -188,7 +188,7 @@ export function MedicalRecordPDF({ form, user }: { form: FormValues; user: User 
         </View>
         <View>
           <Text style={S.fieldTitle}>Notas de Evolución</Text>
-          {EvolitonNotes(form)}
+          {EvolutionNotes(form)}
         </View>
       </PageLayout>
     </Document>

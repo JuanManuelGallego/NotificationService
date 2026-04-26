@@ -49,10 +49,23 @@ export const medicalRecordRepository = {
             create: dto.evolutionNotes.map(({ date, text }) => ({ date, text: text ?? null })),
           },
         }),
+        ...(dto.documents?.length && {
+          documents: {
+            create: dto.documents.map(({ id, name, mimeType, sizeBytes, data, uploadedAt }) => ({
+              id,
+              name,
+              mimeType,
+              sizeBytes,
+              data,
+              uploadedAt: new Date(uploadedAt),
+            })),
+          },
+        }),
       },
       include: {
         familyMembers: true,
         evolutionNotes: true,
+        documents: true,
       },
     });
   },
@@ -64,6 +77,7 @@ export const medicalRecordRepository = {
         patient: true,
         familyMembers: true,
         evolutionNotes: { orderBy: { date: 'desc' } },
+        documents: { orderBy: { uploadedAt: 'desc' } },
       },
     });
     if (!rec) throw new MedicalRecordNotFoundError(id);
@@ -76,6 +90,7 @@ export const medicalRecordRepository = {
       include: {
         familyMembers: true,
         evolutionNotes: { orderBy: { date: 'desc' } },
+        documents: { orderBy: { uploadedAt: 'desc' } },
       },
     });
     if (!rec) throw new MedicalRecordNotFoundError(patientId);
@@ -105,6 +120,7 @@ export const medicalRecordRepository = {
         include: {
           familyMembers: true,
           evolutionNotes: { orderBy: { date: 'desc' } },
+          documents: { orderBy: { uploadedAt: 'desc' } },
         },
       }),
       prisma.medicalRecord.count({ where }),
@@ -150,6 +166,23 @@ export const medicalRecordRepository = {
         }
       }
 
+      if (dto.documents !== undefined) {
+        await tx.medicalDocument.deleteMany({ where: { medicalRecordId: id } });
+        if (dto.documents.length > 0) {
+          await tx.medicalDocument.createMany({
+            data: dto.documents.map(({ id: docId, name, mimeType, sizeBytes, data, uploadedAt }) => ({
+              id: docId,
+              medicalRecordId: id,
+              name,
+              mimeType,
+              sizeBytes,
+              data,
+              uploadedAt: new Date(uploadedAt),
+            })),
+          });
+        }
+      }
+
       return tx.medicalRecord.update({
         where: { id },
         data: {
@@ -173,6 +206,7 @@ export const medicalRecordRepository = {
         include: {
           familyMembers: true,
           evolutionNotes: { orderBy: { date: 'desc' } },
+          documents: { orderBy: { uploadedAt: 'desc' } },
         },
       });
     });

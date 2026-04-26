@@ -42,3 +42,4 @@ export const sectionGridStyle: CSSProperties = {
     gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
     gap: 18,
 };
+

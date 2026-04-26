@@ -1,7 +1,7 @@
-import { sectionGridStyle } from "../styles/theme";
+import { sectionGridStyle } from "../../styles/theme";
 import { FormValues, SEX_CFG } from "@/src/types/MedicalRecord";
-import { DateTimePicker } from "./DateTimePicker";
-import { CustomSelect } from "./CustomSelect";
+import { DateTimePicker } from "../DateTimePicker";
+import { CustomSelect } from "../CustomSelect";
 
 type GeneralDataSectionProps = {
   form: FormValues;

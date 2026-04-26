@@ -9,20 +9,21 @@ import { CustomSelect } from "@/src/components/CustomSelect";
 import { RequiredField } from "@/src/components/Info/Required";
 import { getPatientFullName } from "@/src/utils/AvatarHelper";
 import { FormValues } from "@/src/types/MedicalRecord";
-import { GeneralDataSection } from "@/src/components/GeneralDataSection";
+import { GeneralDataSection } from "@/src/components/MedicalRecord/GeneralDataSection";
 import { FamilyTable } from "@/src/components/FamilyTable";
-import { AntecedentsSection } from "@/src/components/AntecedentsSection";
+import { AntecedentsSection } from "@/src/components/MedicalRecord/AntecedentsSection";
 import { EvolutionNotes } from "@/src/components/EvolutionNotes";
 import { todayString } from "@/src/utils/TimeUtils";
 import { parseAsString, useQueryState } from "nuqs";
 import { LoadingSpinner } from "@/src/components/LoadingSpinner";
-import { MedicalRecordCard } from "@/src/components/MedicalRecordCard";
+import { MedicalRecordCard } from "@/src/components/MedicalRecord/MedicalRecordCard";
 import { useFetchMedicalRecord } from "@/src/api/useFetchMedicalRecord";
 import { useCreateMedicalRecord } from "@/src/api/useCreateMedicalRecord";
 import { useUpdateMedicalRecord } from "@/src/api/useUpdateMedicalRecord";
 import { LBL_SAVED, LBL_SAVE_ERROR, LBL_LOADING } from "@/src/constants/ui";
-import { downloadMedicalRecordPDF } from "@/src/components/MedicalRecordPDF";
+import { downloadMedicalRecordPDF } from "@/src/components/MedicalRecord/MedicalRecordPDF";
 import { useAuthContext } from "../../AuthContext";
+import { DocumentsSection } from "@/src/components/MedicalRecord/DocumentsSection";
 
 const AUTO_SAVE_DEBOUNCE_MS = 1500;
 
@@ -45,6 +46,7 @@ const createEmptyForm = (): FormValues => ({
   familyObservations: "",
   familyMembers: [],
   evolutionNotes: [],
+  documents: [],
 });
 
 function MedicalRecordsPageContent() {
@@ -89,6 +91,7 @@ function MedicalRecordsPageContent() {
         familyObservations: medicalRecord.familyObservations || "",
         familyMembers: medicalRecord.familyMembers?.length ? medicalRecord.familyMembers : [],
         evolutionNotes: medicalRecord.evolutionNotes?.length ? medicalRecord.evolutionNotes : [],
+        documents: medicalRecord.documents || [],
       });
       isReady.current = true;
     } else {
@@ -103,6 +106,7 @@ function MedicalRecordsPageContent() {
 
     const timeout = setTimeout(async () => {
       try {
+        console.log("Auto-saving medical record...", { recordId, form });
         await updateMedicalRecord(recordId, form);
         setSaveStatus("saved");
         setTimeout(() => setSaveStatus("idle"), AUTO_SAVE_DEBOUNCE_MS);
@@ -210,6 +214,9 @@ function MedicalRecordsPageContent() {
                 evolutionNotes={form.evolutionNotes || []}
                 onChange={(evolutionNotes) => setForm((current) => ({ ...current, evolutionNotes }))}
               />
+            </MedicalRecordCard>
+            <MedicalRecordCard title="Documentos relacionados" icon="📂">
+              <DocumentsSection documents={form.documents || []} onChange={(docs) => setForm((current) => ({ ...current, documents: docs }))} />
             </MedicalRecordCard>
           </>
         )}

@@ -157,8 +157,6 @@ export function ProfileTab() {
 
     return (
         <div style={{ display: "grid", gridTemplateColumns: "272px 1fr", gap: 24, maxWidth: 880 }}>
-
-            {/* ── Avatar card ─────────────────────────────────────────────── */}
             <div className="dash-card" style={{ height: "fit-content" }}>
                 <div className="dash-card__header">
                     <span className="dash-card__title">Foto de perfil</span>
@@ -215,8 +213,6 @@ export function ProfileTab() {
                     </div>
                 </div>
             </div>
-
-            {/* ── Personal info card ──────────────────────────────────────── */}
             <div className="dash-card">
                 <div className="dash-card__header">
                     <span className="dash-card__title">Información personal</span>
@@ -268,8 +264,6 @@ export function ProfileTab() {
                     </form>
                 </div>
             </div>
-
-            {/* ── Logos card (spans both columns) ─────────────────────────── */}
             <div className="dash-card" style={{ gridColumn: "1 / -1" }}>
                 <div className="dash-card__header">
                     <span className="dash-card__title">Logos</span>
@@ -294,7 +288,6 @@ export function ProfileTab() {
                             onRemove={() => setAltLogo(null)}
                         />
                     </div>
-                    {/* Hidden file inputs */}
                     <input ref={logoRef} type="file" accept="image/*" style={{ display: "none" }} onChange={makeLogoHandler(setLogo)} />
                     <input ref={altLogoRef} type="file" accept="image/*" style={{ display: "none" }} onChange={makeLogoHandler(setAltLogo)} />
                 </div>

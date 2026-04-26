@@ -21,6 +21,7 @@ export type MedicalRecord = {
     familyObservations: string;
     familyMembers?: FamilyMember[];
     evolutionNotes?: EvolutionNote[];
+    documents: MedicalDocument[];
 }
 
 export type FormValues = {
@@ -42,6 +43,7 @@ export type FormValues = {
     familyObservations: string;
     familyMembers?: FamilyMember[];
     evolutionNotes?: EvolutionNote[];
+    documents: MedicalDocument[];
 };
 
 export type FamilyMember = {
@@ -107,3 +109,12 @@ export const createEmptyNote = (): EvolutionNote => ({
     date: today().slice(0, 10),
     text: "",
 });
+
+export interface MedicalDocument {
+    id: string;           // crypto.randomUUID()
+    name: string;         // display name, user-editable
+    mimeType: string;     // original MIME type
+    sizeBytes: number;    // original file size for display
+    data: string;         // base64 data-URL
+    uploadedAt: string;   // ISO string
+}

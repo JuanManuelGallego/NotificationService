@@ -293,6 +293,7 @@ model MedicalRecord {
   // Relations
   familyMembers   FamilyMember[]
   evolutionNotes  EvolutionNote[]
+  documents       MedicalDocument[]
 
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
@@ -353,4 +354,21 @@ enum Relationship {
   GRANDFATHER
   GRANDMOTHER
   OTHER
+}
+
+// ─── Medical Document ───────────────────────────────────────────────────────────
+
+model MedicalDocument {
+  id              String   @id @default(uuid()) @db.Uuid
+  name            String
+  mimeType        String
+  sizeBytes       Int
+  data            String   @db.Text   // base64 data-URL
+  uploadedAt      DateTime @default(now())
+
+  medicalRecordId String        @db.Uuid
+  medicalRecord   MedicalRecord @relation(fields: [medicalRecordId], references: [id], onDelete: Cascade)
+
+  @@index([medicalRecordId])
+  @@map("medical_documents")
 }

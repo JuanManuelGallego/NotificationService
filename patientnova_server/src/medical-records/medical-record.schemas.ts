@@ -14,6 +14,15 @@ const evolutionNoteSchema = z.object({
   text: z.string().optional(),
 });
 
+const medicalDocumentSchema = z.object({
+  id: z.string().uuid(),
+  name: z.string().min(1),
+  mimeType: z.string().min(1),
+  sizeBytes: z.coerce.number().int().nonnegative(),
+  data: z.string().min(1),   // base64 data-URL
+  uploadedAt: z.iso.datetime().catch(() => new Date().toISOString()),
+});
+
 const medicalRecordBaseSchema = z.object({
   // Personal data
   name: z.string().optional(),
@@ -38,6 +47,7 @@ const medicalRecordBaseSchema = z.object({
   // Relations
   familyMembers: z.array(familyMemberSchema).optional(),
   evolutionNotes: z.array(evolutionNoteSchema).optional(),
+  documents: z.array(medicalDocumentSchema).optional()
 });
 
 export const createMedicalRecordSchema = medicalRecordBaseSchema.extend({
