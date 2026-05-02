@@ -171,7 +171,7 @@ function MedicalRecordsPageContent() {
         {selectedPatientId && !medicalRecord && !loadingMedicalRecord && (
           <div style={{ textAlign: "center", padding: 24 }}>
             <MedicalRecordCard title="" icon="">
-              <p className="modal-confrim-text">El paciente no tiene una historia clínica registrada.</p>
+              <p className="dash-empty__text" style={{ paddingBottom: 10 }}>El paciente no tiene una historia clínica registrada.</p>
               <button
                 type="button"
                 className="btn-primary"

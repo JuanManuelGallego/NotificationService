@@ -7,10 +7,10 @@ import { useApiPaginatedQuery } from "./useApiPaginatedQuery";
 export const useFetchPatients = (filters?: FetchPatientsFilters) => {
     const url = useMemo(
         () => `${API_BASE}/patients${buildPatientQueryString(filters)}`,
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-        [ JSON.stringify(filters) ]
+        [ filters ]
     );
     const { items: patients, loading, error, refetch: fetchPatients, total, totalPages } =
         useApiPaginatedQuery<Patient>(url, { errorMessage: "Failed to load patients" });
+
     return { patients, loading, error, fetchPatients, total, totalPages };
-};
+}

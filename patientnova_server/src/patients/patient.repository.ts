@@ -62,7 +62,7 @@ export const patientRepository = {
   async findByIdWithRelations(id: string, userId: string): Promise<PatientWithRelations> {
     const patient = await prisma.patient.findFirst({
       where: { id, userId },
-      include: { appointments: true, reminders: true },
+      include: { appointments: true, reminders: true, medicalRecord: true },
     });
     if (!patient) throw new PatientNotFoundError(id);
     return patient;
