@@ -16,6 +16,17 @@ function fmtDate(d: string | undefined): string {
     });
 }
 
+function fmtDatePlusOneDay(d: string | undefined): string {
+    if (!d) return "Invalid Date"
+
+    const date = new Date(d);
+    date.setDate(date.getDate() + 1);
+
+    return date.toLocaleDateString("es-ES", {
+        day: "numeric", month: "long", year: "numeric",
+    });
+}
+
 function fmtTime(d: string | undefined): string {
     if (!d) return "Invalid Date"
     return new Date(d).toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" });
@@ -240,6 +251,7 @@ export {
     fmtTime,
     fmtDateTime,
     fmtDateWeekDay,
+    fmtDatePlusOneDay,
     fmtRelative,
     getDate,
     getAppointmentEndTime,
